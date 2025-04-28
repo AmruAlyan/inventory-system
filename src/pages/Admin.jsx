@@ -79,7 +79,7 @@ function Admin() {
           </button>
         </div>
 
-        <div className="content-area"><h1>السلام عليكم</h1></div>
+        <div className="content-area"><h1>שלום!</h1></div>
       </main>
     </div>
   );
