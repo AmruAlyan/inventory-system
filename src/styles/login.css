@@ -1,0 +1,151 @@
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-color: #3d525d;
+    direction: rtl;
+  }
+  
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+  
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  .title-box {
+    background-color: #2d3c46;
+    color: #ffd000;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: 80%;
+  }
+  
+  .title-box h1, .title-box h2 {
+    margin: 5px 0;
+  }
+  
+  .illustration {
+    margin-top: 20px;
+  }
+  
+  .illustration img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .right-panel {
+    background-color: #f4f4f4;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+    margin: 30px;
+  }
+  
+  .login-box h2 {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .input-group {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 10px 40px 10px 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+  
+  .input-group .icon {
+    position: absolute;
+    max-width: 20px;
+    max-height: 20px;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #444;
+  }
+  
+  i {
+    position: absolute;
+    max-width: 20px;
+    max-height: 20px;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #444;
+    text-shadow: 0 0 2px black;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #ffd000;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #e6bc00;
+  }
+  
+  /* 👇 Responsive layout */
+  @media (max-width: 895px) {
+    .container {
+      flex-direction: column;
+      padding: 10px;
+    }
+  
+    .title-box {
+      order: 1;
+      width: 100%;
+      font-size: 90%;
+    }
+  
+    .right-panel {
+      order: 2;
+      width: 500px;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  
+    .illustration {
+      order: 3;
+      width: 100%;
+      text-align: center;
+    }
+  
+    .illustration img {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+  }
+  
