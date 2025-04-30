@@ -1,21 +1,32 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useNavigate } from 'react-router-dom';
+import '../styles/dashboard.css';
+import Header from '../components/Header';
+import ProfileWidget from '../components/profileWidget';
+import Sidebar from '../components/Sidebar';
 import { 
-  faUser, 
-  faBars, 
   faWarehouse,
   faCartShopping,
   faCashRegister,
-  faFileLines,
-  faXmark,
-  faEye,
-  faRightFromBracket
+  faFileLines
 } from '@fortawesome/free-solid-svg-icons';
-import '../styles/dashboard.css';
-import { useNavigate } from 'react-router-dom';
+import useIsMobile from '../hooks/useIsMobile';
+
+const role = "מנהל מלאי";
+const name = "עבדאלרחמן";
+const sidebarIcons = [
+  { icon: faWarehouse, text: 'מוצרים' },
+  { icon: faCartShopping, text: 'רשימת קניות' },
+  { icon: faCashRegister, text: 'קנייה חדשה' },
+  { icon: faFileLines, text: 'הצג הוצאה תקציבית' },
+];
+
+
 
 function Manager() {
+
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const handleLogout = () => {
     navigate("/");
@@ -30,64 +41,42 @@ function Manager() {
   };
 
   const toggleProfile = () => {
-    if (isExpanded) setIsExpanded(false);
+
+    if (isMobile && isExpanded) setIsExpanded(false);
     setIsProfileOpen(prev => !prev);
   };
+
+  const toggleButtonRef = useRef();
+  const sidebarRef = useRef();
 
   return (
     <div className="dashboard">
 
-      <header className="dashboard-header">
-        <div className="title-container">
-            <button onClick={toggleSidebar} className="menu-button">
-                <FontAwesomeIcon icon={faBars} className="icon" />
-            </button>
-            <h1 className="dashboard-title">מנהל מלאי</h1>
-        </div>
-        <button onClick={toggleProfile} className="user-button">
-          <FontAwesomeIcon icon={faUser} className="icon" />
-        </button>
-      </header>
+      <Header
+        toggleSidebar={toggleSidebar} 
+        toggleProfile={toggleProfile} 
+        title={role} 
+        ref={toggleButtonRef}
+        sidebarRef={sidebarRef}
+      />
 
       <main className="dashboard-main">
 
-        <div className={`profile-widget ${isProfileOpen ? 'open' : ''}`}>
-          <div className='profile-hi-x'>
-            <span>היי, עבדאלרחמן!</span>
-            <button onClick={toggleProfile} className="close-button">
-              <FontAwesomeIcon icon={faXmark} className="icon" />
-            </button>
-          </div>
-          
-          <button className='profile-button'>
-            <FontAwesomeIcon icon={faEye} className="icon" />
-            <span className="profile-text">הצג פרופיל</span>
-          </button>
-          <button className='profile-button' onClick={handleLogout}>
-            <FontAwesomeIcon icon={faRightFromBracket} className="icon" />
-            <span className="profile-text">התנתק</span>
-          </button>
-        </div>
+        <ProfileWidget
+          isProfileOpen={isProfileOpen} 
+          toggleProfile={toggleProfile} 
+          nav2profile={() => navigate("/profile")}
+          handleLogout={handleLogout} 
+          username={name}
+          toggleButtonRef={toggleButtonRef}
+        />
 
-
-        <div className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faWarehouse} className="icon" />
-            <span className="sidebar-text">מוצרים</span>
-          </button>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faCartShopping} className="icon" />
-            <span className="sidebar-text">רשימת קניות</span>
-          </button>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faCashRegister} className="icon" />
-            <span className="sidebar-text">קנייה חדשה</span>
-          </button>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faFileLines} className="icon" />
-            <span className="sidebar-text">הצג הוצאה תקציבית</span>
-          </button>
-        </div>
+        <Sidebar
+          isExpanded={isExpanded} 
+          items={sidebarIcons}
+          toggleSidebar={toggleSidebar}
+          toggleSidebarRef={sidebarRef}
+        />
 
         <div className="content-area">
           <h1>שלום מנהל מלאי</h1>

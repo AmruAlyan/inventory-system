@@ -6,6 +6,7 @@ import Admin from "./pages/Admin";
 import Manager from "./pages/Manager";
 
 function App() {
+
   return (
     <Router>
       <Routes>

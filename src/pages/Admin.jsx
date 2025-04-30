@@ -1,19 +1,22 @@
 import React from 'react';
-import { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUser, 
-  faBars, 
-  faShekel,
-  faFileLines,
-  faXmark,
-  faEye,
-  faRightFromBracket
-} from '@fortawesome/free-solid-svg-icons';
+import { useState, useRef } from 'react';
 import '../styles/dashboard.css';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
+import ProfileWidget from '../components/profileWidget';
+import Sidebar from '../components/Sidebar';
+import { faShekel, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import useIsMobile from '../hooks/useIsMobile';
+
+const sidebarIcons = [
+  { icon: faShekel, text: 'תקציב' },
+  { icon: faFileLines, text: 'צפה בדוחות הוצאות' },
+];
+
+
 
 function Admin() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const handleLogout = () => {
     navigate("/");
@@ -28,56 +31,41 @@ function Admin() {
   };
 
   const toggleProfile = () => {
-    if (isExpanded) setIsExpanded(false);
+    if (isMobile && isExpanded) setIsExpanded(false);
     setIsProfileOpen(prev => !prev);
   };
-
+  
+  const toggleButtonRef = useRef(); 
+  const sidebarRef = useRef();
+  
   return (
     <div className="dashboard">
 
-      <header className="dashboard-header">
-        <div className="title-container">
-            <button onClick={toggleSidebar} className="menu-button">
-                <FontAwesomeIcon icon={faBars} className="icon" />
-            </button>
-            <h1 className="dashboard-title">מנהל אדמיניסטרטיבי</h1>
-        </div>
-        <button onClick={toggleProfile} className="user-button">
-          <FontAwesomeIcon icon={faUser} className="icon" />
-        </button>
-      </header>
+      <Header
+        toggleSidebar={toggleSidebar} 
+        toggleProfile={toggleProfile} 
+        title={"ברוך הבא"} 
+        ref={toggleButtonRef}
+        sidebarRef={sidebarRef}
+      />
 
       <main className="dashboard-main">
 
-        <div className={`profile-widget ${isProfileOpen ? 'open' : ''}`}>
-          <div className='profile-hi-x'>
-            <span>היי, עבדאלרחמן!</span>
-            <button onClick={toggleProfile} className="close-button">
-              <FontAwesomeIcon icon={faXmark} className="icon" />
-            </button>
-          </div>
-          
-          <button className='profile-button'>
-            <FontAwesomeIcon icon={faEye} className="icon" />
-            <span className="profile-text">הצג פרופיל</span>
-          </button>
-          <button className='profile-button' onClick={handleLogout}>
-            <FontAwesomeIcon icon={faRightFromBracket} className="icon" />
-            <span className="profile-text">התנתק</span>
-          </button>
-        </div>
+        <ProfileWidget
+          isProfileOpen={isProfileOpen} 
+          toggleProfile={toggleProfile} 
+          nav2profile={() => navigate("/profile")}
+          handleLogout={handleLogout} 
+          username={"אדמן"}
+          toggleButtonRef={toggleButtonRef} // Pass the ref to ProfileWidget
+        />
 
-
-        <div className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faShekel} className="icon" />
-            <span className="sidebar-text">תקציב</span>
-          </button>
-          <button className="sidebar-button">
-            <FontAwesomeIcon icon={faFileLines} className="icon" />
-            <span className="sidebar-text">צפה בדוחות הוצאות</span>
-          </button>
-        </div>
+        <Sidebar
+          isExpanded={isExpanded} 
+          items={sidebarIcons}
+          toggleSidebar={toggleSidebar}
+          toggleSidebarRef={sidebarRef}
+        />
 
         <div className="content-area"><h1>שלום!</h1></div>
       </main>

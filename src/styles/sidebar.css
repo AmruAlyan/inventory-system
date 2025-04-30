@@ -1,0 +1,127 @@
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--header-bg);
+  border-left: 1px solid black;
+  padding: 8px;
+}
+
+.sidebar.expanded {
+  align-items: center;
+  width: 210px;
+}
+
+.sidebar-button {
+  border-radius: 10px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  margin: 10px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  background: none;
+  box-shadow: 0 0 5px 1px var(--primary-text);
+  background-color: var(--panel-bg);
+}
+
+.sidebar.expanded .sidebar-button {
+  border-radius: 10px;
+  width: 100%;
+  height: 40px;
+  margin: 10px;
+  justify-content: right;
+}
+
+/* .sidebar-button:hover {
+  box-shadow: 0 0 5px 1px var(--header-bg);
+}
+
+.sidebar.expanded .sidebar-button:hover {
+  background-color: var(--button-hover-bg); 
+  box-shadow: 0 0 5px var(--header-bg);
+} */
+
+.sidebar-button:active {
+  /* background-color: transparent; */
+  box-shadow: 0 0 5px 1px var(--panel-bg);
+}
+
+.sidebar-text {
+  display: none;
+  color: var(--primary-text);
+  font-size: 16px;
+  margin-right: 16px;
+}
+
+.sidebar.expanded .sidebar-text {
+  display: inline;
+}
+
+.sidebar.expanded ~ .content-area {
+  margin-right: 235px;
+}
+
+/* Icon Styling */
+.sidebar-icon {
+  color: #FFC107;
+  width: 24px; 
+  height: 24px;
+  /* margin-right: 20px; */
+}
+
+.sidebar.expanded .sidebar-icon {
+  margin-right: 12px;
+}
+
+@media (max-width: 895px) {
+  .sidebar {
+    display: none;
+  }
+
+  .sidebar.expanded {
+    display: flex;
+    background-color: var(--header-bg);
+    align-items: center;
+    height: fit-content;
+    margin: 10px;
+    border: solid 1px var(--shadow-color);
+    border-radius: 20px;
+    position: fixed;
+    width: fit-content;
+  }
+
+  .sidebar.expanded .sidebar-button {
+    border-radius: 20px;
+    width: 100%;
+    height: 36px;
+    margin: 10px;
+    justify-content: right;
+  }
+
+  /* .sidebar.expanded .sidebar-button:hover {
+    background-color: var(--button-bg);
+    box-shadow: 0 0 5px var(--shadow-color);
+  } */
+
+  .sidebar.expanded .sidebar-text {
+    display: inline;
+  }
+
+  .sidebar.expanded ~ .content-area {
+    margin-right: 0px;
+  }
+
+  /* Icon Styling */
+  /* .sidebar-icon {
+    color: #FFC107;
+    width: 24px; 
+    height: 24px;
+    margin-right: 20px;
+  } */
+}
