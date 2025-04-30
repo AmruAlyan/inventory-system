@@ -1,0 +1,88 @@
+.profile-widget {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    margin: 10px;
+    width: 250px;
+    height:fit-content;
+    background-color: var(--header-bg);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 5px black;
+    z-index: 1000;
+  }
+
+  .profile-widget.open {
+    display: flex;
+  }
+
+  .profile-hi-x {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: fit-content; /* Important to stretch the full widget width */
+    color: var(--icon-highlight);
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+    padding: 0 10px;
+    border-radius: 20px;
+    text-shadow: 0 0 1px black;
+
+}
+
+  .close-button {
+    border-radius: 50%;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    margin-right: 10px;
+    align-items: center;
+    justify-content: center; 
+    display: flex;
+    background: none;
+  }
+
+  .close-button:hover {
+    background-color: var(--button-hover-bg);
+    box-shadow: 0 0 5px black;
+  }
+
+  .profile-button {
+    border-radius: 20px;
+    cursor: pointer;
+    width: 100%;
+    height: 36px;
+    margin: 10px;
+    align-items: center;
+    justify-content: right;
+    display: flex;
+    background: none;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    background-color: var(--panel-bg);
+  }
+
+  .profile-button:active {
+    box-shadow: 0 0 5px 1px var(--header-bg);
+  }
+
+  .profile-text {
+    display: inline;
+    color: var(--primary-text);
+    font-size: 16px;
+    margin-right: 16px;
+  }
+
+  /* Icon Styling */
+  .widget-icon {
+    color: #FFC107;
+    width: 24px; 
+    height: 24px;
+    margin-right: 20px;
+  }

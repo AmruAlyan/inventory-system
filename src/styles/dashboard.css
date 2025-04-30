@@ -9,87 +9,9 @@
     display: flex;
     flex-direction: column;
     /* height: 100vh; */
-    background-color: #455A64;
+    background-color: var(--bg-color);
     font-family: Arial, Helvetica, sans-serif;
     height: fit-content;
-  }
-  
-  /* Header Styles */
-  .dashboard-header {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    background-color: #455A64;
-    height: 48px;
-    padding: 8px;
-    border-bottom: 1px solid #F5F7F8;
-    text-shadow: 0 0 5px black;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-  }
-  
-  .user-button {
-    border-radius: 50%;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    margin-left: 10px;
-    margin-right: 10px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    background: none;
-    /* background-color: #45474B; */
-    /* box-shadow: 0 0 5px black; */
-  }
-  
-  .user-button:hover {
-    background-color: #45474B;
-    box-shadow: 0 0 5px black;
-  }
-
-  .user-button:active {
-    background: transparent;
-  }
-  
-  
-  .title-container {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-left: auto;
-  }
-  
-  .dashboard-title {
-    font-weight: bold;
-    color: #FFC107; /* yellow-400 */
-    margin: 0;
-    text-align: right;
-    font-size: clamp(1.5rem, 2.5vw, 3rem);
-  }
-  
-  .menu-button {
-    border-radius: 50%;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    margin-left: 10px;
-    margin-right: 10px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    background: none;
-    /* box-shadow: 0 0 5px black; */
-    /* background-color: #45474B; */
-
-  }
-  
-  .menu-button:hover {
-    background-color: #45474B;
-    box-shadow: 0 0 5px black;
   }
 
   /* Icon Styling */
@@ -104,24 +26,6 @@
     display: flex;
     flex: 1;
   }
-  
-  /* Sidebar */
-  .sidebar {
-    position: fixed;
-    top: 60px;
-    bottom: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    background-color: #455A64;
-    border-left: 1px solid #F5F7F8;
-    padding: 8px;
-  }
-  
-  .sidebar.expanded {
-    align-items: center;
-    width: 210px;
-  }
 
   .content-area {
     margin-top: 65px; /* height of header */
@@ -129,186 +33,27 @@
     padding: 0px 20px 20px 20px;
     min-height: calc(100vh - 60px);
     transition: margin 0.3s ease;
-    color: #F5F7F8;
+    color: var(--primary-text);
     text-align: justify;
   }
-  
-  .sidebar-button {
-    border-radius: 50px;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    margin: 10px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    background: none;
-  }
-
-  .sidebar.expanded .sidebar-button {
-    border-radius: 20px;
-    cursor: pointer;
-    width: 100%;
-    height: 36px;
-    margin: 10px;
-    justify-content: right;
-  }
-  
-  .sidebar-button:hover {
-    background-color: #45474B;
-    box-shadow: 0 0 5px black;
-  }
-
-  .sidebar.expanded .sidebar-button:hover {
-    background-color: #455A64;
-    box-shadow: 0 0 5px black;
-  }
-
-  .sidebar-text {
-    display: none;
-    color: #FFC107;
-    font-size: 16px;
-    margin-right: 16px;
-  }
-
-  .sidebar.expanded .sidebar-text {
-    display: inline;
-  }
-  
   
   .sidebar.expanded ~ .content-area {
     margin-right: 235px;
   }
 
-  .profile-widget {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    margin: 10px;
-    width: 250px;
-    height:fit-content;
-    background-color: #45474B;
-    border-radius: 20px;
-    padding: 10px;
-    box-shadow: 0 0 5px black;
-    z-index: 1000;
-  }
-
-  .profile-widget.open {
-    display: flex;
-  }
-
-  .profile-hi-x {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between; /* Pushes hi and X to far sides */
-    width: 100%; /* Important to stretch the full widget width */
-    color: #F5F7F8;
-    font-size: 24px;
-    font-weight: bold;
-    margin: 10px 0;
-    padding: 0 10px;
-}
-
-  .close-button {
-    border-radius: 50%;
+  button {
+    background-color: transparent;
+    border: none;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
-    margin-left: 10px;
-    margin-right: 10px;
-    align-items: center;
-    justify-content: center; 
-    display: flex;
-    background: none;
   }
-
-  .close-button:hover {
-    background-color: #45474B;
-    box-shadow: 0 0 5px black;
-  }
-
-  .profile-button {
-    border-radius: 20px;
-    cursor: pointer;
-    width: 100%;
-    height: 36px;
-    margin: 10px;
-    align-items: center;
-    justify-content: right;
-    display: flex;
-    background: none;
-  }
-
-  .profile-button:hover {
-    background-color: #455A64;
-    box-shadow: 0 0 5px black;
-  }
-
-  .profile-text {
-    display: inline;
-    color: #FFC107;
-    font-size: 16px;
-    margin-right: 16px;
-  }
-
-/*  ################################################################################################################# */
-/*  ################################################################################################################# */
-/*  ################################################################################################################# */
-/*  ################################################################################################################# */
-/*  ################################################################################################################# */
-
 
   @media (max-width: 895px) {
-    .sidebar {
-      display: none; /* Hide sidebar on smaller screens */
-    }
-
-    .sidebar.expanded {
-      display: flex;
-      background-color: #45474B;
-      align-items: center;
-      height: fit-content;
-      margin: 10px;
-      border: solid 1px black;
-      border-radius: 20px;
-      position: fixed;
-      width: fit-content;
-    }
-
-    .sidebar.expanded .sidebar-button {
-      border-radius: 20px;
-      cursor: pointer;
-      width: 100%;
-      height: 36px;
-      margin: 10px;
-      justify-content: right;
-    }
-
-    .sidebar.expanded .sidebar-button:hover {
-      background-color: #455A64;
-      box-shadow: 0 0 5px black;
-    }
-
-    .sidebar.expanded .sidebar-text {
-      display: inline;
-    }
-
     .content-area {
       margin-top: 65px; /* height of header */
       margin-right: 0px; /* width of sidebar (collapsed) */
       padding: 0px 20px 20px 20px;
       min-height: calc(100vh - 60px);
       transition: margin 0.3s ease;
-    }
-
-    .sidebar.expanded ~ .content-area {
-      margin-right: 0px;
     }
 
   }

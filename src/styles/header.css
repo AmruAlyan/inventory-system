@@ -1,0 +1,66 @@
+/* Header Styles */
+.dashboard-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: var(--header-bg);
+  height: 48px;
+  padding: 8px;
+  border-bottom: 1px solid black;
+  text-shadow: 0 0 1px black;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.user-button,
+.menu-button {
+  background-color: var(--panel-bg);
+  border-radius: 50%;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  box-shadow: 0 0 5px 1px var(--primary-text);
+
+}
+
+/* .user-button:hover,
+.menu-button:hover {
+  scale: 1.1;
+  transition: scale 0.2s ease-in-out;
+} */
+
+.user-button:active,
+.menu-button:active {
+  background-color: transparent;
+  box-shadow: 0 0 5px 1px var(--panel-bg);
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.dashboard-title {
+  font-weight: bold;
+  color: var(--icon-highlight);
+  margin: 0;
+  text-align: right;
+  font-size: clamp(1.5rem, 2.5vw, 3rem);
+}
+
+/* Icon Styling */
+.icon {
+  color: var(--icon-highlight);
+  width: 24px; 
+  height: 24px;
+}
