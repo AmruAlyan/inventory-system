@@ -7,15 +7,22 @@ import ProfileWidget from '../components/profileWidget';
 import Sidebar from '../components/Sidebar';
 import { faShekel, faFileLines } from '@fortawesome/free-solid-svg-icons';
 import useIsMobile from '../hooks/useIsMobile';
+import ContentArea from '../components/ContentArea';
+import Profile from './Profile';
+
 
 const sidebarIcons = [
   { icon: faShekel, text: 'תקציב' },
   { icon: faFileLines, text: 'צפה בדוחות הוצאות' },
 ];
 
-
+const role = "מנהל מלאי";
+const name = "עבדאלרחמן";
 
 function Admin() {
+
+  const [currentPage, setCurrentPage] = useState();
+  
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -34,6 +41,11 @@ function Admin() {
     if (isMobile && isExpanded) setIsExpanded(false);
     setIsProfileOpen(prev => !prev);
   };
+
+  const nav2profile = () => {
+    setCurrentPage('profile');
+    setIsProfileOpen(false);
+  };
   
   const toggleButtonRef = useRef(); 
   const sidebarRef = useRef();
@@ -44,7 +56,7 @@ function Admin() {
       <Header
         toggleSidebar={toggleSidebar} 
         toggleProfile={toggleProfile} 
-        title={"ברוך הבא"} 
+        title={role} 
         ref={toggleButtonRef}
         sidebarRef={sidebarRef}
       />
@@ -54,9 +66,9 @@ function Admin() {
         <ProfileWidget
           isProfileOpen={isProfileOpen} 
           toggleProfile={toggleProfile} 
-          nav2profile={() => navigate("/profile")}
+          nav2profile={nav2profile}
           handleLogout={handleLogout} 
-          username={"אדמן"}
+          username={name}
           toggleButtonRef={toggleButtonRef} // Pass the ref to ProfileWidget
         />
 
@@ -65,9 +77,12 @@ function Admin() {
           items={sidebarIcons}
           toggleSidebar={toggleSidebar}
           toggleSidebarRef={sidebarRef}
+          // onSelect={setCurrentPage}
         />
 
-        <div className="content-area"><h1>שלום!</h1></div>
+        <ContentArea>
+          {currentPage === 'profile' && <Profile />}
+        </ContentArea>
       </main>
     </div>
   );
