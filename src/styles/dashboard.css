@@ -2,8 +2,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-
-
 /* Main Dashboard Container */
   .dashboard {
     display: flex;
@@ -13,32 +11,11 @@
     font-family: Arial, Helvetica, sans-serif;
     height: fit-content;
   }
-
-  /* Icon Styling */
-  .icon {
-    color: #FFC107;
-    width: 24px; 
-    height: 24px;
-  }
   
   /* Main Content Area */
   .dashboard-main {
     display: flex;
     flex: 1;
-  }
-
-  .content-area {
-    margin-top: 65px; /* height of header */
-    margin-right: 75px; /* width of sidebar (collapsed) */
-    padding: 0px 20px 20px 20px;
-    min-height: calc(100vh - 60px);
-    transition: margin 0.3s ease;
-    color: var(--primary-text);
-    text-align: justify;
-  }
-  
-  .sidebar.expanded ~ .content-area {
-    margin-right: 235px;
   }
 
   button {
@@ -47,16 +24,6 @@
     cursor: pointer;
   }
 
-  @media (max-width: 895px) {
-    .content-area {
-      margin-top: 65px; /* height of header */
-      margin-right: 0px; /* width of sidebar (collapsed) */
-      padding: 0px 20px 20px 20px;
-      min-height: calc(100vh - 60px);
-      transition: margin 0.3s ease;
-    }
-
-  }
 
 
   

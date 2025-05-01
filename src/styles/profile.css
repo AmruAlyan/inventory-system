@@ -1,0 +1,193 @@
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: right;
+    justify-content: right;
+    padding: 20px 0 20px 0;
+
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: right;
+    justify-content: space-evenly;
+    width: 100%;
+    /* padding: 20px 10px 20px 10px; */
+    /* margin: 20px 0px 20px 0px; */
+    border-radius: 10px;
+}
+
+.edit-button {
+    margin-top: 50px;
+    border-radius: 20px;
+    cursor: pointer;
+    width: fit-content;
+    height: 50px;
+    margin: 10px;
+    align-items: center;
+    justify-content: right;
+    display: flex;
+    background: none;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    background-color: var(--panel-bg);
+  }
+
+  .edit-button:active {
+    box-shadow: 0 0 5px 1px var(--header-bg);
+  }
+
+  .edit-text {
+    display: inline;
+    color: var(--primary-text);
+    font-size: 16px;
+    margin-right: 16px;
+    margin-left: 20px;
+  }
+
+  /* Icon Styling */
+  .widget-icon {
+    color: #FFC107;
+    width: 24px; 
+    height: 24px;
+    /* margin-right: 20px; */
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: right;
+    justify-content: right;
+    width: 50%;
+    padding: 20px 10px 20px 10px;
+    margin: 20px 0px 20px 0px;
+    background-color: var(--panel-bg);
+    border-radius: 10px;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    gap: 10px;
+  }
+
+  .edit-info {
+    display: flex;
+    flex-direction: column;
+    align-items: right;
+    justify-content: right;
+    width: 50%;
+    padding: 20px 10px 20px 10px;
+    margin: 20px 0px 20px 0px;
+    background-color: var(--panel-bg);
+    border-radius: 10px;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    gap: 10px;
+  }
+
+  .profile-info table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .profile-info td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: right; /* For RTL */
+  }
+  
+
+    .profile-info tr {
+        padding: 8px 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: right; 
+        font-weight: bold;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 10px;
+      }
+      
+      .form-group label {
+        min-width: 100px;
+        text-align: right;
+        font-weight: bold;
+        margin-right: 20px;
+
+      }
+
+      .input-no-icon input{
+        width: 100%;
+        /* padding: 10px 40px 10px 10px; */
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid var(--input-border);
+        border-radius: 6px;
+        box-sizing: border-box;
+        background-color: inherit;
+        color: inherit;
+      }
+      
+      .input-with-icon {
+        position: relative; /* Needed for absolute positioning */
+        margin-bottom: 1rem;
+      }
+      
+      .input-with-icon input {
+        width: 100%;
+        padding: 10px 40px 10px 10px; /* Right padding for the eye */
+        font-size: 16px;
+        border: 1px solid var(--input-border);
+        border-radius: 6px;
+        box-sizing: border-box;
+        background-color: inherit;
+        color: inherit;
+      }
+      
+      .eye-button {
+        position: absolute;
+        top: 50%;
+        right: 140px;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .eye-button:hover {
+        opacity: 0.7;
+      }
+      
+
+      .pass-eye-icon {
+        color: var(--icon-highlight);
+        font-size: 18px;
+        border-left: solid 1px var(--input-border);
+        padding-left: 5px;
+      }
+
+      .input-wrapper {
+        width: 100%;
+      }
+      
+
+    @media (max-width: 895px) {
+        .profile-info, .edit-info {
+            width:auto;
+        }
+        
+        .form-group label {
+            min-width: 60px;
+            margin-right: 0px;
+        }
+
+        .eye-button {
+            right: 80px; /* Adjusted for smaller screens */
+        }
+    }

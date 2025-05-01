@@ -5,6 +5,8 @@ import '../styles/dashboard.css';
 import Header from '../components/Header';
 import ProfileWidget from '../components/profileWidget';
 import Sidebar from '../components/Sidebar';
+import ContentArea from '../components/ContentArea';
+import Profile from './Profile';
 import { 
   faWarehouse,
   faCartShopping,
@@ -16,16 +18,16 @@ import useIsMobile from '../hooks/useIsMobile';
 const role = "מנהל מלאי";
 const name = "עבדאלרחמן";
 const sidebarIcons = [
-  { icon: faWarehouse, text: 'מוצרים' },
-  { icon: faCartShopping, text: 'רשימת קניות' },
-  { icon: faCashRegister, text: 'קנייה חדשה' },
-  { icon: faFileLines, text: 'הצג הוצאה תקציבית' },
+  { icon: faWarehouse, text: 'מוצרים', id: 'products' },
+  { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list' },
+  { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase' },
+  { icon: faFileLines, text: 'הצג הוצאה תקציבית', id: 'budget-expense' }
 ];
 
 
 
 function Manager() {
-
+  const [currentPage, setCurrentPage] = useState();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -46,6 +48,12 @@ function Manager() {
     setIsProfileOpen(prev => !prev);
   };
 
+  const nav2profile = () => {
+    setCurrentPage('profile');
+    setIsProfileOpen(false);
+  };
+  
+
   const toggleButtonRef = useRef();
   const sidebarRef = useRef();
 
@@ -65,10 +73,11 @@ function Manager() {
         <ProfileWidget
           isProfileOpen={isProfileOpen} 
           toggleProfile={toggleProfile} 
-          nav2profile={() => navigate("/profile")}
+          nav2profile={nav2profile}
           handleLogout={handleLogout} 
           username={name}
           toggleButtonRef={toggleButtonRef}
+          
         />
 
         <Sidebar
@@ -76,13 +85,12 @@ function Manager() {
           items={sidebarIcons}
           toggleSidebar={toggleSidebar}
           toggleSidebarRef={sidebarRef}
+          // onSelect={setCurrentPage}
         />
 
-        <div className="content-area">
-          <h1>שלום מנהל מלאי</h1>
-          <p>ברוך הבא למערכת ניהול המלאי.</p>
-          <p>כאן תוכל לנהל את המוצרים שלך בקלות וביעילות.</p>
-        </div>
+        <ContentArea>
+          {currentPage === 'profile' && <Profile />}
+        </ContentArea>
       </main>
     </div>
   );
