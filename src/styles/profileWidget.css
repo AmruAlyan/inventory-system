@@ -66,6 +66,7 @@
     background: none;
     box-shadow: 0 0 5px 1px var(--primary-text);
     background-color: var(--panel-bg);
+    text-decoration: none;
   }
 
   .profile-button:active {
@@ -81,7 +82,7 @@
 
   /* Icon Styling */
   .widget-icon {
-    color: #FFC107;
+    color: var(--icon-highlight);
     width: 24px; 
     height: 24px;
     margin-right: 20px;

@@ -1,0 +1,52 @@
+.reauth {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    padding: 10px;
+    width: 300px;
+    height: fit-content;
+    background-color: var(--panel-bg);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    z-index: 1000;
+}
+
+.reauth input {
+    color: var(--primary-text);
+    background-color: var(--background-color);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    width: 70%;
+    height: 30px;
+    font-size: 16px;
+    padding-right: 20px;
+    /* margin-bottom: 20px; */
+}
+
+.reauth-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.reauth-button {
+    color: var(--primary-text);
+    background-color: var(--panel-bg);
+    font-size: 16px;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 80px;
+}
+
+.reauth p {
+    font-size: 14px;
+    color: var(--error-color);
+}

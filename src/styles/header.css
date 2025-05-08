@@ -6,7 +6,7 @@
   background-color: var(--header-bg);
   height: 48px;
   padding: 8px;
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid var(--icon-color);
   text-shadow: 0 0 1px black;
   position: fixed;
   top: 0;
@@ -28,7 +28,6 @@
   justify-content: center;
   display: flex;
   box-shadow: 0 0 5px 1px var(--primary-text);
-
 }
 
 /* .user-button:hover,
@@ -59,7 +58,7 @@
 }
 
 /* Icon Styling */
-.icon {
+.header-icon {
   color: var(--icon-highlight);
   width: 24px; 
   height: 24px;

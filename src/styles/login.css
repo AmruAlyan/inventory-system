@@ -41,7 +41,7 @@ body {
   border-radius: 10px;
   margin-bottom: 20px;
   width: 80%;
-  box-shadow: 4px 4px 10px var(--shadow-color);
+  box-shadow: 0px 0px 10px 1px var(--primary-text);
 }
 
 .title-box h1,
@@ -62,7 +62,7 @@ body {
   background-color: var(--panel-bg);
   padding: 40px;
   border-radius: 10px;
-  box-shadow: 4px 4px 10px var(--shadow-color);
+  box-shadow: 0px 0px 10px 1px var(--primary-text);
   width: 100%;
   max-width: 320px;
   box-sizing: border-box;

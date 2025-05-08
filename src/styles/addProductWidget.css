@@ -1,0 +1,156 @@
+/*.addProduct-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    width: 400px;
+    height:fit-content;
+    background-color: var(--panel-bg);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 5px black;
+    z-index: 1000;
+}
+
+.addProduct-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.addProduct-form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  
+  .addProduct-form-group label {
+    min-width: 100px;
+    text-align: right;
+    font-weight: bold;
+    /* margin-right: 20px; */
+
+  /*}
+
+  .addProduct-form-group input, select{
+    direction: ltr;
+    width: 100%;
+    /* padding: 10px 40px 10px 10px; *//*
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: var(--header-bg);
+    color: var(--primary-text);
+    text-align: center;
+  }
+
+  .addNewProduct-button {
+    margin-top: 50px;
+    border-radius: 20px;
+    cursor: pointer;
+    width: 60%;
+    height: 50px;
+    font-size: 16px;
+    margin: 10px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    background: none;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    background-color: var(--panel-bg);
+    color: var(--primary-text);
+  }
+
+  .addNewProduct-button:active {
+    box-shadow: 0 0 5px 1px var(--header-bg);
+  } */
+
+
+  .addProduct-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    width: 400px;
+    height: fit-content;
+    background-color: var(--panel-bg);
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 5px black;
+    z-index: 1000;
+  }
+  
+  .addProduct-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .addProduct-form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .addProduct-form-group label {
+    min-width: 100px;
+    text-align: right;
+    font-weight: bold;
+  }
+  
+  .addProduct-form-group input,
+  .addProduct-form-group select {
+    direction: ltr;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: var(--header-bg);
+    color: var(--primary-text);
+    text-align: center;
+  }
+  
+  /* Group container for buttons */
+  .addProduct-button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .addNewProduct-button {
+    border-radius: 20px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 150px;
+    height: 50px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    box-shadow: 0 0 5px 1px var(--primary-text);
+    background-color: var(--panel-bg);
+    color: var(--primary-text);
+  }
+  
+  .addNewProduct-button:active {
+    box-shadow: 0 0 5px 1px var(--header-bg);
+  }
+  
