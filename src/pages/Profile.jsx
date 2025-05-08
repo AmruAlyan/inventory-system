@@ -4,13 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserPen, faBan, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import "../styles/Profile.css";
 
-// let userInfo = [
-//     { key: "שם", value: "מנהל מלאי" },
-//     { key: "דוא\"ל", value: "example.example@gmail.com" },
-//     { key: "טלפון", value: "123-456-7890" },
-//     { key: "סיסמא", value: "abcdefg" }
-// ];
-
 const labelMap = {
     name: "שם",
     email: "דוא\"ל",
@@ -45,49 +38,6 @@ const Profile = () => {
           );
         });
       };
-      
-
-    // const renderFormGroup = (label, key, type = 'text') => (
-    //     <div className="form-group" key={key}>
-    //       <label htmlFor={key}>{label}</label>
-    //       <input
-    //         id={key}
-    //         type={type}
-    //         value={formData[key]}
-    //         onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-    //         required
-    //       />
-    //     </div>
-    //   );
-
-    // const renderFormGroup = (label, key, type = 'text') => {
-    //     const isPassword = key === 'password';
-      
-    //     return (
-    //       <div className="form-group" key={key}>
-    //         <label htmlFor={key}>{label}</label>
-    //         <div className="input-with-icon">
-    //           <input
-    //             id={key}
-    //             type={isPassword ? (showPassword ? 'text' : 'password') : type}
-    //             value={formData[key]}
-    //             required
-    //             onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-    //           />
-    //           {isPassword && (
-    //             <button
-    //               type="button"
-    //               onClick={() => setShowPassword((prev) => !prev)}
-    //               className="eye-button"
-    //               aria-label="Toggle password visibility"
-    //             >
-    //               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="pass-eye-icon"/>
-    //             </button>
-    //           )}
-    //         </div>
-    //       </div>
-    //     );
-    //   };
 
     const renderFormGroup = (label, key, type = 'text') => {
         const isPassword = key === 'password';
@@ -171,7 +121,7 @@ const Profile = () => {
                         <tbody>{getUserInfo()}</tbody>
                     </table>
                     <button onClick={handleEdit} className='edit-button'>
-                        <FontAwesomeIcon icon={faUserPen} className="widget-icon" />
+                        <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
                         <span className="edit-text">עריכת מאפיינים שלי</span>
                     </button>
                 </div>
@@ -188,11 +138,11 @@ const Profile = () => {
 
                     <div className="profile-actions">
                         <button onClick={confirmEdit} className='edit-button'>
-                            <FontAwesomeIcon icon={faUserPen} className="widget-icon" />
+                            <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
                             <span className="edit-text">עדכון</span>
                         </button>
                         <button onClick={cancelEdit} className='edit-button'>
-                            <FontAwesomeIcon icon={faBan} className="widget-icon" />
+                            <FontAwesomeIcon icon={faBan} className="profile-icon" />
                             <span className="edit-text">ביטול</span>
                         </button>
                     </div>

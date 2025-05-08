@@ -29,8 +29,8 @@ const ThemeSwitch = () => {
             onChange={toggleTheme}
         />
         <label htmlFor="checkbox" className="checkbox-label">
-            <FontAwesomeIcon icon={faSun} className="icon" id="sun" />
-            <FontAwesomeIcon icon={faMoon} className="icon" id="moon" />
+            <FontAwesomeIcon icon={faSun} className="theme-icon" id="sun" />
+            <FontAwesomeIcon icon={faMoon} className="theme-icon" id="moon" />
             <span className="ball"></span>
         </label>
     </>

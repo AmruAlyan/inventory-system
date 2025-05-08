@@ -10,7 +10,7 @@
     --icon-color: #444;
     --error-color: #d32f2f;
     --header-bg: #e0e0e0;
-    --icon-highlight: #FFC107	;
+    --icon-highlight: #000000b6	;
     --button-bg: #70707038;
   }
   
@@ -28,4 +28,10 @@
     --header-bg: #2c2c3d;
     --icon-highlight: #FFC107;
   }
+
+  /* 
+  FFC107 
+  DCA409
+  000000b6
+  */
   

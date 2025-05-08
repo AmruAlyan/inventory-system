@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from "react";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth"; // ← Add this line
+import { NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faXmark, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import "../styles/profileWidget.css";
 
-const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, handleLogout, username, toggleButtonRef }) => {
+const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, username, toggleButtonRef }) => {
   const widgetRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +25,18 @@ const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, handleLogout
     };
   }, [isProfileOpen, toggleProfile, toggleButtonRef]);
 
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        // localStorage.clear();
+        // sessionStorage.clear();
+        navigate("/login", { replace: true });
+      } catch (error) {
+        console.error("Logout failed:", error.message);
+      }
+    };
+
   return (
     <div ref={widgetRef} className={`profile-widget ${isProfileOpen ? 'open' : ''}`}>
       <div className='profile-hi-x'>
@@ -30,15 +45,18 @@ const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, handleLogout
           <FontAwesomeIcon icon={faXmark} className="icon" />
         </button> */}
       </div>
-
-      <button onClick={nav2profile} className='profile-button'>
-        <FontAwesomeIcon icon={faEye} className="widget-icon" />
-        <span className="profile-text">הצג פרופיל</span>
-      </button>
-      <button className='profile-button' onClick={handleLogout}>
-        <FontAwesomeIcon icon={faRightFromBracket} className="widget-icon" />
-        <span className="profile-text">התנתק</span>
-      </button>
+      {/* <NavLink to={"/profile"} className='profile-button'> */}
+        <button className='profile-button' onClick={nav2profile}>
+          <FontAwesomeIcon icon={faEye} className="widget-icon" />
+          <span className="profile-text">הצג פרופיל</span>
+        </button>
+      {/* </NavLink> */}
+      {/* <NavLink to={"/login"}> */}
+        <button className='profile-button' onClick={handleLogout}>
+          <FontAwesomeIcon icon={faRightFromBracket} className="widget-icon" />
+          <span className="profile-text">התנתק</span>
+        </button>
+      {/* </NavLink> */}
     </div>
   );
 };

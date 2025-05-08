@@ -1,0 +1,205 @@
+
+
+
+  .inventory-container {
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .inventory-container h2 {
+    text-align: right;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .searchBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+  
+  .searchBar input[type="search"] {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: border-color 0.2s ease-in-out;
+    background-color: var(--panel-bg);
+    color: var(--primary-text);
+  }
+  
+  .searchBar input[type="search"]:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .searchBar button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .searchBar button:hover {
+    background-color: #0056b3;
+  }
+  
+  .inventory-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    direction: rtl;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--primary-text);
+    background-color: var(--panel-bg);
+    color: var(--primary-text);
+  }
+  
+  .inventory-table th {
+    background-color: var(--background-color);
+    font-weight: bold;
+  }
+  
+  .inventory-table tbody tr {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .inventory-table tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .inventory-actions button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    margin: 0 0.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .inventory-actions button:hover {
+    background-color: #5a6268;
+  }
+  
+  .inventory-actions button:first-child {
+    background-color: #28a745;
+  }
+  
+  .inventory-actions button:first-child:hover {
+    background-color: #218838;
+  }
+  
+  .inventory-actions button:nth-child(2) {
+    background-color: #ffc107;
+    color: black;
+  }
+  
+  .inventory-actions button:nth-child(2):hover {
+    background-color: #e0a800;
+  }
+  
+  .inventory-actions button:last-child {
+    background-color: #dc3545;
+  }
+  
+  .inventory-actions button:last-child:hover {
+    background-color: #c82333;
+  }
+  
+  /* Responsive wrapper
+.inventory-table {
+  overflow-x: auto;
+  display: block;
+  width: 100%;
+} */
+
+/* Icon-only buttons inside actions */
+.inventory-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 0.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+/* Buttons with text (like Add Product) */
+.searchBar button i {
+  margin-left: 0.5rem;
+}
+
+/* Fullscreen dark overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's on top */
+}
+
+
+
+/* Make it look cleaner on small screens */
+@media (max-width: 600px) {
+  .inventory-container {
+    padding: 1rem;
+  }
+
+  .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBar input[type="search"] {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .searchBar button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+   /* Responsive wrapper */
+.inventory-table {
+  overflow-x: auto;
+  display: block;
+  width: 100%;
+}
+
+  .inventory-table th,
+  .inventory-table td {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  .inventory-actions button {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+}

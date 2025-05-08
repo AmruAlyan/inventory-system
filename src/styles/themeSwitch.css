@@ -21,6 +21,11 @@
   .fa-moon {color: #f1c40f;}
   
   .fa-sun {color: #f39c12;}
+
+  .theme-icon {
+    width: 24px;
+    height: 24px;
+  }
   
   .checkbox-label .ball {
     background-color: lightgray;
