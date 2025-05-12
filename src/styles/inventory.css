@@ -1,4 +1,30 @@
 
+  /* Styles for quantity indicators */
+.bg-red-100 {
+  background-color: #ffe5e5; /* Light red background */
+  color: #ff0000; /* Red text */
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-weight: bold;
+}
+
+.bg-yellow-100 {
+  background-color: #fff8e5; /* Light yellow background */
+  color: #ffcc00; /* Yellow text */
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-weight: bold;
+}
+
+.bg-green-100 {
+  background-color: #e5ffe5; /* Light green background */
+  color: #00cc00; /* Green text */
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-weight: bold;
+}
+
+
 
 
   .inventory-container {
@@ -165,7 +191,7 @@
 /* Make it look cleaner on small screens */
 @media (max-width: 600px) {
   .inventory-container {
-    padding: 1rem;
+    padding: 1rem 0rem;
   }
 
   .searchBar {
