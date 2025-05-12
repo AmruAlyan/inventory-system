@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { faCartPlus, faEdit, faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import AddProductWidget from './AddProductWidget';
 // import SeedProductsComponent from './seedProductComponent';
@@ -59,6 +59,23 @@ const handleAddProduct = () => {
   setShowAddWidget(true);
 };
 
+const handleFilter = () => {
+  console.log("filter clicked");
+}
+
+const categories = [
+    'פירות וירקות',
+    'מוצרי חלב',
+    'בשר ודגים',
+    'מאפים ולחמים',
+    'משקאות',
+    'מוצרי ניקיון',
+    'חטיפים ומתוקים',
+    'מזון יבש',
+    'קפואים',
+    'מוצרי נייר'
+  ];
+
 
   return (
     <div className='inventory-container'>
@@ -72,6 +89,9 @@ const handleAddProduct = () => {
           value={searchTerm}
           onChange={handleSearchChange}
         />
+        <button onClick={handleFilter}>
+          <FontAwesomeIcon icon={faFilter} /> סינון
+        </button>
         <button onClick={handleAddProduct}>
           <FontAwesomeIcon icon={faPlus} /> הוסף מוצר
         </button>
@@ -97,7 +117,17 @@ const handleAddProduct = () => {
               <td>{product.name}</td>
               <td>{product.category}</td>
               <td>{product.price} ₪</td>
-              <td>{product.quantity}</td>
+              <td>
+                <span className='rounded-full'>
+                  {product.quantity <= 0 ? (
+                    <span className="bg-red-100">{product.quantity}</span>
+                  ) : product.quantity < 10 ? (
+                    <span className="bg-yellow-100">{product.quantity}</span>
+                  ) : (
+                    <span className="bg-green-100">{product.quantity}</span>
+                  )}
+                </span>
+              </td>
               <td className='inventory-actions'>
                 <button onClick={() => addToShoppingList(product.id)} title="הוסף לסל">
                   <FontAwesomeIcon icon={faCartPlus} />
