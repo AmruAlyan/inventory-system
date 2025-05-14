@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { auth } from "../firebase";
+import { auth } from "../firebase/firebase";
 import { signOut } from "firebase/auth"; // ← Add this line
 import { NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

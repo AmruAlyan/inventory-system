@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import AddProductWidget from './AddProductWidget';
+import AddProductWidget from './addProductWidget';
 // import SeedProductsComponent from './seedProductComponent';
 import '../styles/inventory.css';
 

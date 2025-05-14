@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { db } from '../firebase';
+import { db } from '../firebase/firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
 
 import '../styles/addProductWidget.css'; // Reuse same styling

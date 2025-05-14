@@ -23,12 +23,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "../firebase/firebase";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { ROLES } from "../constants/roles.js";
 
 const db = getFirestore();
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requireRole = [] }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthorized, setIsAuthorized] = useState(null);
@@ -42,14 +43,20 @@ const ProtectedRoute = ({ children }) => {
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
       const userData = userDoc.data();
-      const role = userData?.role?.toLowerCase(); // <- normalize to lowercase
+      const userRole = userData?.role?.toLowerCase(); // <- normalize to lowercase
 
-      const path = location.pathname;
+      // Check if user has required role
+      const hasRequiredRole = requireRole.length === 0 || requireRole.includes(userRole);
 
-      if (path.startsWith("/admin") && role !== "admin") {
-        navigate("/manager", { replace: true });
-      } else if (path.startsWith("/manager") && role !== "manager") {
-        navigate("/admin", { replace: true });
+      if (!hasRequiredRole) {
+        // Redirect based on their actual role
+        if (userRole === ROLES.ADMIN) {
+          navigate("/admin-dashboard", { replace: true });
+        } else if (userRole === ROLES.MANAGER) {
+          navigate("/manager-dashboard", { replace: true });
+        } else {
+          navigate("/login", { replace: true });
+        }
       } else {
         setIsAuthorized(true);
       }
