@@ -9,22 +9,22 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import BudgetPage from "./pages/Admin/Budget"; // adjust path
 import ReportsPage from "./pages/Admin/Reports"; // adjust path
 import ProductsPage from "./pages/Manager/Products"; // example
-import Root from "./pages/Root"; // your landing page
 import AdminProfile from "./pages/Admin/AdminProfile";
 import ManagerProfile from "./pages/Manager/ManagerProfile";
+import { ROLES } from "./constants/roles";
 
 function App() {
   return (
     <Router>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Root />} />
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
 
         <Route
           path="/admin-dashboard"
           element={
-            <ProtectedRoute requireRole={["admin"]}>
+            <ProtectedRoute requireRole={[ROLES.ADMIN]}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -38,7 +38,7 @@ function App() {
         <Route
           path="/manager-dashboard"
           element={
-            <ProtectedRoute requireRole={["manager"]}>
+            <ProtectedRoute requireRole={[ROLES.MANAGER]}>
               <ManagerLayout />
             </ProtectedRoute>
           }

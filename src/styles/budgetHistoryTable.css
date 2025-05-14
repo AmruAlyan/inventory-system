@@ -1,0 +1,252 @@
+.budget-history-container {
+  width: 100%;
+  background-color: var(--panel-bg);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.history-title {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--input-border);
+  color: var(--primary-text);
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.history-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+}
+
+.delete-all-container {
+  margin-right: 10px;
+}
+
+.delete-all-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.delete-all-btn:hover {
+  background-color: #c0392b;
+}
+
+.filter-icon {
+  margin-left: 10px;
+  color: var(--primary-text);
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--primary-text);
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  direction: rtl;
+}
+
+.history-table-wrapper {
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  direction: rtl;
+}
+
+.history-table th,
+.history-table td {
+  padding: 12px 15px;
+  text-align: right;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.history-table th {
+  background-color: rgba(136, 132, 216, 0.1);
+  color: var(--primary-text);
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.history-table tbody tr:hover {
+  background-color: rgba(136, 132, 216, 0.05);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+.edit-btn,
+.delete-btn,
+.save-btn,
+.cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.edit-btn {
+  color: #3498db;
+}
+
+.delete-btn {
+  color: #e74c3c;
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.save-btn {
+  background-color: #27ae60;
+  color: white;
+  margin-right: 5px;
+}
+
+.cancel-btn {
+  background-color: #7f8c8d;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #2ecc71;
+}
+
+.cancel-btn:hover {
+  background-color: #95a5a6;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.loading-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #8884d8;
+}
+
+.error-message {
+  background-color: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--secondary-text);
+}
+
+/* Input fields in edit mode */
+.history-table input[type="number"],
+.history-table input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--primary-text);
+  outline: none;
+  direction: rtl;
+}
+
+/* Styling for date input with dd/mm/yyyy format */
+.date-input {
+    position: relative;
+}
+
+.date-input:not([value=""])::-webkit-datetime-edit {
+    color: var(--primary-text);
+}
+
+/* Show dd/mm/yyyy when the field is empty */
+.date-input:empty::-webkit-datetime-edit-text,
+.date-input[value=""]::-webkit-datetime-edit-text {
+    color: var(--secondary-text);
+}
+
+.date-input:empty::-webkit-datetime-edit-day-field,
+.date-input[value=""]::-webkit-datetime-edit-day-field::before {
+    color: var(--secondary-text);
+    content: "dd";
+}
+
+.date-input:empty::-webkit-datetime-edit-month-field,
+.date-input[value=""]::-webkit-datetime-edit-month-field::before {
+    color: var(--secondary-text);
+    content: "mm";
+}
+
+.date-input:empty::-webkit-datetime-edit-year-field,
+.date-input[value=""]::-webkit-datetime-edit-year-field::before {
+    color: var(--secondary-text);
+    content: "yyyy";
+}
+
+.date-input::-webkit-inner-spin-button,
+.date-input::-webkit-calendar-picker-indicator {
+    opacity: 1;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .history-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-container {
+    margin-right: 0;
+  }
+  
+  .history-table th,
+  .history-table td {
+    padding: 8px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

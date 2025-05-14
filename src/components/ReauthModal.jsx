@@ -1,7 +1,7 @@
 // components/ReauthModal.js
 import React, { useState } from "react";
 import { reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "../firebase/firebase";
 import '../styles/reauthModal.css'
 
 const ReauthModal = ({ email, onSuccess, onClose }) => {

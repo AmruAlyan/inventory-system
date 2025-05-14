@@ -15,4 +15,19 @@
   text {
     fill: var(--primary-text);
   }
+
+  /* Add padding for Y-axis labels to prevent overlap */
+  .recharts-yAxis .recharts-cartesian-axis-tick {
+    padding-right: 10px;
+  }
+
+  /* Style for currency labels */
+  .recharts-yAxis .recharts-cartesian-axis-tick-value {
+    font-size: 0.85rem; /* Slightly smaller font size for better fit */
+    text-anchor: start !important; /* Align text to the left */
+  }
   
+  /* Add margin to ensure the grid doesn't interfere with labels */
+  .recharts-cartesian-grid {
+    margin-left: 10px;
+  }

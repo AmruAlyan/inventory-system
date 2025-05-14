@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // AddProductPage.jsx
-import { db } from '../firebase'; // ✅ Adjust the path if needed
+import { db } from '../firebase/firebase'; // Using firebase from firebase folder
 import { collection, addDoc } from 'firebase/firestore';
 
 import '../styles/addProductWidget.css'

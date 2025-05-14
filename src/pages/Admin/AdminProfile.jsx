@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/ReauthModal";
+import { ROLES } from "../../constants/roles";
 
 const labelMap = {
   name: "שם",
   email: "דוא\"ל",
-  password: "סיסמא"
+  password: "סיסמא",
+  role: "תפקיד"
 };
 
 const AdminProfile = () => {
@@ -22,9 +24,11 @@ const AdminProfile = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: ""
+    password: "",
+    role: "מנהל"
   });
   const [originalData, setOriginalData] = useState(formData);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const user = auth.currentUser;
 
@@ -36,16 +40,25 @@ const AdminProfile = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const userData = docSnap.data();
+          
           setFormData({
             name: userData.name || "",
             email: user.email || "",
-            password: ""
+            password: "",
+            role: "מנהל" // Static role for Admin
           });
+          
           setOriginalData({
             name: userData.name || "",
             email: user.email || "",
-            password: ""
+            password: "",
+            role: "מנהל"
           });
+          
+          // Set avatar URL if exists
+          if (userData.avatarUrl) {
+            setAvatarUrl(userData.avatarUrl);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -113,11 +126,19 @@ const confirmEdit = async () => {
   
       // Now update the Firestore document with the new user data
       try {
-        await setDoc(doc(db, "users", user.uid), {
+        // Create an update object
+        const updateData = {
           name: formData.name,
           email: formData.email,  // Firestore should have the updated email
-          password: formData.password, // You could skip storing the password if it's sensitive
-        }, { merge: true }); // Merges the new data with the existing document
+        };
+
+        // Only include password if it's been changed
+        if (formData.password !== originalData.password && formData.password.trim() !== "") {
+          updateData.password = formData.password;
+        }
+
+        // Update Firestore with the new data
+        await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
         alert("העדכון בוצע בהצלחה!");
       } catch (error) {
         console.error("Firestore update failed:", error.message);
@@ -131,15 +152,35 @@ const confirmEdit = async () => {
   };
 
   const getUserInfo = () => {
-    return Object.keys(formData).map((key, index) => {
-      const value = key === "password" && !isEditing ? "********" : formData[key];
-      return (
-        <tr key={index}>
-          <td>{labelMap[key]}:</td>
-          <td>{value}</td>
-        </tr>
-      );
-    });
+    // Filter out any fields we don't want to show
+    return Object.keys(formData)
+      .filter(key => key !== "password" || !isEditing) // Only show password during edit
+      .map((key, index) => {
+        // Special handling for password field
+        let value = formData[key];
+        if (key === "password" && !isEditing) {
+          value = "********";
+        }
+        
+        // For fields that shouldn't be editable
+        const isReadOnly = key === "role";
+        
+        let icon = null;
+        switch(key) {
+          case "role":
+            icon = <FontAwesomeIcon icon={faUser} className="details-icon" />;
+            break;
+          default:
+            icon = null;
+        }
+
+        return (
+          <tr key={index} className={isReadOnly ? "readonly-field" : ""}>
+            <td>{icon} {labelMap[key]}:</td>
+            <td>{value}</td>
+          </tr>
+        );
+      });
   };
 
   const renderFormGroup = (label, key, type = "text") => {
@@ -185,8 +226,20 @@ const confirmEdit = async () => {
   return (
     <div className="profile-container">
       <div className="profile-title">
-        <h1><u>פרופיל</u></h1>
+        <h1>פרופיל</h1>
       </div>
+      
+      {/* Profile Avatar */}
+      <div className="profile-avatar-container">
+        <div className="profile-avatar">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Profile" />
+          ) : (
+            <FontAwesomeIcon icon={faUser} className="profile-avatar-placeholder" />
+          )}
+        </div>
+      </div>
+      
       <div className="profile-content">
         <p>ברוכים הבאים לפרופיל שלך!</p>
         <p>כאן אתה יכול לראות ולערוך את המאפיינים שלך.</p>
@@ -194,8 +247,8 @@ const confirmEdit = async () => {
 
       {!isEditing && (
         <div className="profile-info">
-          <h2><u>מאפייני המשתמש</u></h2>
-          <table>
+          <h2>מאפייני המשתמש</h2>
+          <table className="profile-details-table">
             <tbody>{getUserInfo()}</tbody>
           </table>
           <button onClick={() => setShowReauthModal(true)} className="edit-button">
@@ -222,13 +275,19 @@ const confirmEdit = async () => {
           {renderFormGroup("שם:", "name")}
           {renderFormGroup("דוא\"ל:", "email", "email")}
           {renderFormGroup("סיסמא:", "password", "password")}
+          
+          {/* Display role as read-only during edit */}
+          <div className="form-group read-only">
+            <label>תפקיד:</label>
+            <input type="text" value={formData.role} disabled />
+          </div>
 
           <div className="profile-actions">
             <button onClick={confirmEdit} className="edit-button">
               <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
               <span className="edit-text">עדכון</span>
             </button>
-            <button onClick={cancelEdit} className="edit-button">
+            <button onClick={cancelEdit} className="edit-button cancel-button">
               <FontAwesomeIcon icon={faBan} className="profile-icon" />
               <span className="edit-text">ביטול</span>
             </button>
