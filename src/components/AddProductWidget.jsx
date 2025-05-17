@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 // AddProductPage.jsx
 import { db } from '../firebase/firebase'; // Using firebase from firebase folder
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 import '../styles/addProductWidget.css'
 
@@ -17,12 +18,23 @@ export async function addProduct(productData) {
   }
 }
 
-export default function AddProductWidget({onClose}) {
+export async function updateProduct(productId, productData) {
+  try {
+    const productDocRef = doc(db, 'products', productId);
+    await updateDoc(productDocRef, productData);
+    console.log('Product successfully updated:', productId);
+  } catch (e) {
+    console.error('Error updating product:', e);
+    throw e;
+  }
+}
+
+export default function AddProductWidget({ onClose, product = null, onSave, mode = 'add' }) {
   const [form, setForm] = useState({
-    name: '',
-    category: '',
-    quantity: '',
-    price: '',
+    name: product ? product.name : '',
+    category: product ? product.category : '',
+    quantity: product ? product.quantity : '',
+    price: product ? product.price : '',
   });
 
   const [status, setStatus] = useState('');
@@ -51,6 +63,7 @@ export default function AddProductWidget({onClose}) {
 
     if (!form.name || !form.price || !form.quantity || !form.category) {
       setStatus('Please fill out all fields.');
+      toast.error('שגיאה: נא למלא את כל השדות הדרושים');
       return;
     }
 
@@ -62,17 +75,27 @@ export default function AddProductWidget({onClose}) {
     };
 
     try {
-      await addProduct(productData);
-      setStatus('Product added successfully!');
-      setForm({ name: '', category: '', quantity: '', price: '' });
+      if (mode === 'edit' && product && product.id) {
+        await updateProduct(product.id, productData);
+        setStatus('Product updated successfully!');
+        toast.success('המוצר עודכן בהצלחה');
+        if (onSave) onSave();
+      } else {
+        await addProduct(productData);
+        setStatus('Product added successfully!');
+        toast.success('המוצר נוסף בהצלחה');
+        setForm({ name: '', category: '', quantity: '', price: '' });
+        if (onSave) onSave();
+      }
     } catch (error) {
-      setStatus('Failed to add product.');
+      setStatus(mode === 'edit' ? 'Failed to update product.' : 'Failed to add product.');
+      toast.error(mode === 'edit' ? 'שגיאה: עדכון המוצר נכשל' : 'שגיאה: הוספת המוצר נכשלה');
     }
   };
 
   return (
     <div className='addProduct-widget'>
-      <h2>הוספת מוצר חדש</h2>
+      <h2>{mode === 'edit' ? 'עריכת מוצר' : 'הוספת מוצר חדש'}</h2>
       <form onSubmit={handleSubmit} className='addProduct-form'>
         <div className='addProduct-form-group'>
           <label>שם מוצר:</label>
@@ -96,7 +119,7 @@ export default function AddProductWidget({onClose}) {
           <input type="number" step="0.01" name="price" value={form.price} onChange={handleChange} />
         </div>
         <div className='addProduct-button-group'>
-          <button type="submit" className='addNewProduct-button'>הוסף מוצר</button>
+          <button type="submit" className='addNewProduct-button'>{mode === 'edit' ? 'עדכן מוצר' : 'הוסף מוצר'}</button>
           <button type="button" onClick={onClose} className='addNewProduct-button'>ביטול</button>
         </div>
 

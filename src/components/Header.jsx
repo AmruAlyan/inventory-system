@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faBars } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faBars, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
 import "../styles/header.css";
 import ThemeSwitch from "./ThemeSwitch";
 
@@ -8,17 +8,25 @@ import ThemeSwitch from "./ThemeSwitch";
 const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, ref) => {
     return (
         <header className="dashboard-header">
-            <div className="title-container">
+            <div className="logo-container">
                 <button onClick={toggleSidebar} className="menu-button" ref={sidebarRef}>
                     <FontAwesomeIcon icon={faBars} className="header-icon" />
                 </button>
-                <h1 className="dashboard-title">{title}</h1>
+                <div className="app-logo">
+                    <FontAwesomeIcon icon={faBoxesStacked} className="logo-icon" />
+                    <span className="logo-text">ניהול מלאי</span>
+                </div>
             </div>
-            <ThemeSwitch />
-            {/* This is the button receiving the forwarded ref */}
-            <button onClick={toggleProfile} className="user-button" ref={ref}>
-                <FontAwesomeIcon icon={faUser} className="header-icon" />
-            </button>
+            
+            <h1 className="dashboard-title">{title}</h1>
+            
+            <div className="header-actions">
+                <ThemeSwitch />
+                {/* This is the button receiving the forwarded ref */}
+                <button onClick={toggleProfile} className="user-button" ref={ref}>
+                    <FontAwesomeIcon icon={faUser} className="header-icon" />
+                </button>
+            </div>
         </header>
     );
 });

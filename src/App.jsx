@@ -11,6 +11,7 @@ import ReportsPage from "./pages/Admin/Reports"; // adjust path
 import ProductsPage from "./pages/Manager/Products"; // example
 import AdminProfile from "./pages/Admin/AdminProfile";
 import ManagerProfile from "./pages/Manager/ManagerProfile";
+import ShoppingList from "./pages/Manager/ShoppingList";
 import { ROLES } from "./constants/roles";
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
           <Route index element={<h1>DASH</h1>} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="categories" element={<h1>category</h1>} />
-          <Route path="shopping-list" element={<h1>shopping list</h1>} />
+          <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="new-purchase" element={<h1>new purchase</h1>} />
           <Route path="budget-expense" element={<h1>budget expense</h1>} />
           <Route path="profile" element={<ManagerProfile />} />
