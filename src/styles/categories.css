@@ -1,0 +1,327 @@
+.inventory-container {
+  padding: var(--spacing-xl);
+  padding-top: calc(60px + var(--spacing-xl)); /* Header height + padding */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.inventory-container h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-text);
+}
+
+.cat {
+    display: flex;
+    flex-direction: row;
+    /* align-items: center; */
+    justify-content: space-around;
+}
+
+.catR {
+    width: 40%;
+}
+
+/* .catL {
+    padding-top: 60px;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+} */
+
+.catL {
+    padding-top: 60px;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
+}
+
+.sticky-box {
+    position: sticky;
+    top: 100px; /* or stagger it for each box */
+    background: white; /* to cover behind content */
+    z-index: 9;
+}
+
+/* .sticky-box:first-child {
+    top: 100px;
+}
+.sticky-box:last-child {
+    top: 220px; 
+} */
+
+
+
+.searchBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.searchBar input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 1rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--input-border);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  background-color: var(--panel-bg);
+  color: var(--primary-text);
+}
+
+.searchBar input[type="search"]:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.25);
+}
+
+.searchBar button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.95rem;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.searchBar button:hover {
+  background-color: var(--primary-dark);
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  direction: rtl;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: var(--spacing-md);
+  /* padding: 10px 16px; */
+  text-align: center;
+  background-color: var(--panel-bg);
+  color: var(--primary-text);
+}
+
+.inventory-table th {
+  background-color: var(--header-bg);
+  font-weight: 600;
+  color: var(--secondary-text);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.inventory-table tbody tr {
+  transition: background-color var(--transition-fast);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.inventory-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.inventory-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.inventory-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.inventory-actions button {
+  background-color: transparent;
+  color: var(--secondary-text);
+  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inventory-actions button:hover {
+  background-color: var(--bg-color);
+  color: var(--primary-text);
+}
+
+.inventory-actions button:first-child {
+  color: var(--success);
+}
+
+.inventory-actions button:first-child:hover {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: var(--success);
+}
+
+.inventory-actions button:nth-child(2) {
+  color: var(--secondary);
+}
+
+.inventory-actions button:nth-child(2):hover {
+  background-color: rgba(33, 150, 243, 0.1);
+  border-color: var(--secondary);
+}
+
+.inventory-actions button:last-child {
+  color: var(--danger);
+}
+
+.inventory-actions button:last-child:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: var(--danger);
+}
+
+/* Overlay for modals */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Shopping list total */
+.shopping-list-total {
+  margin-top: var(--spacing-lg);
+  text-align: left;
+  padding: var(--spacing-md);
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.shopping-list-total h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-text);
+  margin: 0;
+}
+
+.empty-list {
+  text-align: center;
+  padding: var(--spacing-xl);
+  font-size: 1.2rem;
+  color: var(--secondary-text);
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .inventory-container {
+    padding: var(--spacing-md);
+    padding-top: calc(60px + var(--spacing-md));
+  }
+  
+  .inventory-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    padding: var(--spacing-sm);
+  }
+  
+  .inventory-actions button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 576px) {
+  .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchBar input[type="search"] {
+    width: 100%;
+  }
+  
+  .searchBar button {
+    width: 100%;
+  }
+}
+
+/* Page header styling */
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+.page-header-icon {
+  color: var(--primary);
+}
+
+/* Quantity display and inputs */
+.quantity-display {
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(33, 150, 243, 0.1);
+  border-radius: var(--border-radius-pill);
+  display: inline-block;
+  min-width: 2rem;
+}
+
+.quantity-input {
+  max-width: 80px;
+  text-align: center;
+}
+
+.quantity-select {
+  min-width: 100px;
+}
+
+/* Empty list styling */
+.empty-list-subtext {
+  color: var(--secondary-text);
+  font-size: 0.9rem;
+  margin-top: var(--spacing-sm);
+}
