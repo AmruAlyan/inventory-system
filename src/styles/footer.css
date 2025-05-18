@@ -1,0 +1,31 @@
+.app-footer {
+  width: 100%;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  padding: 18px 0 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: inherit;
+  direction: rtl;
+  position: relative;
+  bottom: 0;
+  color: #333;
+  font-size: 1.05rem;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+  .app-footer {
+    font-size: 0.95rem;
+    padding: 14px 0 8px 0;
+  }
+} 

@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import ProfileWidget from '../components/ProfileWidget';
 import useIsMobile from '../hooks/useIsMobile';
+import Footer from '../components/Footer';
 
 import {
   faHouse,
@@ -79,6 +80,7 @@ const ManagerLayout = () => {
           <Outlet /> {/* This renders the nested route page */}
         </section>
       </main>
+      <Footer />
     </div>
   );
 };
