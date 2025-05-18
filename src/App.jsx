@@ -13,6 +13,7 @@ import AdminProfile from "./pages/Admin/AdminProfile";
 import ManagerProfile from "./pages/Manager/ManagerProfile";
 import ShoppingList from "./pages/Manager/ShoppingList";
 import { ROLES } from "./constants/roles";
+import Categories from "./pages/Manager/Categories";
 
 function App() {
   return (
@@ -46,7 +47,7 @@ function App() {
         >
           <Route index element={<h1>DASH</h1>} />
           <Route path="products" element={<ProductsPage />} />
-          <Route path="categories" element={<h1>category</h1>} />
+          <Route path="categories" element={<Categories />} />
           <Route path="shopping-list" element={<ShoppingList />} />
           <Route path="new-purchase" element={<h1>new purchase</h1>} />
           <Route path="budget-expense" element={<h1>budget expense</h1>} />
