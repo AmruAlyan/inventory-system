@@ -1,8 +1,9 @@
 // components/ReauthModal.js
 import React, { useState } from "react";
 import { reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth } from "../firebase/firebase";
-import '../styles/reauthModal.css'
+import { auth } from "../../firebase/firebase";
+import Modal from './Modal';
+import '../../styles/ForModals/reauthModal.css'
 
 const ReauthModal = ({ email, onSuccess, onClose }) => {
   const [password, setPassword] = useState("");
@@ -18,7 +19,7 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
       await reauthenticateWithCredential(auth.currentUser, credential);
       setError("");
       onSuccess(password); // This will trigger editing
-      onClose(); // This will hide the modal
+      // onClose(); // This will hide the modal
     } catch (err) {
       if (err.code === "auth/wrong-password") {
         setError("סיסמה שגויה."); // Specific error for wrong password
@@ -30,9 +31,8 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
     }
   };
   
-
   return (
-    <div className="overlay">
+    <Modal onClose={onClose}>
       <div className="reauth">
         <h2>אימות מחדש נדרש</h2>
         <input
@@ -41,14 +41,14 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error && <p>{error}</p>}
-        {!error && <p>  </p>}
+        {error && <p className="error">{error}</p>}
+        {!error && <p className="placeholder">  </p>}
         <div className="reauth-actions">
-            <button onClick={handleReauth} className="reauth-button">אמת</button>
-            <button onClick={onClose} className="reauth-button">ביטול</button>
+          <button onClick={handleReauth} className="reauth-button">אמת</button>
+          <button onClick={onClose} className="reauth-button">ביטול</button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

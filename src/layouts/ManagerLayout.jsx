@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import ProfileWidget from '../components/ProfileWidget';
+import Header from '../components/LayoutComponents/Header';
+import Sidebar from '../components/LayoutComponents/Sidebar';
+import Footer from '../components/LayoutComponents/Footer';
+import ProfileWidget from '../components/Widgets/ProfileWidget';
 import useIsMobile from '../hooks/useIsMobile';
-import Footer from '../components/Footer';
 
 import {
   faHouse,
@@ -48,6 +48,7 @@ const ManagerLayout = () => {
 
   const handleProfile = () => {
     navigate("/manager-dashboard/profile");
+    setIsProfileOpen(false);
   };
 
   return (

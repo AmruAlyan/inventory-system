@@ -1,9 +1,9 @@
 import React, { forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faBars, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
-import "../styles/header.css";
-import ThemeSwitch from "./ThemeSwitch";
-
+import "../../styles/ForLayout/header.css";
+// import ThemeSwitch from "./ThemeSwitch";
+// import logo from "../../assets/pics/logo2.png"
 // forwardRef wraps the entire component
 const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, ref) => {
     return (
@@ -13,15 +13,16 @@ const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, 
                     <FontAwesomeIcon icon={faBars} className="header-icon" />
                 </button>
                 <div className="app-logo">
-                    <FontAwesomeIcon icon={faBoxesStacked} className="logo-icon" />
-                    <span className="logo-text">ניהול מלאי</span>
+                    {/* <FontAwesomeIcon icon={faBoxesStacked} className="logo-icon" />
+                    <span className="logo-text">ניהול מלאי</span> */}
+                    {/* <img src={logo} alt="logo" /> */}
                 </div>
             </div>
             
             <h1 className="dashboard-title">{title}</h1>
             
             <div className="header-actions">
-                <ThemeSwitch />
+                {/* <ThemeSwitch /> */}
                 {/* This is the button receiving the forwarded ref */}
                 <button onClick={toggleProfile} className="user-button" ref={ref}>
                     <FontAwesomeIcon icon={faUser} className="header-icon" />

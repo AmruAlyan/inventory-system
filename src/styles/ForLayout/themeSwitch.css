@@ -4,7 +4,7 @@
   }
   
   .checkbox-label {
-    margin-left: 10px;
+    /* margin-left: 10px; */
     background-color: var(--panel-bg);
     box-shadow: 0 0 5px 1px var(--primary-text);
     width: 55px;
@@ -16,6 +16,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    scale: 0.8;
   }
   
   .fa-moon {color: #f1c40f;}

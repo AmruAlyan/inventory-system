@@ -5,7 +5,7 @@ import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthPro
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/Profile.css";
-import ReauthModal from "../../components/ReauthModal";
+import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
 
 const labelMap = {

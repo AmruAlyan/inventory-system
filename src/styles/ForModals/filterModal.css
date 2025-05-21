@@ -1,0 +1,108 @@
+.filter-modal {
+  padding: 24px;
+  min-width: 400px;
+  max-width: 600px;
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-lg);
+  color: var(--primary-text);
+}
+
+.filter-modal h2 {
+  margin: 0 0 20px 0;
+  color: var(--primary-text);
+  text-align: center;
+}
+
+.filter-section {
+  margin-bottom: 24px;
+}
+
+.filter-section h3 {
+  margin-bottom: 12px;
+  color: var(--primary-text);
+}
+
+.categories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-color);
+}
+
+.category-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.stock-status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-color);
+}
+
+.stock-status-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.apply-button, .reset-button, .cancel-button {
+  padding: 8px 16px;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.apply-button {
+  background-color: var(--success);
+  color: white;
+}
+
+.apply-button:hover {
+  background-color: var(--success-dark);
+}
+
+.reset-button {
+  background-color: var(--warning);
+  color: white;
+}
+
+.reset-button:hover {
+  background-color: var(--warning-dark);
+}
+
+.cancel-button {
+  background-color: var(--error);
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: var(--error-dark);
+}
+
+/* Checkbox and Radio styling */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--success);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

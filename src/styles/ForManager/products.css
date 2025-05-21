@@ -178,7 +178,7 @@
 }
 
 /* Overlay for modals */
-.overlay {
+/* .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -189,7 +189,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
+} */
 
 /* Shopping list total */
 .shopping-list-total {

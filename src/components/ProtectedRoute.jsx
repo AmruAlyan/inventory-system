@@ -1,25 +1,3 @@
-// import { useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { onAuthStateChanged } from "firebase/auth";
-// import { auth } from "../firebase";
-
-// function ProtectedRoute({ children }) {
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     const unsubscribe = onAuthStateChanged(auth, (user) => {
-//       if (!user) {
-//         navigate("/", { replace: true });
-//       }
-//     });
-
-//     return () => unsubscribe();
-//   }, [navigate]);
-
-//   return children;
-// }
-// export default ProtectedRoute;
-
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";

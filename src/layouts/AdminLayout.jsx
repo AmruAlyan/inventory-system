@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 
-import Header from '../components/Header';
-import ProfileWidget from '../components/ProfileWidget';
-import Sidebar from '../components/Sidebar';
+import Header from '../components/LayoutComponents/Header';
+import Sidebar from '../components/LayoutComponents/Sidebar';
+import ContentArea from '../components/LayoutComponents/ContentArea';
+import Footer from '../components/LayoutComponents/Footer';
+import ProfileWidget from '../components/Widgets/ProfileWidget';
 import useIsMobile from '../hooks/useIsMobile';
 
 import {
@@ -13,7 +15,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import '../styles/dashboard.css'
-import '../styles/contentArea.css'
 
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/admin-dashboard"},
@@ -45,6 +46,7 @@ const AdminLayout = () => {
 
   const handleProfile = () => {
     navigate("/admin-dashboard/profile");
+    setIsProfileOpen(false);
   };
 
   return (
@@ -73,10 +75,10 @@ const AdminLayout = () => {
           toggleSidebarRef={sidebarRef}
         />
 
-        <section className="content-area">
-          <Outlet />
-        </section>
+        <ContentArea />
+        
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../styles/budget.css";
+import "../../styles/ForAdmin/budget.css";
 
 
 const Reports = () => {

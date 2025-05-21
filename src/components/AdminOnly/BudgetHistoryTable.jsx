@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faFilter, faSpinner, faEraser } from '@fortawesome/free-solid-svg-icons';
-import { db } from '../firebase/firebase';
+import { db } from '../../firebase/firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, serverTimestamp, getDoc, limit } from 'firebase/firestore';
-import '../styles/budgetHistoryTable.css';
+import '../../styles/ForAdmin/budgetHistoryTable.css';
 
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [history, setHistory] = useState([]);

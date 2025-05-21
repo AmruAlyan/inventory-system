@@ -1,6 +1,6 @@
 .content-area {
     margin-top: 65px; /* height of header */
-    margin-right: 77px; /* width of sidebar (collapsed) */
+    margin-right: 80px; /* width of sidebar (collapsed) */
     /* margin-right: 227px; */
     padding: 0px 20px 20px 20px;
     width: 100%;
@@ -12,7 +12,7 @@
 }
 
 .sidebar.expanded ~ .content-area {
-    margin-right: 227px;
+    margin-right: 255px;
     transition: margin 0.1s ease;
 
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import '../../styles/inventory.css';
+import '../../styles/ForManager/products.css';
 
 const ShoppingList = () => {
   const [shoppingList, setShoppingList] = useState([]);

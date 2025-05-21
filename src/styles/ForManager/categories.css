@@ -48,7 +48,6 @@
 .sticky-box {
     position: sticky;
     top: 100px; /* or stagger it for each box */
-    background: white; /* to cover behind content */
     z-index: 9;
 }
 

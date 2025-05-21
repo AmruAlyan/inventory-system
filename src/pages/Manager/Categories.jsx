@@ -3,11 +3,9 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faTableCellsLarge, faEdit, faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import AddProductWidget from '../../components/addProductWidget';
-import AddToListModal from '../../components/AddToListModal';
-import CategoryWidget from '../../components/CategoryWidget';
+import CategoryWidget from '../../components/Widgets/CategoryWidget';
 import { toast } from 'react-toastify';
-import '../../styles/categories.css';
+import '../../styles/ForManager/categories.css';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -15,13 +13,36 @@ const Categories = () => {
   const [showEditWidget, setShowEditWidget] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [showAddWidget, setShowAddWidget] = useState(false);
-
-  // Fetch categories from Firestore
+  // Fetch categories and their product counts from Firestore
   const fetchCategories = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'categories'));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setCategories(data);
+      // First get all categories
+      const categorySnapshot = await getDocs(collection(db, 'categories'));
+      const categoriesData = categorySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        productCount: 0 // Initialize count
+      }));
+
+      // Then get all products to count them per category
+      const productsSnapshot = await getDocs(collection(db, 'products'));
+      const categoryCounts = {};
+      
+      // Count products per category
+      productsSnapshot.docs.forEach(doc => {
+        const product = doc.data();
+        if (product.category) {
+          categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+        }
+      });
+
+      // Add counts to categories
+      const dataWithCounts = categoriesData.map(category => ({
+        ...category,
+        productCount: categoryCounts[category.id] || 0
+      }));
+
+      setCategories(dataWithCounts);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -135,10 +156,10 @@ const Categories = () => {
             </div>
           )} */}
           <div>
-            <table className="inventory-table">
-              <thead>
+            <table className="inventory-table">              <thead>
                 <tr>
                   <th>שם קטיגוריה</th>
+                  <th>כמות מוצרים</th>
                   <th>פעולות</th>
                 </tr>
               </thead>
@@ -146,6 +167,7 @@ const Categories = () => {
                 {filteredCategories.map((category) => (
                   <tr key={category.id}>
                     <td>{category.name}</td>
+                    <td>{category.productCount}</td>
                     <td className='inventory-actions'>
                       <button onClick={() => handleEdit(category.id)} title="עדכן">
                         <FontAwesomeIcon icon={faEdit} />

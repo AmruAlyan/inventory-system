@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import '../styles/customBar.css';
+import '../../styles/ForAdmin/customBar.css';
 
 // Sample data as fallback if no props data is provided
 const sampleData = [
