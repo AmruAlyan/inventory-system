@@ -10,12 +10,31 @@
   border-left: 1px solid var(--icon-color);
   padding: 20px 8px 8px 8px;
   transition: width 0.3s ease;
+  justify-content: space-between;
+  z-index: 500;
+}
+
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: top;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .sidebar.expanded {
   align-items: center;
   width: 210px;
   transition: width 0.3s ease;
+  padding: 20px 20px 8px 20px;
 }
 
 .sidebar-button {

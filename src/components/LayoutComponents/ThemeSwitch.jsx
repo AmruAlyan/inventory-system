@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
-import "../styles/themeSwitch.css";
+import "../../styles/ForLayout/themeSwitch.css";
 import { useState, useEffect } from "react";
 
 const ThemeSwitch = () => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase/firebase';
-import { collection, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import { collection, doc, addDoc, setDoc, updateDoc } from 'firebase/firestore';
 
-import '../styles/categoryWidget.css';
+import '../../styles/ForWidgets/categoryWidget.css';
 
 function generateIdFromName(name) {
   return name
@@ -13,16 +13,14 @@ function generateIdFromName(name) {
 }
 
 async function addCategory(categoryName, description) {
-  const categoryId = generateIdFromName(categoryName);
   const categoriesRef = collection(db, 'categories');
-  const categoryDoc = doc(categoriesRef, categoryId);
 
-  await setDoc(categoryDoc, {
+  const docRef = await addDoc(categoriesRef, {
     name: categoryName,
     description: description || ''
   });
 
-  return categoryId;
+  return docRef.id;
 }
 
 async function updateCategory(categoryId, categoryName, description) {

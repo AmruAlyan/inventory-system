@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
-import { auth } from "../firebase/firebase";
+import { auth } from "../../firebase/firebase";
 import { signOut } from "firebase/auth"; // ← Add this line
 import { NavLink, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faXmark, faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
-import "../styles/profileWidget.css";
+import "../../styles/ForWidgets/profileWidget.css";
 
 const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, username, toggleButtonRef }) => {
   const widgetRef = useRef(null);

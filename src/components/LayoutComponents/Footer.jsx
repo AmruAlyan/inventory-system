@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/footer.css';
+import '../../styles/ForLayout/footer.css';
 
 const Footer = () => (
   <footer className="app-footer">

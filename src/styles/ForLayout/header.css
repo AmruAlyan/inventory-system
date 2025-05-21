@@ -4,6 +4,7 @@
   justify-content: space-between;
   align-items: center;
   background-color: var(--panel-bg);
+  /* background-color: var(--primary); */
   height: 60px;
   padding: 0 var(--spacing-md);
   border-bottom: 1px solid var(--border-color);
@@ -84,7 +85,7 @@
 
 /* Icon Styling */
 .header-icon {
-  color: var(--secondary-text);
+  color: var(--icon-highlight);
   width: 20px; 
   height: 20px;
 }
