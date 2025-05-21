@@ -177,13 +177,13 @@ const Products = () => {
     if (existingIndex !== -1) {
       // Update quantity if product already in list
       shoppingList[existingIndex].quantity += quantity;
-    } else {
-      // Add new product to list
+    } else {      // Add new product to list
       shoppingList.push({
         id: product.id,
         name: product.name,
         price: product.price,
-        quantity: quantity
+        quantity: quantity,
+        category: product.category
       });
     }
     

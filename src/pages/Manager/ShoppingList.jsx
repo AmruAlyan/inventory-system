@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 
 const ShoppingList = () => {
@@ -10,8 +12,58 @@ const ShoppingList = () => {
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [categories, setCategories] = useState({});
+  const [budget, setBudget] = useState(0);
 
-  // Load shopping list from localStorage
+  // Handle purchase status change
+  const handlePurchaseChange = (id) => {
+    const updatedList = shoppingList.map(item => {
+      if (item.id === id) {
+        return { ...item, purchased: !item.purchased };
+      }
+      return item;
+    });
+    setShoppingList(updatedList);
+    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
+  };  // Fetch budget from Firebase
+  useEffect(() => {
+    const fetchBudget = async () => {
+      try {
+        const budgetDoc = await getDocs(collection(db, 'budgets'));
+        if (!budgetDoc.empty) {
+          // Get the latest budget record
+          const current = budgetDoc.docs
+            .map(doc => ({ ...doc.data(), id: doc.id }))
+            .sort((a, b) => b.date - a.date)[0];
+          setBudget(current?.totalBudget || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching budget:', error);
+        toast.error('שגיאה בטעינת התקציב');
+      }
+    };
+
+    fetchBudget();
+  }, []);
+
+  // Load shopping list from localStorage  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesMap = {};
+        querySnapshot.docs.forEach(doc => {
+          categoriesMap[doc.id] = doc.data().name;
+        });
+        setCategories(categoriesMap);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   useEffect(() => {
     const loadShoppingList = () => {
       const savedList = localStorage.getItem('shoppingList');
@@ -25,6 +77,12 @@ const ShoppingList = () => {
     window.addEventListener('storage', loadShoppingList);
     return () => window.removeEventListener('storage', loadShoppingList);
   }, []);
+  // Sort shopping list by category
+  const sortedShoppingList = [...shoppingList].sort((a, b) => {
+    const categoryA = categories[a.category] || 'לא מוגדר';
+    const categoryB = categories[b.category] || 'לא מוגדר';
+    return categoryA.localeCompare(categoryB);
+  });
 
   // Calculate total price
   const totalPrice = shoppingList.reduce(
@@ -57,9 +115,12 @@ const ShoppingList = () => {
       toast.success('הרשימה נוקתה בהצלחה!');
     }, 700);
   };
-
   // Start editing item
   const handleEdit = (item) => {
+    if (item.purchased) {
+      toast.warning('לא ניתן לערוך פריט שכבר נרכש');
+      return;
+    }
     setEditingId(item.id);
     setEditQuantity(item.quantity);
     setUseCustomQuantity(item.quantity > 10);
@@ -106,14 +167,13 @@ const ShoppingList = () => {
         </h1>
         <button
           className="btn btn-accent"
-          style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'white', fontWeight: 600, minWidth: 160 }}
+          style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
           onClick={handleClearAll}
           disabled={shoppingList.length === 0 || clearing}
-        >
-          {clearing ? (
-            <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
+        >          {clearing ? (
+            <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
           ) : (
-            <FontAwesomeIcon icon={faBroom} className="me-2" />
+            <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
           )}
           נקה את כל הרשימה
         </button>
@@ -126,23 +186,41 @@ const ShoppingList = () => {
         </div>
       ) : (
         <>
-          <div className="card">
-            <table className="inventory-table">
-              <thead>
+          {/* <div className="card"> */}
+            <table className="inventory-table">              
+              <thead>                
                 <tr>
+                  <th>נרכש</th>
                   <th>שם מוצר</th>
+                  <th>קטגוריה</th>
                   <th>כמות</th>
                   <th>מחיר יחידה</th>
                   <th>מחיר כולל</th>
                   <th>פעולות</th>
                 </tr>
-              </thead>
-              <tbody>
-                {shoppingList.map(item => (
-                  <tr key={item.id}>
+              </thead>              
+              <tbody>                
+                {sortedShoppingList.map(item => (
+                  <tr 
+                    key={item.id} 
+                    style={item.purchased ? { 
+                      backgroundColor: '#e8f5e9', 
+                      color: '#2e7d32',
+                      textDecoration: 'line-through',
+                      opacity: 0.8 
+                    } : {}}
+                  >
+                    <td>                      
+                      <input
+                        type="checkbox"
+                        checked={item.purchased || false}
+                        onChange={() => handlePurchaseChange(item.id)}
+                      />
+                    </td>
                     <td>{item.name}</td>
+                    <td>{categories[item.category] || 'לא מוגדר'}</td>
                     <td>
-                      {editingId === item.id ? (
+                      {editingId === item.id && !item.purchased ? (
                         useCustomQuantity ? (
                           <input
                             type="number"
@@ -168,9 +246,9 @@ const ShoppingList = () => {
                       )}
                     </td>
                     <td>{item.price.toFixed(2)} ₪</td>
-                    <td>{(item.price * item.quantity).toFixed(2)} ₪</td>
+                    <td>{(item.price * item.quantity).toFixed(2)} ₪</td>                    
                     <td className="inventory-actions">
-                      {editingId === item.id ? (
+                      {editingId === item.id && !item.purchased ? (
                         <>
                           <button onClick={() => handleSave(item.id)} title="שמור">
                             <FontAwesomeIcon icon={faSave} />
@@ -181,10 +259,20 @@ const ShoppingList = () => {
                         </>
                       ) : (
                         <>
-                          <button onClick={() => handleEdit(item)} title="ערוך כמות">
+                          <button 
+                            onClick={() => handleEdit(item)} 
+                            title="ערוך כמות"
+                            disabled={item.purchased}
+                            style={item.purchased ? { color: '#ccc', cursor: 'not-allowed' } : {}}
+                          >
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
-                          <button onClick={() => handleDelete(item.id)} title="הסר">
+                          <button 
+                            onClick={() => handleDelete(item.id)} 
+                            title="הסר"
+                            disabled={item.purchased}
+                            style={item.purchased ? { color: '#ccc', cursor: 'not-allowed' } : {}}
+                          >
                             <FontAwesomeIcon icon={faTrash} />
                           </button>
                         </>
@@ -194,11 +282,18 @@ const ShoppingList = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-          
-          <div className="shopping-list-total card">
-            <h3>סה"כ: {totalPrice.toFixed(2)} ₪</h3>
-          </div>
+          {/* </div>             */}
+          <div className="shopping-list-total card" style={{ textAlign: 'center', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '1rem' }}>
+              <h3 style={{ color: totalPrice > budget ? 'var(--danger)' : 'inherit' }}>
+                סה"כ: {totalPrice.toFixed(2)} ₪
+              </h3>
+              <h3>
+                תקציב: {budget.toFixed(2)} ₪
+              </h3>
+              <h3 style={{ color: totalPrice > budget ? 'var(--danger)' : 'var(--success)' }}>
+                {totalPrice > budget ? 'חריגה מהתקציב' : `נותר: ${(budget - totalPrice).toFixed(2)} ₪`}
+              </h3>
+            </div>
         </>
       )}
     </div>

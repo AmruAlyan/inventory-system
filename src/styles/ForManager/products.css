@@ -226,6 +226,7 @@
 .shopping-list-total {
   margin-top: var(--spacing-lg);
   text-align: left;
+  justify-content: right;
   padding: var(--spacing-md);
   background-color: var(--panel-bg);
   border-radius: var(--border-radius-md);
