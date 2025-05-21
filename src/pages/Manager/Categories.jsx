@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
-import { faTableCellsLarge, faEdit, faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faTableCellsLarge, faEdit, faTrashAlt, faPlus, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
 import { toast } from 'react-toastify';
@@ -11,8 +11,9 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditWidget, setShowEditWidget] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [showAddWidget, setShowAddWidget] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);  const [showAddWidget, setShowAddWidget] = useState(false);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
   // Fetch categories and their product counts from Firestore
   const fetchCategories = async () => {
     try {
@@ -77,10 +78,44 @@ const Categories = () => {
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
-  const filteredCategories = categories.filter(category =>
-    category.name?.toLowerCase().includes(searchTerm)
-  );
+  const getSortIcon = (field) => {
+    if (sortField !== field) return faSort;
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  const filteredCategories = categories
+    .filter(category => category.name?.toLowerCase().includes(searchTerm))
+    .sort((a, b) => {
+      if (!sortField) return 0;
+
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      // For numeric values (productCount)
+      if (sortField === 'productCount') {
+        aValue = Number(aValue);
+        bValue = Number(bValue);
+      }
+
+      // For string values (name)
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className='inventory-container'>
@@ -158,8 +193,14 @@ const Categories = () => {
           <div>
             <table className="inventory-table">              <thead>
                 <tr>
-                  <th>שם קטיגוריה</th>
-                  <th>כמות מוצרים</th>
+                  <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                    שם קטיגוריה
+                    <FontAwesomeIcon icon={getSortIcon('name')} className="sort-icon" />
+                  </th>
+                  <th onClick={() => handleSort('productCount')} style={{ cursor: 'pointer' }}>
+                    כמות מוצרים
+                    <FontAwesomeIcon icon={getSortIcon('productCount')} className="sort-icon" />
+                  </th>
                   <th>פעולות</th>
                 </tr>
               </thead>
