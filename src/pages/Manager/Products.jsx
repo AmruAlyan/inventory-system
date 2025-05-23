@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -167,28 +167,31 @@ const Products = () => {
     setSelectedProduct(product);
     setShowAddToListModal(true);
   };
-
-  const addProductToShoppingList = (product, quantity) => {
-    const shoppingList = JSON.parse(localStorage.getItem('shoppingList') || '[]');
-    
-    // Check if product already exists in list
-    const existingIndex = shoppingList.findIndex(item => item.id === product.id);
-    
-    if (existingIndex !== -1) {
-      // Update quantity if product already in list
-      shoppingList[existingIndex].quantity += quantity;
-    } else {      // Add new product to list
-      shoppingList.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: quantity,
-        category: product.category
-      });
+  const addProductToShoppingList = async (product, quantity) => {
+    try {
+      const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', product.id);
+      const itemDoc = await getDoc(itemRef);
+      
+      if (itemDoc.exists()) {
+        // Update existing item quantity
+        const currentQuantity = itemDoc.data().quantity;
+        await updateDoc(itemRef, {
+          quantity: currentQuantity + quantity
+        });
+      } else {
+        // Add new item
+        await setDoc(itemRef, {
+          productRef: doc(db, 'products', product.id),
+          quantity: quantity,
+          purchased: false
+        });
+      }
+      
+      toast.success('המוצר נוסף לרשימת הקניות בהצלחה!');
+    } catch (error) {
+      console.error('Error adding product to shopping list:', error);
+      toast.error('שגיאה בהוספת המוצר לרשימת הקניות');
     }
-    
-    localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
-    toast.success('המוצר נוסף לרשימת הקניות בהצלחה!');
   };
 
   const [showAddWidget, setShowAddWidget] = useState(false);
@@ -289,8 +292,10 @@ const Products = () => {
               </th>
               <th>פעולות</th>
             </tr>
-          </thead>          <tbody>
-            {currentProducts.map((product) => (              <tr key={product.id}>
+          </thead>          
+          <tbody>
+            {currentProducts.map((product) => (              
+              <tr key={product.id}>
                 <td>{product.name}</td>
                 <td>{categories[product.category] || 'לא מוגדר'}</td>
                 <td>{product.price} ₪</td>
@@ -315,10 +320,12 @@ const Products = () => {
                   <button onClick={() => handleDelete(product.id)} title="מחק">
                     <FontAwesomeIcon icon={faTrashAlt} />
                   </button>
-                </td>              </tr>
+                </td>              
+              </tr>
             ))}
           </tbody>
-        </table>        <div className="pagination">
+        </table>        
+        <div className="pagination">
             <div className="pagination-controls">
               <button 
                 onClick={() => handlePageChange(currentPage - 1)}

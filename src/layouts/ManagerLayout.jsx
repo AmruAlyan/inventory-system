@@ -20,8 +20,8 @@ const name = "עבדאלרחמן";
 
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
-  { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
   { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
+  { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
   { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list" },
   { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase" },
   { icon: faFileLines, text: 'הצג הוצאה תקציבית', id: 'budget-expense', path: "/manager-dashboard/budget-expense" }

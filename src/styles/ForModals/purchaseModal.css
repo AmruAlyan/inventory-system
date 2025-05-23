@@ -1,0 +1,114 @@
+/* Add these styles if not already present */
+.purchase-details {
+  padding: 1rem;
+}
+
+.purchase-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  /* grid-template-columns: repeat(2, 1fr); */
+  /* gap: 1rem; */
+  margin-bottom: 1rem;
+  /* padding: 1rem; */
+  /* background-color: #f8f9fa; */
+  border-radius: 4px;
+}
+
+.purchase-summary {
+  text-align: left;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.close-button {
+    align-items: center;
+    justify-content: center;
+    size: 1rem;
+    color: var(--primary-text);
+}
+
+.purchase-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  max-width: 90vw;
+  width: 70%;
+}
+
+.sticky-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.scrollable-content {
+  overflow-y: auto;
+  flex: 1;
+  padding: 1rem;
+}
+
+.sticky-summary {
+  /* position: sticky; */
+  top: 0;
+  background: white;
+  /* z-index: 1; */
+  margin-bottom: 1rem;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.sticky-footer {
+  /* position: sticky; */
+  bottom: 0;
+  background: white;
+  /* z-index: 1; */
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.inventory-table {
+  min-width: 100%;
+}
+
+/* Add smooth scrolling */
+.scrollable-content {
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar styling */
+.scrollable-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

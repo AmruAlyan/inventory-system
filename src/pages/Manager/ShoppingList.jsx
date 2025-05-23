@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 
-const ShoppingList = () => {
-  const [shoppingList, setShoppingList] = useState([]);
+const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
@@ -15,17 +14,152 @@ const ShoppingList = () => {
   const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
 
-  // Handle purchase status change
-  const handlePurchaseChange = (id) => {
-    const updatedList = shoppingList.map(item => {
-      if (item.id === id) {
-        return { ...item, purchased: !item.purchased };
+  // Subscribe to shopping list changes
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(doc(db, 'sharedShoppingList', 'globalList'), 'items'),
+      async (snapshot) => {
+        const items = [];
+        for (const doc of snapshot.docs) {
+          const itemData = doc.data();
+          // Fetch the referenced product data
+          const productDoc = await getDoc(itemData.productRef);
+          if (productDoc.exists()) {
+            const productData = productDoc.data();
+            items.push({
+              id: doc.id,
+              quantity: itemData.quantity,
+              purchased: itemData.purchased || false,
+              purchaseDate: itemData.purchaseDate,
+              name: productData.name,
+              category: productData.category,
+              price: productData.price,
+            });
+          }
+        }
+        setShoppingList(items);
+      },
+      (error) => {
+        console.error('Error fetching shopping list:', error);
+        toast.error('שגיאה בטעינת רשימת הקניות');
       }
-      return item;
-    });
-    setShoppingList(updatedList);
-    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
-  };  // Fetch budget from Firebase
+    );
+
+    return () => unsubscribe();
+  }, []);
+  
+  // Handle purchase status change
+  // const handlePurchaseChange = async (id) => {
+  //   try {
+  //     const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', id);
+  //     const itemDoc = await getDoc(itemRef);
+      
+  //     if (itemDoc.exists()) {
+  //       const newPurchased = !itemDoc.data().purchased;
+  //       await updateDoc(itemRef, { 
+  //         purchased: newPurchased,
+  //         purchaseDate: newPurchased ? Date.now() : null
+  //       });
+
+  //       // If item is purchased, add to purchases collection
+  //       if (newPurchased) {
+  //         const item = shoppingList.find(item => item.id === id);
+  //         if (item) {
+  //           await setDoc(doc(db, 'purchases', id), {
+  //             ...item,
+  //             purchaseDate: Date.now()
+  //           });
+  //         }
+  //       }
+
+  //       toast.success(newPurchased ? 'המוצר סומן כנרכש' : 'המוצר סומן כלא נרכש');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error updating purchase status:', error);
+  //     toast.error('שגיאה בעדכון סטטוס הרכישה');
+  //   }
+  // };
+
+  const handlePurchaseChange = async (id) => {
+    try {
+      const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', id);
+      const itemDoc = await getDoc(itemRef);
+      
+      if (itemDoc.exists()) {
+        const newPurchased = !itemDoc.data().purchased;
+        
+        // Get the item from current shopping list state
+        const item = shoppingList.find(item => item.id === id);
+        if (!item) {
+          throw new Error('Item not found in shopping list');
+        }
+
+        // Update item purchase status in shopping list
+        await updateDoc(itemRef, { 
+          purchased: newPurchased,
+        });
+
+        // Get reference to current purchase document
+        const currentPurchaseRef = doc(db, 'purchases', 'current');
+        const currentPurchaseDoc = await getDoc(currentPurchaseRef);
+        
+        if (newPurchased) {
+          // If item is being checked (purchased)
+          const purchaseData = {
+            items: []
+          };
+
+          if (currentPurchaseDoc.exists()) {
+            // Add new item to existing items array
+            const existingItems = currentPurchaseDoc.data().items || [];
+            purchaseData.items = [
+              ...existingItems,
+              {
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                quantity: item.quantity,
+                price: item.price,
+                actualPrice: item.price, // Default to original price
+                checkedAt: Date.now()
+              }
+            ];
+          } else {
+            // Create new items array with first item
+            purchaseData.items = [{
+              id: item.id,
+              name: item.name,
+              category: item.category,
+              categoryName: categories[item.category] || 'לא מוגדר',
+              quantity: item.quantity,
+              price: item.price,
+              actualPrice: item.price,
+              checkedAt: Date.now()
+            }];
+          }
+
+          // Set or update the current purchase document
+          await setDoc(currentPurchaseRef, purchaseData, { merge: true });
+
+        } else {
+          // If item is being unchecked (removed from purchase)
+          if (currentPurchaseDoc.exists()) {
+            const existingItems = currentPurchaseDoc.data().items || [];
+            await updateDoc(currentPurchaseRef, {
+              items: existingItems.filter(item => item.id !== id)
+            });
+          }
+        }
+
+        toast.success(newPurchased ? 'המוצר סומן כנרכש' : 'המוצר סומן כלא נרכש');
+      }
+    } catch (error) {
+      console.error('Error updating purchase status:', error);
+      toast.error('שגיאה בעדכון סטטוס הרכישה');
+    }
+  };
+  
+  // Fetch budget from Firebase
   useEffect(() => {
     const fetchBudget = async () => {
       try {
@@ -64,19 +198,19 @@ const ShoppingList = () => {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const loadShoppingList = () => {
-      const savedList = localStorage.getItem('shoppingList');
-      if (savedList) {
-        setShoppingList(JSON.parse(savedList));
-      }
-    };
+  // useEffect(() => {
+  //   const loadShoppingList = () => {
+  //     const savedList = localStorage.getItem('shoppingList');
+  //     if (savedList) {
+  //       setShoppingList(JSON.parse(savedList));
+  //     }
+  //   };
 
-    loadShoppingList();
-    // Add event listener to update list if changed in another tab
-    window.addEventListener('storage', loadShoppingList);
-    return () => window.removeEventListener('storage', loadShoppingList);
-  }, []);
+  //   loadShoppingList();
+  //   // Add event listener to update list if changed in another tab
+  //   window.addEventListener('storage', loadShoppingList);
+  //   return () => window.removeEventListener('storage', loadShoppingList);
+  // }, []);
   // Sort shopping list by category
   const sortedShoppingList = [...shoppingList].sort((a, b) => {
     const categoryA = categories[a.category] || 'לא מוגדר';
@@ -89,32 +223,50 @@ const ShoppingList = () => {
     (total, item) => total + item.price * item.quantity,
     0
   );
-
   // Handle delete item
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmDelete = window.confirm('האם אתה בטוח שברצונך להסיר פריט זה מהרשימה?');
     if (!confirmDelete) return;
 
-    const updatedList = shoppingList.filter(item => item.id !== id);
-    setShoppingList(updatedList);
-    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
-    toast.success('המוצר נמחק בהצלחה');
+    try {
+      await deleteDoc(doc(db, 'sharedShoppingList', 'globalList', 'items', id));
+      toast.success('המוצר נמחק בהצלחה');
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('שגיאה במחיקת המוצר');
+    }
   };
 
   // Clear all items
   const handleClearAll = async () => {
-    if (shoppingList.length === 0) return;
-    const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק את כל המוצרים מהרשימה?');
-    if (!confirmed) return;
-    setClearing(true);
-    // Simulate async for UX, replace with Firestore logic if needed
-    setTimeout(() => {
-      setShoppingList([]);
-      localStorage.setItem('shoppingList', JSON.stringify([]));
-      setClearing(false);
-      toast.success('הרשימה נוקתה בהצלחה!');
-    }, 700);
-  };
+  if (shoppingList.length === 0) return;
+  
+  const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק את כל המוצרים מהרשימה?');
+  if (!confirmed) return;
+
+  setClearing(true);
+  try {
+    const batch = writeBatch(db);
+    const itemsRef = collection(doc(db, 'sharedShoppingList', 'globalList'), 'items');
+    const snapshot = await getDocs(itemsRef);
+    
+    // Only delete unpurchased items
+    snapshot.docs.forEach(doc => {
+      const item = doc.data();
+      if (!item.purchased) {
+        batch.delete(doc.ref);
+      }
+    });
+
+    await batch.commit();
+    toast.success('הרשימה נוקתה בהצלחה!');
+  } catch (error) {
+    console.error('Error clearing shopping list:', error);
+    toast.error('שגיאה בניקוי הרשימה');
+  } finally {
+    setClearing(false);
+  }
+};
   // Start editing item
   const handleEdit = (item) => {
     if (item.purchased) {
@@ -131,21 +283,19 @@ const ShoppingList = () => {
     setEditingId(null);
     setUseCustomQuantity(false);
   };
-
   // Save edited quantity
-  const handleSave = (id) => {
-    const updatedList = shoppingList.map(item => {
-      if (item.id === id) {
-        return { ...item, quantity: Number(editQuantity) };
-      }
-      return item;
-    });
-    
-    setShoppingList(updatedList);
-    localStorage.setItem('shoppingList', JSON.stringify(updatedList));
-    setEditingId(null);
-    setUseCustomQuantity(false);
-    toast.success('המוצר עודכן בהצלחה');
+  const handleSave = async (id) => {
+    try {
+      await updateDoc(doc(db, 'sharedShoppingList', 'globalList', 'items', id), {
+        quantity: Number(editQuantity)
+      });
+      setEditingId(null);
+      setUseCustomQuantity(false);
+      toast.success('הכמות עודכנה בהצלחה');
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('שגיאה בעדכון הכמות');
+    }
   };
 
   // Handle quantity change
