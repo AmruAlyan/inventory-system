@@ -191,7 +191,8 @@ const Categories = () => {
             </div>
           )} */}
           <div>
-            <table className="inventory-table">              <thead>
+            <table className="inventory-table">              
+              <thead>
                 <tr>
                   <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
                     שם קטיגוריה

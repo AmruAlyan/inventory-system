@@ -14,6 +14,7 @@ import ManagerProfile from "./pages/Manager/ManagerProfile";
 import ShoppingList from "./pages/Manager/ShoppingList";
 import { ROLES } from "./constants/roles";
 import Categories from "./pages/Manager/Categories";
+import Purchases from "./pages/Manager/Purchases";
 
 function App() {
   return (
@@ -49,7 +50,7 @@ function App() {
           <Route path="products" element={<ProductsPage />} />
           <Route path="categories" element={<Categories />} />
           <Route path="shopping-list" element={<ShoppingList />} />
-          <Route path="new-purchase" element={<h1>new purchase</h1>} />
+          <Route path="new-purchase" element={<Purchases />} />
           <Route path="budget-expense" element={<h1>budget expense</h1>} />
           <Route path="profile" element={<ManagerProfile />} />
         </Route>
