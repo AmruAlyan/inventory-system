@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faBars, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ForLayout/header.css";
 // import ThemeSwitch from "./ThemeSwitch";
-// import logo from "../../assets/pics/logo2.png"
+import logo from "../../assets/pics/home-2.png";
 // forwardRef wraps the entire component
 const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, ref) => {
     return (
@@ -12,15 +12,15 @@ const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, 
                 <button onClick={toggleSidebar} className="menu-button" ref={sidebarRef}>
                     <FontAwesomeIcon icon={faBars} className="header-icon" />
                 </button>
-                <div className="app-logo">
-                    {/* <FontAwesomeIcon icon={faBoxesStacked} className="logo-icon" />
-                    <span className="logo-text">ניהול מלאי</span> */}
-                    {/* <img src={logo} alt="logo" /> */}
-                </div>
+                {/* <div className="app-logo">
+                    <img src={logo} alt="logo-image" />
+                </div> */}
             </div>
-            
-            <h1 className="dashboard-title">{title}</h1>
-            
+            {/* <h1 className="dashboard-title">{title}</h1> */}
+            {/* <div className="header-spacer" /> */}
+            <div className="app-logo">
+                    <img src={logo} alt="logo-image" />
+            </div>
             <div className="header-actions">
                 {/* <ThemeSwitch /> */}
                 {/* This is the button receiving the forwarded ref */}
