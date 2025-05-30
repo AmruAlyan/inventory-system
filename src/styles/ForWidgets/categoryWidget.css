@@ -80,7 +80,8 @@
     transition: all var(--transition-fast);
     border: none;
     min-width: 120px;
-    background-color: #2ecc40; /* Green */
+    /* background-color: #2ecc40; */
+    background-color: var(--primary);
     color: #fff; /* White text */
 }
 

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
+import Spinner from '../../components/Spinner';
 
 const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -13,9 +14,11 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   const [clearing, setClearing] = useState(false);
   const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // Subscribe to shopping list changes
   useEffect(() => {
+    setLoading(true);
     const unsubscribe = onSnapshot(
       collection(doc(db, 'sharedShoppingList', 'globalList'), 'items'),
       async (snapshot) => {
@@ -38,8 +41,10 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
           }
         }
         setShoppingList(items);
+        setLoading(false);
       },
       (error) => {
+        setLoading(false);
         console.error('Error fetching shopping list:', error);
         toast.error('שגיאה בטעינת רשימת הקניות');
       }
@@ -47,38 +52,6 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
 
     return () => unsubscribe();
   }, []);
-  
-  // Handle purchase status change
-  // const handlePurchaseChange = async (id) => {
-  //   try {
-  //     const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', id);
-  //     const itemDoc = await getDoc(itemRef);
-      
-  //     if (itemDoc.exists()) {
-  //       const newPurchased = !itemDoc.data().purchased;
-  //       await updateDoc(itemRef, { 
-  //         purchased: newPurchased,
-  //         purchaseDate: newPurchased ? Date.now() : null
-  //       });
-
-  //       // If item is purchased, add to purchases collection
-  //       if (newPurchased) {
-  //         const item = shoppingList.find(item => item.id === id);
-  //         if (item) {
-  //           await setDoc(doc(db, 'purchases', id), {
-  //             ...item,
-  //             purchaseDate: Date.now()
-  //           });
-  //         }
-  //       }
-
-  //       toast.success(newPurchased ? 'המוצר סומן כנרכש' : 'המוצר סומן כלא נרכש');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error updating purchase status:', error);
-  //     toast.error('שגיאה בעדכון סטטוס הרכישה');
-  //   }
-  // };
 
   const handlePurchaseChange = async (id) => {
     try {
@@ -197,20 +170,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
 
     fetchCategories();
   }, []);
-
-  // useEffect(() => {
-  //   const loadShoppingList = () => {
-  //     const savedList = localStorage.getItem('shoppingList');
-  //     if (savedList) {
-  //       setShoppingList(JSON.parse(savedList));
-  //     }
-  //   };
-
-  //   loadShoppingList();
-  //   // Add event listener to update list if changed in another tab
-  //   window.addEventListener('storage', loadShoppingList);
-  //   return () => window.removeEventListener('storage', loadShoppingList);
-  // }, []);
+  
   // Sort shopping list by category
   const sortedShoppingList = [...shoppingList].sort((a, b) => {
     const categoryA = categories[a.category] || 'לא מוגדר';
@@ -329,12 +289,17 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
         </button>
       </div>
       
-      {shoppingList.length === 0 ? (
+      {(loading || clearing) && (
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+          <Spinner text={clearing ? 'מנקה את הרשימה...' : 'טוען נתונים...'} />
+        </div>
+      )}
+      {!loading && !clearing && shoppingList.length === 0 ? (
         <div className="empty-list">
           <p>רשימת הקניות ריקה</p>
           <p className="empty-list-subtext">הוסף מוצרים מדף המוצרים</p>
         </div>
-      ) : (
+      ) : !loading && !clearing && (
         <>
           {/* <div className="card"> */}
             <table className="inventory-table">              
@@ -433,6 +398,11 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
               </tbody>
             </table>
           {/* </div>             */}
+          {clearing && (
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+          <Spinner />
+        </div>
+      )}
           <div className="shopping-list-total card" style={{ textAlign: 'center', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '1rem' }}>
               <h3 style={{ color: totalPrice > budget ? 'var(--danger)' : 'inherit' }}>
                 סה"כ: {totalPrice.toFixed(2)} ₪
@@ -450,4 +420,4 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   );
 };
 
-export default ShoppingList; 
+export default ShoppingList;

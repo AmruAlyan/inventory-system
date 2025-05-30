@@ -1,7 +1,9 @@
 /* Enhanced Theme Variables */
 :root {
   /* Primary Colors */
-  --primary: #4CAF50;
+  /* --primary: #4CAF50; */
+  --primary: #518664;
+  /* --primary: #7BB08E; */
   --primary-light: #66bb6a;
   --primary-dark: #388E3C;
   

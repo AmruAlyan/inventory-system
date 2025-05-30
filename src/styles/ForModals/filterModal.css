@@ -31,6 +31,22 @@
   padding: 8px;
   border-radius: var(--border-radius-md);
   background-color: var(--bg-color);
+  scrollbar-width: thin;
+  scrollbar-color: var(--success) transparent;
+}
+
+.categories-list::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+.categories-list::-webkit-scrollbar-thumb {
+  background: var(--success);
+  border-radius: 8px;
+}
+
+.categories-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .category-checkbox {
@@ -105,4 +121,25 @@ input[type="checkbox"], input[type="radio"] {
   width: 16px;
   height: 16px;
   cursor: pointer;
+  background: transparent;
+}
+
+input[type="checkbox"]::-webkit-checkbox,
+input[type="radio"]::-webkit-radio {
+  background: transparent;
+}
+
+input[type="checkbox"]::-webkit-input-placeholder,
+input[type="radio"]::-webkit-input-placeholder {
+  background: transparent;
+}
+
+input[type="checkbox"]::-ms-check,
+input[type="radio"]::-ms-check {
+  background: transparent;
+}
+
+input[type="checkbox"]::-moz-checkbox,
+input[type="radio"]::-moz-radio {
+  background: transparent;
 }

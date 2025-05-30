@@ -6,8 +6,10 @@
   right: 0;
   display: flex;
   flex-direction: column;
-  background-color: var(--header-bg);
-  border-left: 1px solid var(--icon-color);
+  /* background-color: var(--header-bg); */
+  /* background-color: #7BB08E; */
+  background-color: #518664;
+  border-left: 1px solid black;
   padding: 20px 8px 8px 8px;
   transition: width 0.3s ease;
   justify-content: space-between;
@@ -49,6 +51,7 @@
   background: none;
   box-shadow: 0 0 5px 1px var(--primary-text);
   background-color: var(--panel-bg);
+  /* background-color: #7BB08E; */
   text-decoration: none;
 }
 
@@ -91,7 +94,9 @@
 
 /* Icon Styling */
 .sidebar-icon {
-  color: var(--icon-highlight);
+  /* color: var(--icon-highlight); */
+  color: #518664;
+  /* color: var(--primary); */
   width: 24px; 
   height: 24px;
   /* margin-right: 20px; */

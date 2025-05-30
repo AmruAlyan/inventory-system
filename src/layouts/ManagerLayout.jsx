@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Header from '../components/LayoutComponents/Header';
 import Sidebar from '../components/LayoutComponents/Sidebar';
 import Footer from '../components/LayoutComponents/Footer';
 import ProfileWidget from '../components/Widgets/ProfileWidget';
 import useIsMobile from '../hooks/useIsMobile';
+import { auth, db } from '../firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 import {
   faHouse,
@@ -14,9 +16,9 @@ import {
   faCashRegister,
   faFileLines
 } from '@fortawesome/free-solid-svg-icons';
+import ContentArea from '../components/LayoutComponents/ContentArea';
 
 const role = "מנהל מלאי";
-const name = "עבדאלרחמן";
 
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
@@ -30,11 +32,34 @@ const sidebarIcons = [
 const ManagerLayout = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [realName, setRealName] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const toggleButtonRef = useRef();
   const sidebarRef = useRef();
+
+  // Fetch real user name from Firestore
+  const fetchUserName = useCallback(async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setRealName(docSnap.data().name || "");
+        } else {
+          setRealName(user.displayName || "");
+        }
+      } catch (err) {
+        setRealName(user.displayName || "");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserName();
+  }, [fetchUserName]);
 
   const toggleSidebar = () => {
     if (isProfileOpen) setIsProfileOpen(false);
@@ -66,7 +91,7 @@ const ManagerLayout = () => {
           isProfileOpen={isProfileOpen}
           toggleProfile={toggleProfile}
           nav2profile={handleProfile}
-          username={name}
+          username={realName}
           toggleButtonRef={toggleButtonRef}
         />
 
@@ -77,9 +102,7 @@ const ManagerLayout = () => {
           toggleSidebarRef={sidebarRef}
         />
 
-        <section className="content-area">
-          <Outlet /> {/* This renders the nested route page */}
-        </section>
+        <ContentArea />
       </main>
       <Footer />
     </div>

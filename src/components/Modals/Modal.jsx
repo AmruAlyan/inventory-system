@@ -8,6 +8,10 @@ export default function Modal({ children, onClose }) {
   const overlayRef = useRef(null);
 
   useEffect(() => {
+    // Prevent background scroll when modal is open
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const handleOutsideClick = (e) => {
       if (overlayRef.current && e.target === overlayRef.current) {
         onClose();
@@ -23,6 +27,8 @@ export default function Modal({ children, onClose }) {
     document.addEventListener('mousedown', handleOutsideClick);
     document.addEventListener('keydown', handleEscape);
     return () => {
+      // Restore original overflow when modal closes
+      document.body.style.overflow = originalOverflow;
       document.removeEventListener('mousedown', handleOutsideClick);
       document.removeEventListener('keydown', handleEscape);
     };

@@ -3,10 +3,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--panel-bg);
-  height: 60px;
-  padding: 0 var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  /* background-color: var(--panel-bg); */
+  background-color: #518664;
+  /* background-color: #004f2f; */
+  height: 64px;
+  padding: 0 18px;
+  border-bottom: 1px solid black;
   box-shadow: 0 2px 4px var(--shadow-color);
   position: fixed;
   top: 0;
@@ -71,6 +73,7 @@
   align-items: center;
   justify-content: center;
   transition: background-color var(--transition-fast);
+
 }
 
 .user-button:hover,
@@ -93,8 +96,8 @@
 /* Icon Styling */
 .header-icon {
   color: var(--icon-highlight);
-  width: 20px; 
-  height: 20px;
+  width: 24px; 
+  height: 24px;
 }
 
 /* Responsive adjustments */
