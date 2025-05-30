@@ -1,33 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from './Modal';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
 import '../../styles/ForModals/filterModal.css';
 
-const FilterModal = ({ onClose, onApplyFilters, initialFilters }) => {
-  const [categories, setCategories] = useState([]);
+const FilterModal = ({ onClose, onApplyFilters, initialFilters, categories }) => {
   const [filters, setFilters] = useState({
     categories: initialFilters?.categories || [],
     stockStatus: initialFilters?.stockStatus || 'all', // 'all', 'inStock', 'outOfStock', 'lowStock'
   });
-
-  // Fetch categories from Firestore
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        const categoriesData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const handleCategoryChange = (categoryId) => {
     setFilters(prev => ({

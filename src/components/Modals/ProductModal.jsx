@@ -29,7 +29,7 @@ export async function updateProduct(productId, productData) {
   }
 }
 
-export default function ProductModal({ onClose, product = null, onSave, mode = 'add' }) {
+export default function ProductModal({ onClose, product = null, onSave, mode = 'add', existingProductNames = [] }) {
   const [form, setForm] = useState({
     name: product ? product.name : '',
     category: product ? product.category : '',
@@ -64,6 +64,16 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
     if (!form.name || !form.price || !form.quantity || !form.category) {
       setStatus('Please fill out all fields.');
       toast.error('שגיאה: נא למלא את כל השדות הדרושים');
+      return;
+    }
+
+    // Duplicate name check (case-insensitive, trimmed)
+    const isDuplicate = existingProductNames.some(
+      (name) => name.trim().toLowerCase() === form.name.trim().toLowerCase()
+    );
+    if (isDuplicate) {
+      setStatus('Product name already exists.');
+      toast.error('שגיאה: שם המוצר כבר קיים');
       return;
     }
 
@@ -124,7 +134,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
           </div>
 
         </form>
-        {status && <p>{status}</p>}
+        {/* {status && <p>{status}</p>} */}
       </div>
     </Modal>
   );

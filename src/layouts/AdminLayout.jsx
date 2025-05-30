@@ -1,5 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { auth, db } from '../firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 import Header from '../components/LayoutComponents/Header';
 import Sidebar from '../components/LayoutComponents/Sidebar';
@@ -22,17 +24,37 @@ const sidebarIcons = [
   { icon: faFileLines, text: 'צפה בדוחות הוצאות', id: 'reports', path: "/admin-dashboard/reports" }
 ];
 
-const role = "אדמן";
-const name = "עבדאלרחמן";
-
 const AdminLayout = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [realName, setRealName] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const toggleButtonRef = useRef();
   const sidebarRef = useRef();
+
+  // Fetch real user name from Firestore
+  const fetchUserName = useCallback(async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setRealName(docSnap.data().name || "");
+        } else {
+          setRealName(user.displayName || "");
+        }
+      } catch (err) {
+        setRealName(user.displayName || "");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserName();
+  }, [fetchUserName]);
 
   const toggleSidebar = () => {
     if (isProfileOpen) setIsProfileOpen(false);
@@ -54,7 +76,7 @@ const AdminLayout = () => {
       <Header
         toggleSidebar={toggleSidebar}
         toggleProfile={toggleProfile}
-        title={role}
+        title={"אדמן"}
         ref={toggleButtonRef}
         sidebarRef={sidebarRef}
       />
@@ -64,7 +86,7 @@ const AdminLayout = () => {
           isProfileOpen={isProfileOpen}
           toggleProfile={toggleProfile}
           nav2profile={handleProfile}
-          username={name}
+          username={realName}
           toggleButtonRef={toggleButtonRef}
         />
 

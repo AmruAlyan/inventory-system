@@ -9,6 +9,7 @@
     color: var(--primary-text);
     text-align: justify;
     transition: margin 0.1s ease;
+    /* background-color: #7BB08E; */
 }
 
 .sidebar.expanded ~ .content-area {

@@ -5,6 +5,7 @@ import { faTableCellsLarge, faEdit, faTrashAlt, faPlus, faSort, faSortUp, faSort
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
 import { toast } from 'react-toastify';
+import Spinner from '../../components/Spinner';
 import '../../styles/ForManager/categories.css';
 
 const Categories = () => {
@@ -14,8 +15,10 @@ const Categories = () => {
   const [editingCategory, setEditingCategory] = useState(null);  const [showAddWidget, setShowAddWidget] = useState(false);
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
+  const [loading, setLoading] = useState(true);
   // Fetch categories and their product counts from Firestore
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       // First get all categories
       const categorySnapshot = await getDocs(collection(db, 'categories'));
@@ -46,9 +49,10 @@ const Categories = () => {
       setCategories(dataWithCounts);
     } catch (error) {
       console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -118,18 +122,20 @@ const Categories = () => {
     });
 
   return (
-    <div className='inventory-container'>
-      <div className="page-header">
+    <div className="inventory-container">
+      <div className="page-header d-flex align-items-center mb-3">
         <h1>
           <FontAwesomeIcon icon={faTableCellsLarge} className="page-header-icon" />
-          קטיגוריות
+          קטגוריות
         </h1>
-      </div>      <div className='cat'>
+        {/* ...existing header actions... */}
+      </div>
+      <div className='cat'>
         <div className='catL'>
           {showEditWidget ? (
             <div className='sticky-box'>
               <CategoryWidget
-                editingCategory={editingCategory}
+                editingCategory={editingCategory}   
                 onUpdate={() => {
                   setShowEditWidget(false);
                   setEditingCategory(null);
@@ -139,11 +145,12 @@ const Categories = () => {
                   setShowEditWidget(false);
                   setEditingCategory(null);
                 }}
+                categoriesList={categories}
               />
             </div>
           ) : (
             <div className='sticky-box'>
-              <CategoryWidget onCategoryAdded={fetchCategories} />
+              <CategoryWidget onCategoryAdded={fetchCategories} categoriesList={categories} />
             </div>
           )}
         </div>
@@ -157,71 +164,47 @@ const Categories = () => {
               onChange={handleSearchChange}
             />
           </div>
-          {/* {showAddWidget && (
-            <div className="overlay">
-              <AddProductWidget onClose={() => setShowAddWidget(false)} onSave={fetchCategories} />
-              <AddCategoryWidget
-                    editingCategory={editingCategory}
-                    onUpdate={() => {
-                        setShowEditWidget(false);
-                        setEditingCategory(null);
-                        fetchCategories();
-                    }}
-                    onCancel={() => {
-                        setShowEditWidget(false);
-                        setEditingCategory(null);
-                    }}
-                />
-            </div>
-          )}
-          {showEditWidget && editingCategory && (
-            <div className='overlay'>
-                <AddCategoryWidget
-                    editingCategory={editingCategory}
-                    onUpdate={() => {
-                        setShowEditWidget(false);
-                        setEditingCategory(null);
-                        fetchCategories();
-                    }}
-                    onCancel={() => {
-                        setShowEditWidget(false);
-                        setEditingCategory(null);
-                    }}
-                />
-            </div>
-          )} */}
           <div>
-            <table className="inventory-table">              
-              <thead>
-                <tr>
-                  <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                    שם קטיגוריה
-                    <FontAwesomeIcon icon={getSortIcon('name')} className="sort-icon" />
-                  </th>
-                  <th onClick={() => handleSort('productCount')} style={{ cursor: 'pointer' }}>
-                    כמות מוצרים
-                    <FontAwesomeIcon icon={getSortIcon('productCount')} className="sort-icon" />
-                  </th>
-                  <th>פעולות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCategories.map((category) => (
-                  <tr key={category.id}>
-                    <td>{category.name}</td>
-                    <td>{category.productCount}</td>
-                    <td className='inventory-actions'>
-                      <button onClick={() => handleEdit(category.id)} title="עדכן">
-                        <FontAwesomeIcon icon={faEdit} />
-                      </button>
-                      <button onClick={() => handleDelete(category.id)} title="מחק">
-                        <FontAwesomeIcon icon={faTrashAlt} />
-                      </button>
-                    </td>
+            {loading ? (
+              <Spinner />
+            ) : filteredCategories.length === 0 ? (
+              <div className="empty-list">
+                <p>אין קטגוריות להצגה</p>
+                <p className="empty-list-subtext">הוסף קטגוריות חדשות כדי להתחיל</p>
+              </div>
+            ) : (
+              <table className="inventory-table">              
+                <thead>
+                  <tr>
+                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                      שם קטיגוריה
+                      <FontAwesomeIcon icon={getSortIcon('name')} className="sort-icon" />
+                    </th>
+                    <th onClick={() => handleSort('productCount')} style={{ cursor: 'pointer' }}>
+                      כמות מוצרים
+                      <FontAwesomeIcon icon={getSortIcon('productCount')} className="sort-icon" />
+                    </th>
+                    <th>פעולות</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredCategories.map((category) => (
+                    <tr key={category.id}>
+                      <td>{category.name}</td>
+                      <td>{category.productCount}</td>
+                      <td className='inventory-actions'>
+                        <button onClick={() => handleEdit(category.id)} title="עדכן">
+                          <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                        <button onClick={() => handleDelete(category.id)} title="מחק">
+                          <FontAwesomeIcon icon={faTrashAlt} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

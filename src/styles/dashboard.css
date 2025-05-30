@@ -8,6 +8,7 @@
     flex-direction: column;
     /* height: 100vh; */
     background-color: var(--bg-color);
+    /* background-color: #7BB08E; */
     font-family: Arial, Helvetica, sans-serif;
     height: fit-content;
   }

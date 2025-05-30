@@ -107,10 +107,16 @@
   user-select: none;
   transition: background-color 0.2s;
   cursor: pointer;
+  background-color: #518664 !important;
+  font-weight: 600;
+  color: white !important;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
 }
 
-.inventory-table th:not(:last-child):hover {
-  background-color: rgba(0, 0, 0, 0.05);
+.inventory-table th:hover {
+  opacity: 0.9;
 }
 
 .inventory-table th svg {
@@ -208,6 +214,32 @@
   border-color: var(--danger);
 }
 
+.purchases-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.purchases-actions button {
+  background-color: transparent;
+  color: var(--success);
+  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-pill);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.purchases-actions button:hover {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: var(--success);
+}
+
 /* Overlay for modals */
 /* .overlay {
   position: fixed;
@@ -257,7 +289,9 @@
   gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
   padding: var(--spacing-md);
-  background-color: var(--panel-bg);
+  /* background-color: var(--panel-bg); */
+  background-color: #518664;
+  color: var(--primary-text);
   border-radius: var(--border-radius-md);
   box-shadow: 0 1px 3px var(--shadow-color);
 }
@@ -322,7 +356,8 @@
 }
 
 .pagination-info {
-  color: var(--secondary-text);
+  /* color: var(--secondary-text); */
+  color: var(--primary-text);
   font-size: 0.9rem;
 }
 

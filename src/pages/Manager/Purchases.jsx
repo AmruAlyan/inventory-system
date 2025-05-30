@@ -8,6 +8,7 @@ import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 import '../../styles/ForModals/PurchaseModal.css'
 import PurchaseModal from '../../components/Modals/PurchaseModal';
+import Spinner from '../../components/Spinner';
 
 const Purchases = () => {
   const [currentPurchase, setCurrentPurchase] = useState({ items: [] });
@@ -17,6 +18,7 @@ const Purchases = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [loading, setLoading] = useState(true);
 
 
   // Subscribe to current purchase
@@ -24,6 +26,7 @@ const Purchases = () => {
     const unsubscribe = onSnapshot(
       doc(db, 'purchases', 'current'),
       (doc) => {
+        setLoading(false);
         if (doc.exists()) {
           setCurrentPurchase(doc.data() || { items: [] });
         } else {
@@ -32,6 +35,7 @@ const Purchases = () => {
         }
       },
       (error) => {
+        setLoading(false);
         console.error('Error fetching current purchase:', error);
         toast.error('שגיאה בטעינת הרכישה הנוכחית');
       }
@@ -221,8 +225,9 @@ const handleReceiptUpload = async (file, purchaseId) => {
       </div>
 
       {showHistory ? (
-        // History view
-        purchaseHistory.length === 0 ? (
+        loading ? (
+          <Spinner />
+        ) : purchaseHistory.length === 0 ? (
           <div className="empty-list">
             <p>אין היסטוריית רכישות</p>
             <p className="empty-list-subtext">רכישות שנשמרו יופיעו כאן</p>
@@ -244,12 +249,8 @@ const handleReceiptUpload = async (file, purchaseId) => {
                     <td>{new Date(purchase.date).toLocaleDateString('he-IL')}</td>
                     <td>{purchase.items?.length || 0}</td>
                     <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
-                    <td>
-                      <button 
-                        className="btn btn-sm btn-info"
-                        onClick={() => handleViewPurchaseDetails(purchase)}
-                        title="צפה בפרטים"
-                      >
+                    <td className='purchases-actions'>
+                      <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
                         <FontAwesomeIcon icon={faEye} />
                       </button>
                     </td>
@@ -263,8 +264,9 @@ const handleReceiptUpload = async (file, purchaseId) => {
           </>
         )
       ) : (
-        // Current purchase view
-        (!currentPurchase.items || currentPurchase.items.length === 0) ? (
+        loading ? (
+          <Spinner />
+        ) : (!currentPurchase.items || currentPurchase.items.length === 0) ? (
           <div className="empty-list">
             <p>אין פריטים ברכישה הנוכחית</p>
             <p className="empty-list-subtext">סמן פריטים כנרכשו ברשימת הקניות</p>

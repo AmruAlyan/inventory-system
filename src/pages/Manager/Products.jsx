@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 // import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
+import Spinner from '../../components/Spinner';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -22,6 +23,7 @@ const Products = () => {
   const [categories, setCategories] = useState({});
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
+  const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
     try {
@@ -36,15 +38,20 @@ const Products = () => {
     }
   };
 
+  // Define fetchProducts in the component scope so it can be used as a callback
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const querySnapshot = await getDocs(collection(db, 'products'));
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchCategories();
     fetchProducts();
@@ -210,6 +217,13 @@ const Products = () => {
     toast.success('הסינון הוחל בהצלחה');
   };
 
+  // Prevent adding a product with a duplicate name (case-insensitive)
+  const isDuplicateProductName = (name) => {
+    return products.some(
+      (product) => product.name.trim().toLowerCase() === name.trim().toLowerCase()
+    );
+  };
+
   return (
     <div className='inventory-container'>
       {/* <SeedProductsComponent/> */}
@@ -238,10 +252,15 @@ const Products = () => {
           onClose={() => setShowFilterModal(false)}
           onApplyFilters={handleApplyFilters}
           initialFilters={activeFilters}
+          categories={Object.entries(categories).map(([id, name]) => ({ id, name }))}
         />
       )}
       {showAddWidget && (
-        <ProductModal onClose={() => setShowAddWidget(false)} onSave={fetchProducts} />
+        <ProductModal 
+          onClose={() => setShowAddWidget(false)} 
+          onSave={fetchProducts} 
+          existingProductNames={products.map(p => p.name)}
+        />
       )}
       {showEditWidget && editingProduct && (
         <ProductModal
@@ -253,6 +272,7 @@ const Products = () => {
             setEditingProduct(null);
             fetchProducts();
           }}
+          existingProductNames={products.filter(p => p.id !== (editingProduct?.id)).map(p => p.name)}
         />
       )}
       {showAddToListModal && selectedProduct && (
@@ -262,7 +282,14 @@ const Products = () => {
           onAdd={addProductToShoppingList}
         />
       )}
-      {/* <div className="card"> */}
+      {loading ? (
+        <Spinner />
+      ) : filteredProducts.length === 0 ? (
+        <div className="empty-list">
+          <p>אין מוצרים להצגה</p>
+          <p className="empty-list-subtext">הוסף מוצרים חדשים כדי להתחיל</p>
+        </div>
+      ) : (
         <table className="inventory-table">          
           <thead>
             <tr>
@@ -325,6 +352,8 @@ const Products = () => {
             ))}
           </tbody>
         </table>        
+      )}
+      {products.length > 0 && (
         <div className="pagination">
             <div className="pagination-controls">
               <button 
@@ -359,7 +388,7 @@ const Products = () => {
               </select>
             </div>
           </div>
-      {/* </div> */}
+      )}
     </div>
   );
 };

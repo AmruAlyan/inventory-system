@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/firebase';
 import { collection, doc, addDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 import '../../styles/ForWidgets/categoryWidget.css';
 
@@ -35,11 +36,11 @@ export default function CategoryWidget({
   onCategoryAdded,
   editingCategory,
   onUpdate,
-  onCancel
+  onCancel,
+  categoriesList = [] // <-- Add this prop
 }) {
   const [categoryName, setCategoryName] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('');
 
   // Fill fields if editing
   useEffect(() => {
@@ -56,25 +57,34 @@ export default function CategoryWidget({
     e.preventDefault();
 
     if (!categoryName.trim()) {
-      setStatus('יש להזין שם קטגוריה.');
+      toast.error('יש להזין שם קטגוריה.');
+      return;
+    }
+
+    // Prevent duplicate category name
+    const filteredList = editingCategory
+      ? categoriesList.filter(cat => cat.id !== editingCategory.id)
+      : categoriesList;
+    if (filteredList.some(cat => cat.name.trim().toLowerCase() === categoryName.trim().toLowerCase())) {
+      toast.error('שם הקטגוריה כבר קיים.');
       return;
     }
 
     try {
       if (editingCategory) {
         await updateCategory(editingCategory.id, categoryName, description);
-        setStatus('הקטגוריה עודכנה בהצלחה!');
+        toast.success('הקטגוריה עודכנה בהצלחה!');
         if (onUpdate) onUpdate();
       } else {
         await addCategory(categoryName, description);
-        setStatus('קטגוריה נוספה בהצלחה!');
+        toast.success('קטגוריה נוספה בהצלחה!');
         setCategoryName('');
         setDescription('');
         if (onCategoryAdded) onCategoryAdded();
       }
     } catch (err) {
       console.error(err);
-      setStatus('שגיאה: לא ניתן לשמור את הקטגוריה.');
+      toast.error('שגיאה: לא ניתן לשמור את הקטגוריה.');
     }
   };
 
@@ -107,7 +117,7 @@ export default function CategoryWidget({
           <button type="submit" className='category-button-add'>הוסף קטגוריה</button>
         )}
       </form>
-      {status && <p>{status}</p>}
+      {/* {status && <p>{status}</p>} */}
     </div>
   );
 }

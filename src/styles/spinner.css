@@ -1,0 +1,45 @@
+.fa-table-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+.fa-table-spinner-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  width: 100%;
+  background: var(--panel-bg, #fff);
+  border-radius: var(--border-radius-md, 12px);
+  box-shadow: 0 2px 8px var(--shadow-color, rgba(0,0,0,0.07));
+  margin: 1.5rem 0;
+}
+
+.fa-table-spinner-motion {
+  margin-bottom: 1rem;
+}
+
+.fa-table-spinner-motion svg {
+  animation: fa-spin 1s linear infinite;
+  color: var(--success, #27ae60);
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.fa-table-spinner-text {
+  color: var(--secondary-text, #888);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
