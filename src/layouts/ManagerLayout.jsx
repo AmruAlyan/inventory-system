@@ -8,6 +8,8 @@ import useIsMobile from '../hooks/useIsMobile';
 import { auth, db } from '../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
+import '../styles/layout.css';
+
 import {
   faHouse,
   faBoxOpen,
@@ -25,8 +27,8 @@ const sidebarIcons = [
   { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
   { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
   { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list" },
-  { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase" },
-  { icon: faFileLines, text: 'הצג הוצאה תקציבית', id: 'budget-expense', path: "/manager-dashboard/budget-expense" }
+  { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase" }
+  // { icon: faFileLines, text: 'הצג הוצאה תקציבית', id: 'budget-expense', path: "/manager-dashboard/budget-expense" }
 ];
 
 const ManagerLayout = () => {
@@ -77,7 +79,7 @@ const ManagerLayout = () => {
   };
 
   return (
-    <div className="dashboard">
+    <div className="layout">
       <Header
         toggleSidebar={toggleSidebar}
         toggleProfile={toggleProfile}
@@ -86,7 +88,7 @@ const ManagerLayout = () => {
         sidebarRef={sidebarRef}
       />
 
-      <main className="dashboard-main">
+      <main className="layout-main">
         <ProfileWidget
           isProfileOpen={isProfileOpen}
           toggleProfile={toggleProfile}

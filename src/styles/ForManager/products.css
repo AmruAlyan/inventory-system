@@ -25,7 +25,7 @@
 
 .inventory-container {
   padding: var(--spacing-xl);
-  padding-top: calc(60px + var(--spacing-xl)); /* Header height + padding */
+  padding-top: calc(60px + var(--spacing-xl));
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 1400px;
   margin: 0 auto;

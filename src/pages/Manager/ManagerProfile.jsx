@@ -3,7 +3,7 @@ import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faUserPen, faBan, faEye, faEyeSlash, faUser, faAt, faLock, faBriefcase } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
@@ -161,19 +161,25 @@ const confirmEdit = async () => {
         if (key === "password" && !isEditing) {
           value = "********";
         }
-        
         // For fields that shouldn't be editable
         const isReadOnly = key === "role";
-        
         let icon = null;
         switch(key) {
           case "role":
+            icon = <FontAwesomeIcon icon={faBriefcase} className="details-icon" />;
+            break;
+          case "name":
             icon = <FontAwesomeIcon icon={faUser} className="details-icon" />;
+            break;
+          case "email":
+            icon = <FontAwesomeIcon icon={faAt} className="details-icon" />;
+            break;
+          case "password":
+            icon = <FontAwesomeIcon icon={faLock} className="details-icon" />;
             break;
           default:
             icon = null;
         }
-
         return (
           <tr key={index} className={isReadOnly ? "readonly-field" : ""}>
             <td>{icon} {labelMap[key]}:</td>
@@ -183,34 +189,37 @@ const confirmEdit = async () => {
       });
   };
 
-  const renderFormGroup = (label, key, type = "text") => {
+  const renderFormGroup = (label, key, type = "text", readOnly = false) => {
     if (key === "password") {
       return (
         <div className="form-group input-with-icon" key={key}>
           <label htmlFor={key}>{label}</label>
           <div className="input-wrapper">
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="eye-button"
+              aria-label="Toggle password visibility"
+              disabled={readOnly}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="pass-eye-icon" />
+            </button>
             <input
               id={key}
               type={showPassword ? "text" : "password"}
               value={formData[key]}
               onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
               placeholder="סיסמה חדשה (לא חובה)"
+              disabled={readOnly}
+              readOnly={readOnly}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="eye-button"
-              aria-label="Toggle password visibility"
-            >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="pass-eye-icon" />
-            </button>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="form-group input-no-icon" key={key}>
+      <div className={`form-group input-no-icon${readOnly ? ' read-only' : ''}`} key={key}>
         <label htmlFor={key}>{label}</label>
         <input
           id={key}
@@ -218,6 +227,8 @@ const confirmEdit = async () => {
           value={formData[key]}
           onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
           required
+          disabled={readOnly}
+          readOnly={readOnly}
         />
       </div>
     );
@@ -272,16 +283,11 @@ const confirmEdit = async () => {
       {isEditing && (
         <div className="edit-info">
           <h2>עריכת מאפייני המשתמש</h2>
+          {renderFormGroup("תפקיד:", "role", "text", true)}
           {renderFormGroup("שם:", "name")}
           {renderFormGroup("דוא\"ל:", "email", "email")}
           {renderFormGroup("סיסמא:", "password", "password")}
           
-          {/* Display role as read-only during edit */}
-          <div className="form-group read-only">
-            <label>תפקיד:</label>
-            <input type="text" value={formData.role} disabled />
-          </div>
-
           <div className="profile-actions">
             <button onClick={confirmEdit} className="edit-button">
               <FontAwesomeIcon icon={faUserPen} className="profile-icon" />

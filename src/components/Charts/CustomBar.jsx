@@ -91,7 +91,8 @@ const CustomBar = ({ data = [] }) => {
           formatter={formatTooltip}
         />
         <Legend />
-        <Bar dataKey="תקציב" fill="#8884d8" radius={[5, 5, 0, 0]} />
+        {/* <Bar dataKey="תקציב" fill="#8884d8" radius={[5, 5, 0, 0]} /> */}
+        <Bar dataKey="תקציב" fill="#518664" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

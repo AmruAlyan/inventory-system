@@ -48,8 +48,7 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
                             <th>שם מוצר</th>
                             <th>קטגוריה</th>
                             <th>כמות</th>
-                            <th>מחיר מקורי</th>
-                            <th>מחיר ששולם</th>
+                            <th>מחיר</th>
                             <th>סה"כ</th>
                         </tr>
                     </thead>
@@ -60,8 +59,7 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
                             <td>{item.categoryName || categories[item.category] || 'לא מוגדר'}</td>
                             <td>{item.quantity}</td>
                             <td>{item.price.toFixed(2)} ₪</td>
-                            <td>{item.actualPrice.toFixed(2)} ₪</td>
-                            <td>{(item.actualPrice * item.quantity).toFixed(2)} ₪</td>
+                            <td>{(item.price * item.quantity).toFixed(2)} ₪</td>
                         </tr>
                         ))}
                     </tbody>

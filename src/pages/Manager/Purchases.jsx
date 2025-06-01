@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faHistory, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
@@ -82,26 +82,46 @@ const Purchases = () => {
     fetchCategories();
   }, []);
 
-  // Handle edit actual price
-  const handleEditPrice = async (itemId, newPrice) => {
-    try {
-      const currentDoc = doc(db, 'purchases', 'current');
-      const currentData = await getDoc(currentDoc);
-      
-      if (currentData.exists()) {
-        const items = currentData.data().items.map(item => 
-          item.id === itemId ? { ...item, actualPrice: Number(newPrice) } : item
-        );
-        
-        await updateDoc(currentDoc, { items });
-        setEditingId(null);
-        toast.success('המחיר עודכן בהצלחה');
-      }
-    } catch (error) {
-      console.error('Error updating price:', error);
-      toast.error('שגיאה בעדכון המחיר');
+  // --- Add cancel and save logic for price editing ---
+const handleEditPrice = (item) => {
+  setEditingId(item.id);
+  setEditPrice(item.price);
+};
+
+const handleCancelEdit = () => {
+  setEditingId(null);
+  setEditPrice('');
+};
+
+const handleSavePrice = async (itemId) => {
+  try {
+    // Update price in purchases/current
+    const currentDoc = doc(db, 'purchases', 'current');
+    const currentData = await getDoc(currentDoc);
+    let productId = null;
+    if (currentData.exists()) {
+      const items = currentData.data().items.map(item => {
+        if (item.id === itemId) {
+          productId = item.id;
+          return { ...item, price: Number(editPrice) };
+        }
+        return item;
+      });
+      await updateDoc(currentDoc, { items });
     }
-  };
+    // Update price in products collection
+    if (productId) {
+      const productDoc = doc(db, 'products', productId);
+      await updateDoc(productDoc, { price: Number(editPrice) });
+    }
+    setEditingId(null);
+    setEditPrice('');
+    toast.success('המחיר עודכן בהצלחה');
+  } catch (error) {
+    console.error('Error updating price:', error);
+    toast.error('שגיאה בעדכון המחיר');
+  }
+};
 
   // Save final purchase
   const handleSavePurchase = async () => {
@@ -279,8 +299,7 @@ const handleReceiptUpload = async (file, purchaseId) => {
                   <th>שם מוצר</th>
                   <th>קטגוריה</th>
                   <th>כמות</th>
-                  <th>מחיר מקורי</th>
-                  <th>מחיר בפועל</th>
+                  <th>מחיר</th>
                   <th>סה"כ</th>
                   <th>פעולות</th>
                 </tr>
@@ -291,8 +310,7 @@ const handleReceiptUpload = async (file, purchaseId) => {
                     <td>{item.name}</td>
                     <td>{categories[item.category] || 'לא מוגדר'}</td>
                     <td>{item.quantity}</td>
-                    <td>{item.price.toFixed(2)} ₪</td>
-                    <td>
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       {editingId === item.id ? (
                         <input
                           type="number"
@@ -301,21 +319,24 @@ const handleReceiptUpload = async (file, purchaseId) => {
                           className="price-input"
                           step="0.01"
                           min="0"
+                          style={{ textAlign: 'center', margin: '0 auto', display: 'block', maxWidth: 100 }}
+                          autoFocus
                         />
                       ) : (
-                        `${item.actualPrice.toFixed(2)} ₪`
+                        `${item.price?.toFixed(2) || 0} ₪`
                       )}
                     </td>
-                    <td>{(item.actualPrice * item.quantity).toFixed(2)} ₪</td>
-                    <td>
+                    <td>{((editingId === item.id ? Number(editPrice) : item.price) * item.quantity).toFixed(2)} ₪</td>
+                    <td className="inventory-actions">
                       {editingId === item.id ? (
-                        <button 
-                          className="btn btn-sm btn-success"
-                          onClick={() => handleSavePrice(item.id)}
-                          title="שמור"
-                        >
-                          <FontAwesomeIcon icon={faSave} />
-                        </button>
+                        <>
+                          <button onClick={() => handleSavePrice(item.id)} title="שמור" className="btn btn-sm btn-success">
+                            <FontAwesomeIcon icon={faSave} />
+                          </button>
+                          <button onClick={handleCancelEdit} title="בטל" className="btn btn-sm btn-danger">
+                            <FontAwesomeIcon icon={faTimes} />
+                          </button>
+                        </>
                       ) : (
                         <button 
                           className="btn btn-sm btn-primary"

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../../styles/ForAdmin/budget.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShekelSign, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import CustomBar from "../../components/AdminOnly/CustomBar"; 
+import CustomBar from "../../components/Charts/CustomBar"; 
 import BudgetHistoryTable from "../../components/AdminOnly/BudgetHistoryTable";
 import { db } from "../../firebase/firebase";
 import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, serverTimestamp } from "firebase/firestore";
