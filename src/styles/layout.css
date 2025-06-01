@@ -1,0 +1,30 @@
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Main Dashboard Container */
+  .layout {
+    display: flex;
+    flex-direction: column;
+    /* height: 100vh; */
+    background-color: var(--bg-color);
+    /* background-color: #7BB08E; */
+    font-family: Arial, Helvetica, sans-serif;
+    height: fit-content;
+  }
+  
+  /* Main Content Area */
+  .layout-main {
+    display: flex;
+    flex: 1;
+  }
+
+  button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+
+
+  

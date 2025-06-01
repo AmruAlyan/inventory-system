@@ -255,6 +255,30 @@
     width: 100%;
 }
 
+/* .input-wrapper input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: inherit;
+    color: inherit;
+} */
+
+.input-wrapper button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--icon-highlight);
+    font-size: 18px;
+    margin-top: 12px;
+}
+
 .profile-avatar-container {
     display: flex;
     justify-content: center;

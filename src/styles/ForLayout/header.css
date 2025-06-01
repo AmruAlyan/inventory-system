@@ -1,5 +1,5 @@
 /* Header Styles */
-.dashboard-header {
+.layout-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -102,7 +102,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 576px) {
-  .dashboard-header {
+  .layout-header {
     padding: 0 var(--spacing-sm);
   }
   

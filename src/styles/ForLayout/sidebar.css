@@ -34,7 +34,7 @@
 
 .sidebar.expanded {
   align-items: center;
-  width: 210px;
+  width: 160px;
   transition: width 0.3s ease;
   padding: 20px 20px 8px 20px;
 }

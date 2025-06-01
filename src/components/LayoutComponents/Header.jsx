@@ -7,7 +7,7 @@ import logo from "../../assets/pics/home-2.png";
 // forwardRef wraps the entire component
 const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, ref) => {
     return (
-        <header className="dashboard-header">
+        <header className="layout-header">
             <div className="logo-container">
                 <button onClick={toggleSidebar} className="menu-button" ref={sidebarRef}>
                     <FontAwesomeIcon icon={faBars} className="header-icon" />

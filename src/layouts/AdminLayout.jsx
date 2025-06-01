@@ -16,7 +16,7 @@ import {
   faFileLines
 } from '@fortawesome/free-solid-svg-icons';
 
-import '../styles/dashboard.css'
+import '../styles/layout.css'
 
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/admin-dashboard"},
@@ -72,7 +72,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="dashboard">
+    <div className="layout">
       <Header
         toggleSidebar={toggleSidebar}
         toggleProfile={toggleProfile}
@@ -81,7 +81,7 @@ const AdminLayout = () => {
         sidebarRef={sidebarRef}
       />
 
-      <main className="dashboard-main">
+      <main className="layout-main">
         <ProfileWidget
           isProfileOpen={isProfileOpen}
           toggleProfile={toggleProfile}

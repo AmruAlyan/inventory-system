@@ -247,7 +247,8 @@ const Products = () => {
         <button onClick={handleAddProduct}>
           <FontAwesomeIcon icon={faPlus} /> הוסף מוצר
         </button>
-      </div>      {showFilterModal && (
+      </div>      
+      {showFilterModal && (
         <FilterModal
           onClose={() => setShowFilterModal(false)}
           onApplyFilters={handleApplyFilters}
