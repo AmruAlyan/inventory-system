@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faFilter, faSpinner, faEraser } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
-import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, serverTimestamp, getDoc, limit } from 'firebase/firestore';
+import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, serverTimestamp, getDoc, limit, addDoc } from 'firebase/firestore';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
@@ -22,7 +22,8 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   // Format date
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
+    // Support JS timestamp (number) or Date object
+    const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
     return new Intl.DateTimeFormat('he-IL', {
       year: 'numeric',
       month: 'long',
@@ -63,8 +64,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
           id: doc.id,
           amount: data.amount,
           totalBudget: data.totalBudget,
-          date: data.date,
-          createdAt: data.createdAt
+          date: data.date
         });
       });
 
@@ -79,8 +79,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
           totalBudget: 0,
           latestUpdate: {
             amount: 0,
-            date: Timestamp.fromDate(new Date()),
-            updatedAt: serverTimestamp()
+            date: Timestamp.fromDate(new Date())
           }
         }, { merge: true });
 
@@ -107,22 +106,22 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       case 'week':
         // Last 7 days
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => item.date.toDate() >= weekAgo);
+        filteredData = history.filter(item => new Date(item.date) >= weekAgo);
         break;
       case 'month':
         // Last 30 days
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => item.date.toDate() >= monthAgo);
+        filteredData = history.filter(item => new Date(item.date) >= monthAgo);
         break;
       case '6months':
         // Last 180 days
         const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => item.date.toDate() >= sixMonthsAgo);
+        filteredData = history.filter(item => new Date(item.date) >= sixMonthsAgo);
         break;
       case 'year':
         // Last 365 days
         const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => item.date.toDate() >= yearAgo);
+        filteredData = history.filter(item => new Date(item.date) >= yearAgo);
         break;
       case 'all':
       default:
@@ -136,7 +135,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     setEditingEntry(entry.id);
     setEditForm({
       amount: entry.amount,
-      date: entry.date.toDate().toISOString().split('T')[0]
+      date: new Date(entry.date).toISOString().split('T')[0]
     });
   };
 
@@ -163,8 +162,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
           totalBudget: 0,
           latestUpdate: {
             amount: 0,
-            date: Timestamp.fromDate(new Date()),
-            updatedAt: serverTimestamp()
+            date: Timestamp.fromDate(new Date())
           }
         });
 
@@ -217,8 +215,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
             totalBudget: 0,
             latestUpdate: {
               amount: 0,
-              date: Timestamp.fromDate(new Date()),
-              updatedAt: serverTimestamp()
+              date: Timestamp.fromDate(new Date())
             }
           });
         } else {
@@ -253,8 +250,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                 totalBudget: newTotalBudget,
                 latestUpdate: {
                   amount: mostRecentData.amount,
-                  date: mostRecentData.date,
-                  updatedAt: serverTimestamp()
+                  date: mostRecentData.date
                 }
               }, { merge: true });
             } else {
@@ -310,12 +306,17 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       // Calculate new total budget
       const newTotalBudget = entry.totalBudget + amountDifference;
 
-      // Update the entry
-      const entryRef = doc(db, "budgets", "history", "entries", editingEntry);
-      await updateDoc(entryRef, {
+      // Remove the old entry (with old id)
+      const oldEntryRef = doc(db, "budgets", "history", "entries", editingEntry);
+      await deleteDoc(oldEntryRef);
+
+      // Create a new entry with the new date as the id (now use addDoc for auto ID)
+      const newDateTimestamp = Timestamp.fromDate(new Date(editForm.date));
+      const historyRef = collection(db, "budgets", "history", "entries");
+      await addDoc(historyRef, {
         amount: newAmount,
         totalBudget: newTotalBudget,
-        date: Timestamp.fromDate(new Date(editForm.date))
+        date: newDateTimestamp
       });
 
       // Update current total budget
@@ -326,16 +327,15 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
 
       // Update local state
       setHistory(prev =>
-        prev.map(item =>
-          item.id === editingEntry
-            ? {
-                ...item,
-                amount: newAmount,
-                totalBudget: newTotalBudget,
-                date: Timestamp.fromDate(new Date(editForm.date))
-              }
-            : item
-        )
+        prev
+          .filter(item => item.id !== editingEntry)
+          .concat({
+            id: String(newDateTimestamp),
+            amount: newAmount,
+            totalBudget: newTotalBudget,
+            date: newDateTimestamp
+          })
+          .sort((a, b) => b.date - a.date)
       );
 
       // Reset editing state
