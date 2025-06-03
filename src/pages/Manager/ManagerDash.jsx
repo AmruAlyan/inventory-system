@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faWallet, faShekel, faArrowLeftLong } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faWallet, faShekel, faArrowLeftLong, faReceipt } from '@fortawesome/free-solid-svg-icons';
 import CustomBar from "../../components/Charts/CustomBar";
 import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
+import CustomArea from "../../components/Charts/CustomArea";
 import { db } from '../../firebase/firebase';
-import { collection, getDocs, doc, getDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
 
 import '../../styles/dashboard.css';
@@ -24,6 +25,7 @@ const ManagerDash = () => {
   const [budgetHistory, setBudgetHistory] = useState([]);
   const [recentPurchases, setRecentPurchases] = useState([]);
   const [products, setProducts] = useState([]);
+  const [areaData, setAreaData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,12 +47,12 @@ const ManagerDash = () => {
           historyData.push({
             id: doc.id,
             amount: data.amount,
-            date: data.date.toDate(),
-            formatted: new Intl.DateTimeFormat('he-IL', {
+            date: data.date && data.date.toDate ? data.date.toDate() : new Date(),
+            formatted: data.date && data.date.toDate ? new Intl.DateTimeFormat('he-IL', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
-            }).format(data.date.toDate())
+            }).format(data.date.toDate()) : ''
           });
         });
         // Sort history data by date (newest first)
@@ -90,14 +92,57 @@ const ManagerDash = () => {
         const purchases = [];
         purchasesSnapshot.forEach(doc => {
           const data = doc.data();
+          const dateObj = data.date && data.date.toDate ? data.date.toDate() : new Date();
           purchases.push({
             id: doc.id,
-            date: data.date ? new Date(data.date) : null,
+            date: dateObj,
             totalAmount: data.totalAmount,
             items: data.items || [],
+            budgetBefore: data.budgetBefore,
+            budgetAfter: data.budgetAfter
           });
         });
         setRecentPurchases(purchases.slice(0, 5));
+
+        // Fetch budget history for the area chart
+        const budgetHistoryQuery = query(
+          collection(db, "budgets", "history", "entries"),
+          orderBy("date", "asc")
+        );
+        const budgetHistorySnapshot = await getDocs(budgetHistoryQuery);
+        const areaBudgetData = [];
+        budgetHistorySnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.date && data.totalBudget !== undefined) {
+            const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
+            areaBudgetData.push({
+              date: dateObj,
+              value: data.totalBudget
+            });
+          }
+        });
+
+        // Fetch purchase history for the area chart
+        const purchaseHistoryQuery = query(
+          collection(db, 'purchases/history/items'),
+          orderBy('date', 'asc')
+        );
+        const purchaseHistorySnapshot = await getDocs(purchaseHistoryQuery);
+        const areaPurchaseData = [];
+        purchaseHistorySnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.date && data.budgetAfter !== undefined) {
+            const dateObj = data.date.toDate ? data.date.toDate() : new Date(data.date);
+            areaPurchaseData.push({
+              date: dateObj,
+              value: data.budgetAfter
+            });
+          }
+        });
+
+        // Merge and sort by date ascending
+        const mergedAreaData = [...areaBudgetData, ...areaPurchaseData].sort((a, b) => a.date - b.date);
+        setAreaData(mergedAreaData);
       } catch (err) {
         // Optionally handle error
       } finally {
@@ -105,6 +150,36 @@ const ManagerDash = () => {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    // Listen for real-time updates from purchases/history/items
+    const unsubscribe = onSnapshot(
+      query(collection(db, 'purchases/history/items'), orderBy('date', 'desc')),
+      (snapshot) => {
+        const purchases = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const dateObj = data.date && data.date.toDate ? data.date.toDate() : new Date();
+          purchases.push({
+            id: doc.id,
+            date: dateObj,
+            totalAmount: data.totalAmount,
+            items: data.items || [],
+            budgetBefore: data.budgetBefore,
+            budgetAfter: data.budgetAfter
+          });
+        });
+        setRecentPurchases(purchases.slice(0, 5));
+        setLoading(false);
+      },
+      (error) => {
+        // Optionally handle error
+        setLoading(false);
+      }
+    );
+    return () => unsubscribe();
   }, []);
 
   if (loading) return <Spinner text="טוען נתונים..." />;
@@ -175,7 +250,7 @@ const ManagerDash = () => {
       <div className="dashboard-level-2">
         <div className="dashboard-purchases">
           <h2 className="dashboard-purchases-title">
-            <FontAwesomeIcon icon={faWallet} className="dashboard-purchases-icon" />
+            <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
             רכישות אחרונות
           </h2>
           <p className="dashboard-purchases-text">הצג רכישות אחרונות שביצעתם</p>
@@ -210,6 +285,9 @@ const ManagerDash = () => {
         ) : (
           <div className="dashboard-chart-wrapper dashboard-chart-empty">אין נתוני תקציב להצגה</div>
         )}
+      </div>
+      <div className="dashboard-chart-wrapper area-chart-wrapper">
+        <CustomArea data={areaData} />
       </div>
     </div>
   );

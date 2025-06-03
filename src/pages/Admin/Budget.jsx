@@ -5,7 +5,7 @@ import { faShekelSign, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import CustomBar from "../../components/Charts/CustomBar"; 
 import BudgetHistoryTable from "../../components/AdminOnly/BudgetHistoryTable";
 import { db } from "../../firebase/firebase";
-import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, serverTimestamp, addDoc } from "firebase/firestore";
 
 const Budget = () => {
   const [formData, setFormData] = useState({
@@ -43,12 +43,12 @@ const Budget = () => {
           historyData.push({
             id: doc.id,
             amount: data.amount,
-            date: data.date.toDate(),
-            formatted: new Intl.DateTimeFormat('he-IL', {
+            date: data.date && data.date.toDate ? data.date.toDate() : new Date(),
+            formatted: data.date && data.date.toDate ? new Intl.DateTimeFormat('he-IL', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
-            }).format(data.date.toDate())
+            }).format(data.date.toDate()) : ''
           });
         });
         
@@ -60,36 +60,54 @@ const Budget = () => {
         // If budget document exists, use its data
         if (budgetSnapshot.exists()) {
           const data = budgetSnapshot.data();
-          if (data) {
+          if (data && data.latestUpdate && data.latestUpdate.date && data.latestUpdate.date.toDate) {
             setFormData({
               current: data.totalBudget || 0,
-              latest: { 
-                amount: data.latestUpdate?.amount || 0, 
-                date: data.latestUpdate?.date ? data.latestUpdate.date.toDate().toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+              latest: {
+                amount: data.latestUpdate.amount || 0,
+                date: data.latestUpdate.date.toDate().toISOString().split("T")[0]
               },
               updates: { amount: "", date: "" }
             });
           } else {
-            // Handle case where the budget document doesn't exist yet
+            // Handle case where the budget document doesn't exist yet or is missing fields
             setFormData({
               current: 0,
-              latest: { 
-                amount: 0, 
-                date: new Date().toISOString().split("T")[0]
+              latest: {
+                amount: 0,
+                date: new Date(Date.now()).toISOString().split("T")[0]
               },
               updates: { amount: "", date: "" }
             });
-            
-            // Create an empty budget document
-            await setDoc(budgetDocRef, {
-              totalBudget: 0,
-              latestUpdate: {
-                amount: 0,
-                date: Timestamp.fromDate(new Date()),
-                updatedAt: serverTimestamp()
-              }
-            });
+            // Create an empty budget document if not present
+            if (!budgetSnapshot.exists()) {
+              await setDoc(budgetDocRef, {
+                totalBudget: 0,
+                latestUpdate: {
+                  amount: 0,
+                  date: Timestamp.fromDate(new Date())
+                }
+              });
+            }
           }
+        } else {
+          // No budget document at all
+          const now = Date.now();
+          setFormData({
+            current: 0,
+            latest: {
+              amount: 0,
+              date: new Date(now).toISOString().split("T")[0]
+            },
+            updates: { amount: "", date: "" }
+          });
+          await setDoc(budgetDocRef, {
+            totalBudget: 0,
+            latestUpdate: {
+              amount: 0,
+              date: Timestamp.fromDate(new Date())
+            }
+          });
         }
         
       } catch (err) {
@@ -110,28 +128,25 @@ const Budget = () => {
     if (!isNaN(updateAmount) && updateDate) {
       try {
         setIsLoading(true);
-        
         // New total budget value
         const newTotalBudget = formData.current + updateAmount;
-        
+        // Parse the user input date (YYYY-MM-DD) to Firestore Timestamp
+        const entryDate = Timestamp.fromDate(new Date(updateDate));
         // Update the current budget document
         const budgetDocRef = doc(db, "budgets", "current");
         await setDoc(budgetDocRef, {
           totalBudget: newTotalBudget,
           latestUpdate: {
             amount: updateAmount,
-            date: Timestamp.fromDate(new Date(updateDate)),
-            updatedAt: serverTimestamp()
+            date: entryDate // Use Firestore Timestamp
           }
         }, { merge: true });
-        
-        // Add to history collection
-        const historyRef = doc(collection(db, "budgets", "history", "entries"));
-        await setDoc(historyRef, {
+        // Add to history collection, use Firestore auto-generated ID
+        const historyRef = collection(db, "budgets", "history", "entries");
+        await addDoc(historyRef, {
           amount: updateAmount,
           totalBudget: newTotalBudget,
-          date: Timestamp.fromDate(new Date(updateDate)),
-          createdAt: serverTimestamp()
+          date: entryDate
         });
         
         // Update local state
@@ -181,11 +196,20 @@ const Budget = () => {
       
       if (budgetSnapshot.exists()) {
         const data = budgetSnapshot.data();
+        let latestAmount = 0;
+        let latestDate = Date.now();
+        if (data && data.latestUpdate) {
+          latestAmount = data.latestUpdate.amount || 0;
+          // Only use the date if it's a valid number
+          if (typeof data.latestUpdate.date === 'number' && !isNaN(data.latestUpdate.date)) {
+            latestDate = data.latestUpdate.date;
+          }
+        }
         setFormData(prev => ({
           current: data.totalBudget || 0,
-          latest: { 
-            amount: data.latestUpdate?.amount || 0, 
-            date: data.latestUpdate?.date ? data.latestUpdate.date.toDate().toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+          latest: {
+            amount: latestAmount,
+            date: new Date(latestDate).toISOString().split("T")[0]
           },
           updates: { amount: "", date: "" }
         }));
@@ -193,7 +217,7 @@ const Budget = () => {
         // Reset if there's no data
         setFormData(prev => ({
           current: 0,
-          latest: { amount: 0, date: new Date().toISOString().split("T")[0] },
+          latest: { amount: 0, date: new Date(Date.now()).toISOString().split("T")[0] },
           updates: { amount: "", date: "" }
         }));
       }
@@ -212,12 +236,12 @@ const Budget = () => {
   // Format date for display with improved Hebrew formatting
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('he-IL', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'Asia/Jerusalem'
     }).format(date);
   };
 

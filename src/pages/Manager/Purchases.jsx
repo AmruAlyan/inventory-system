@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
@@ -19,6 +19,8 @@ const Purchases = () => {
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingPurchaseId, setEditingPurchaseId] = useState(null);
+  const [editPurchaseDate, setEditPurchaseDate] = useState("");
 
 
   // Subscribe to current purchase
@@ -153,10 +155,10 @@ const handleSavePrice = async (itemId) => {
       .map(doc => ({ ...doc.data(), id: doc.id }))
       .sort((a, b) => b.date - a.date)[0];
 
-    if (latestBudget.totalBudget < purchaseAmount) {
-      toast.error('חריגה מהתקציב! לא ניתן לשמור את הרכישה');
-      return;
-    }
+    // if (latestBudget.totalBudget < purchaseAmount) {
+    //   toast.error('חריגה מהתקציב! לא ניתן לשמור את הרכישה');
+    //   return;
+    // }
 
     // Update budget
     const budgetRef = doc(db, 'budgets', latestBudget.id);
@@ -165,9 +167,8 @@ const handleSavePrice = async (itemId) => {
     });
 
     // Add to purchase history
-    const historyDoc = doc(db, 'purchases/history/items', purchaseId);
-    batch.set(historyDoc, {
-      date: Date.now(),
+    await addDoc(collection(db, 'purchases/history/items'), {
+      date: Timestamp.fromDate(new Date()),
       items: currentPurchase.items,
       totalAmount: purchaseAmount,
       budgetBefore: latestBudget.totalBudget,
@@ -221,6 +222,20 @@ const handleReceiptUpload = async (file, purchaseId) => {
   }
 };
 
+// Add handler to save edited purchase date
+const handleSavePurchaseDate = async (purchaseId) => {
+  try {
+    if (!editPurchaseDate) return;
+    const newTimestamp = Timestamp.fromDate(new Date(editPurchaseDate));
+    await updateDoc(doc(db, 'purchases/history/items', purchaseId), { date: newTimestamp });
+    setEditingPurchaseId(null);
+    setEditPurchaseDate("");
+    toast.success('תאריך הרכישה עודכן בהצלחה');
+  } catch (error) {
+    toast.error('שגיאה בעדכון תאריך הרכישה');
+  }
+};
+
   return (
     <div className="inventory-container">      {selectedPurchase && (
         <PurchaseModal 
@@ -266,7 +281,40 @@ const handleReceiptUpload = async (file, purchaseId) => {
               <tbody>
                 {purchaseHistory.map(purchase => (
                   <tr key={purchase.id}>
-                    <td>{new Date(purchase.date).toLocaleDateString('he-IL')}</td>
+                    <td>
+                      {editingPurchaseId === purchase.id ? (
+                        <>
+                          <input
+                            type="date"
+                            value={editPurchaseDate}
+                            onChange={e => setEditPurchaseDate(e.target.value)}
+                            style={{ maxWidth: 140 }}
+                          />
+                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך">
+                            <FontAwesomeIcon icon={faSave} />
+                          </button>
+                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל">
+                            <FontAwesomeIcon icon={faTimes} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')}
+                          <button
+                            className="btn btn-sm btn-primary ms-2"
+                            onClick={() => {
+                              setEditingPurchaseId(purchase.id);
+                              // Set initial value for date input
+                              let d = purchase.date && purchase.date.toDate ? purchase.date.toDate() : new Date(purchase.date);
+                              setEditPurchaseDate(d.toISOString().split('T')[0]);
+                            }}
+                            title="ערוך תאריך"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                        </>
+                      )}
+                    </td>
                     <td>{purchase.items?.length || 0}</td>
                     <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
                     <td className='purchases-actions'>
