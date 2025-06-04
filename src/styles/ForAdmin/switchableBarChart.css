@@ -1,10 +1,10 @@
 /* SwitchableBarChart.css */
 .switchable-bar-chart {
-  background-color: #fff;
+  background-color: var(--panel-bg);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   height: 100%;
+  width: 100%;
 }
 
 .chart-controls {
