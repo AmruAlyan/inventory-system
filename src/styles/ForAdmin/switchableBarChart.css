@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   direction: rtl;
 }
 
@@ -39,6 +39,35 @@
   background: #8884d8;
 }
 
+/* New styles for filter type toggle */
+.filter-type-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-type-btn {
+  padding: 0.4rem 0.8rem;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.filter-type-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* Filter controls section */
+.filter-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  direction: rtl;
+}
+
 .chart-filter {
   display: flex;
   align-items: center;
@@ -50,6 +79,32 @@
   padding: 0.25rem;
   border-radius: 4px;
   border: 1px solid #ccc;
+}
+
+/* Date filter styling */
+.date-filter {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.date-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.date-input-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-filter input[type="date"] {
+  padding: 0.25rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-right: 0.5rem;
 }
 
 .chart-title {
@@ -66,4 +121,27 @@
 
 .purchase-bar {
   fill: #8884d8; /* Purple */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-controls, .filter-controls {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  .date-filter {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .date-input-group {
+    width: 100%;
+  }
+  
+  .date-input-group input[type="date"] {
+    width: 100%;
+  }
 }
