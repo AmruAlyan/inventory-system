@@ -5,6 +5,7 @@ import CustomBar from "../../components/Charts/CustomBar";
 import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
 import CustomArea from "../../components/Charts/CustomArea";
+import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
@@ -279,7 +280,10 @@ const ManagerDash = () => {
         {barData && barData.length > 0 ? (
           <>
             <div className="dashboard-chart-wrapper bar-chart-wrapper">
-              <CustomBar data={barData} />
+              <SwitchableBarChart 
+                purchaseData={recentPurchases} 
+                budgetData={barData} 
+              />
             </div>
             </>
         ) : (

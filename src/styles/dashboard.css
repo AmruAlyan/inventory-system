@@ -219,3 +219,62 @@
     min-width: 60px;
     color: var(--secondary-text);
 }
+
+/* Switchable chart styles */
+.switchable-chart-container {
+    background-color: var(--panel-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-controls {
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--secondary-bg);
+    border-radius: 12px 12px 0 0;
+    padding: 15px 20px !important;
+}
+
+.chart-tabs button {
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.chart-tabs button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.filter-controls select {
+    background-color: var(--panel-bg);
+    color: var(--primary-text);
+    border-color: var(--border-color);
+}
+
+.filter-controls select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(107, 174, 128, 0.2);
+}
+
+.switchable-chart-wrapper {
+    grid-column: 1 / -1;
+    margin-top: 20px;
+}
+
+/* Responsive adjustments for switchable chart */
+@media (max-width: 768px) {
+    .chart-controls {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .chart-tabs {
+        justify-content: center;
+    }
+    
+    .filter-controls {
+        justify-content: center;
+    }
+}
