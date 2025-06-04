@@ -1,0 +1,69 @@
+/* SwitchableBarChart.css */
+.switchable-bar-chart {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  direction: rtl;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chart-tab {
+  padding: 0.5rem 1rem;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.chart-tab.active {
+  background: #5C8D70;
+  color: white;
+}
+
+.chart-tab.active:nth-child(2) {
+  background: #8884d8;
+}
+
+.chart-filter {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.chart-filter select {
+  margin: 0 0.5rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.chart-title {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  direction: rtl;
+}
+
+/* Custom colors for the charts */
+.budget-bar {
+  fill: #5C8D70; /* Green */
+}
+
+.purchase-bar {
+  fill: #8884d8; /* Purple */
+}

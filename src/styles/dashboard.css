@@ -77,18 +77,15 @@
 
 .dashboard-charts {
     display: flex;
-    flex-wrap: nowrap;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .dashboard-chart-wrapper {
-    min-height: 350px;
-    height: 350px;
-    width: 100%;
+    min-height: 400px;
+    flex: 1;
+    min-width: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,6 +125,7 @@
 }
 
 .pie-chart-wrapper {
+    flex: 0 0 calc(35% - 0.75rem);
     min-height: 350px;
     height: 350px;
     width: 40%;
@@ -139,6 +137,46 @@
     padding: 30px;
     border-radius: 20px;
     border: solid 2px var(--primary);
+}
+
+.switchable-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 400px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  direction: rtl;
+}
+
+/* Adjusting layout for the new chart arrangement */
+.dashboard-charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-chart-wrapper {
+  min-height: 400px;
+  flex: 1;
+  min-width: 300px;
+}
+
+.pie-chart-wrapper {
+  flex: 0 0 calc(35% - 0.75rem);
+}
+
+.switchable-chart-wrapper {
+  flex: 0 0 calc(65% - 0.75rem);
+}
+
+@media (max-width: 1200px) {
+  .pie-chart-wrapper,
+  .switchable-chart-wrapper {
+    flex: 0 0 100%;
+  }
 }
 
 .dashboard-chart-empty {
@@ -218,63 +256,4 @@
 .dashboard-purchase-items {
     min-width: 60px;
     color: var(--secondary-text);
-}
-
-/* Switchable chart styles */
-.switchable-chart-container {
-    background-color: var(--panel-bg);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.chart-controls {
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--secondary-bg);
-    border-radius: 12px 12px 0 0;
-    padding: 15px 20px !important;
-}
-
-.chart-tabs button {
-    transition: all 0.2s ease;
-    font-family: inherit;
-}
-
-.chart-tabs button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.filter-controls select {
-    background-color: var(--panel-bg);
-    color: var(--primary-text);
-    border-color: var(--border-color);
-}
-
-.filter-controls select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(107, 174, 128, 0.2);
-}
-
-.switchable-chart-wrapper {
-    grid-column: 1 / -1;
-    margin-top: 20px;
-}
-
-/* Responsive adjustments for switchable chart */
-@media (max-width: 768px) {
-    .chart-controls {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-    
-    .chart-tabs {
-        justify-content: center;
-    }
-    
-    .filter-controls {
-        justify-content: center;
-    }
 }

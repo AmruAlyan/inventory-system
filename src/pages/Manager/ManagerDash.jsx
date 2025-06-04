@@ -12,6 +12,7 @@ import Spinner from '../../components/Spinner';
 
 import '../../styles/dashboard.css';
 import '../../styles/ForManager/products.css';
+import '../../styles/ForAdmin/switchableBarChart.css';
 
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -233,14 +234,14 @@ const ManagerDash = () => {
       <div className="dashboard-charts">
         {barData && barData.length > 0 ? (
           <>
-            {/* <div className="dashboard-chart-wrapper">
-              <CustomBar data={barData} />
-            </div> */}
-            <div className="dashboard-chart-wrapper line-chart-wrapper">
-              <CustomLine data={barData} />
-            </div>
             <div className="dashboard-chart-wrapper pie-chart-wrapper">
               <CustomPie products={products} />
+            </div>
+            <div className="dashboard-chart-wrapper switchable-chart-wrapper">
+              <SwitchableBarChart
+                budgetData={barData}
+                purchaseData={recentPurchases}
+              />
             </div>
           </>
         ) : (
@@ -277,18 +278,7 @@ const ManagerDash = () => {
             )}
           </div>
         </div>
-        {barData && barData.length > 0 ? (
-          <>
-            <div className="dashboard-chart-wrapper bar-chart-wrapper">
-              <SwitchableBarChart 
-                purchaseData={recentPurchases} 
-                budgetData={barData} 
-              />
-            </div>
-            </>
-        ) : (
-          <div className="dashboard-chart-wrapper dashboard-chart-empty">אין נתוני תקציב להצגה</div>
-        )}
+        {/* Removed CustomBar chart from dashboard-level-2 */}
       </div>
       <div className="dashboard-chart-wrapper area-chart-wrapper">
         <CustomArea data={areaData} />
