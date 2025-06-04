@@ -3,6 +3,26 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 
+// Hebrew month names
+const hebrewMonths = [
+  'בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני',
+  'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר'
+];
+
+// Format date in Hebrew format: "day בmonth year" (if not current year)
+const formatHebrewDate = (date) => {
+  if (!date) return '';
+  const currentYear = new Date().getFullYear();
+  const day = date.getDate();
+  const month = date.getMonth();
+  const year = date.getFullYear();
+  
+  // Include year only if it's not the current year
+  const yearDisplay = year !== currentYear ? ` ${year}` : '';
+  
+  return `${day} ${hebrewMonths[month]}${yearDisplay}`;
+};
+
 const SwitchableBarChart = ({ budgetData, purchaseData }) => {
   const [activeChart, setActiveChart] = useState('budget'); // 'budget' or 'purchases'
   const [dataCount, setDataCount] = useState(5); // Default to 5 items
@@ -47,9 +67,10 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
         : (item.date && item.date.toDate ? item.date.toDate() : new Date(item.date));
       
       return {
-        name: item.formatted || itemDate.toLocaleDateString('he-IL'),
+        name: formatHebrewDate(itemDate),
         amount: activeChart === 'budget' ? item.amount : (item.totalAmount || 0),
-        date: itemDate
+        date: itemDate,
+        rawDate: itemDate // Keep the original date for tooltip
       };
     })
     .sort((a, b) => a.date - b.date); // Sort by date ascending
@@ -85,6 +106,26 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  // Custom tooltip to display the date in full Hebrew format
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const amount = payload[0].value;
+      const item = filteredData.find(item => item.name === label);
+      const dateStr = item ? formatHebrewDate(item.rawDate) : label;
+      
+      return (
+        <div className="custom-tooltip">
+          <p className="tooltip-date">{dateStr}</p>
+          <p className="tooltip-amount">
+            {activeChart === 'budget' ? 'תקציב: ' : 'סכום רכישה: '}
+            <span className="amount-value">{`₪${amount.toFixed(2)}`}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
   
   return (
@@ -144,7 +185,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
                 מתאריך:
                 <input 
                   type="date" 
-                  value={formatDateForInput(startDate)}
+                  value={startDate}
                   onChange={(e) => handleDateChange('start', e)}
                 />
               </label>
@@ -155,7 +196,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
                 עד תאריך:
                 <input 
                   type="date" 
-                  value={formatDateForInput(endDate)}
+                  value={endDate}
                   onChange={(e) => handleDateChange('end', e)}
                 />
               </label>
@@ -170,15 +211,23 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
           : 'סכומי רכישה אחרונים'}
       </div>
       
-      <ResponsiveContainer width="100%" height={250}>
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart
           data={filteredData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+          margin={{ top: 10, right: 30, left: 20, bottom: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+          <XAxis 
+            dataKey="name" 
+            angle={0} 
+            textAnchor="middle" 
+            height={100}
+            interval={0}
+            fontSize={12}
+            tick={{fill: '#333', fontWeight: 500}}
+          />
           <YAxis />
-          <Tooltip formatter={(value) => `₪${value}`} />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Bar 
             dataKey="amount" 

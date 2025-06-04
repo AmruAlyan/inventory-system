@@ -50,14 +50,14 @@ const CustomPie = ({ products = [] }) => {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
+      <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
         <Pie
           data={data}
           cx="50%"
-          cy="50%"
+          cy="40%"
           labelLine={false}
           label={renderCustomizedLabel}
-          outerRadius={90}
+          outerRadius={100}
           dataKey="value"
           isAnimationActive={false}
         >
@@ -66,7 +66,17 @@ const CustomPie = ({ products = [] }) => {
           ))}
         </Pie>
         <Tooltip formatter={tooltipFormatter} />
-        <Legend align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ lineHeight: '32px', paddingLeft: 8 }} formatter={(value) => <span style={{ marginRight: 8 }}>{value}</span>} />
+        <Legend 
+          align="center" 
+          verticalAlign="bottom" 
+          iconType="circle" 
+          wrapperStyle={{ 
+            lineHeight: '24px', 
+            paddingLeft: 8,
+            marginTop: '10px'
+          }} 
+          formatter={(value) => <span style={{ marginRight: 8 }}>{value}</span>} 
+        />
       </PieChart>
     </ResponsiveContainer>
   );

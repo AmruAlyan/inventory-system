@@ -2,9 +2,11 @@
 .switchable-bar-chart {
   background-color: var(--panel-bg);
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-controls {
@@ -39,7 +41,7 @@
   background: #8884d8;
 }
 
-/* New styles for filter type toggle */
+/* Filter type toggle */
 .filter-type-toggle {
   display: flex;
   gap: 0.5rem;
@@ -64,7 +66,7 @@
 .filter-controls {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   direction: rtl;
 }
 
@@ -110,8 +112,40 @@
 .chart-title {
   text-align: center;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
   direction: rtl;
+  font-size: 1rem;
+}
+
+/* Custom tooltip styling */
+.custom-tooltip {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+  text-align: right;
+  direction: rtl;
+  min-width: 150px;
+}
+
+.tooltip-date {
+  font-weight: bold;
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.tooltip-amount {
+  margin: 0;
+  color: #555;
+  font-size: 13px;
+}
+
+.amount-value {
+  font-weight: bold;
+  color: var(--primary);
 }
 
 /* Custom colors for the charts */
@@ -121,6 +155,12 @@
 
 .purchase-bar {
   fill: #8884d8; /* Purple */
+}
+
+/* Improved x-axis styling for better date readability */
+.recharts-xAxis .recharts-cartesian-axis-tick-value {
+  font-weight: 500 !important;
+  font-size: 12px !important;
 }
 
 /* Responsive adjustments */

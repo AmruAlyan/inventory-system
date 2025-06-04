@@ -126,15 +126,15 @@
 }
 
 .pie-chart-wrapper {
-    flex: 0 0 calc(40% - 0.75rem);
-    min-height: 400px;
-    height: 400px;
+    flex: 0 0 calc(35% - 0.75rem);
+    min-height: 300px;
+    height: 350px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--panel-bg);
     box-sizing: border-box;
-    padding: 20px;
+    padding: 10px;
     border-radius: 20px;
     border: solid 2px var(--primary);
 }
@@ -142,9 +142,9 @@
 .switchable-chart-wrapper {
     display: flex;
     flex-direction: column;
-    flex: 0 0 calc(60% - 0.75rem);
-    min-height: 400px;
-    height: 400px;
+    flex: 0 0 calc(65% - 0.75rem);
+    min-height: 350px;
+    height: 350px;
     background: var(--panel-bg);
     border-radius: 20px;
     border: solid 2px var(--primary);
