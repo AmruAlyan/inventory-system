@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
@@ -24,6 +25,17 @@ const Products = () => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
+
+  const location = useLocation();
+
+  // Handle filter state passed from navigation
+  useEffect(() => {
+    if (location.state?.applyFilter) {
+      setActiveFilters(location.state.applyFilter);
+      // Clear the state to prevent reapplying on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const fetchCategories = async () => {
     try {
@@ -104,10 +116,14 @@ const Products = () => {
       switch (activeFilters.stockStatus) {
         case 'inStock':
           return product.quantity > 0;
+        case 'highStock':
+          return product.quantity >= 10;
         case 'outOfStock':
           return product.quantity <= 0;
         case 'lowStock':
           return product.quantity > 0 && product.quantity < 10;
+        case 'outOfStockOrLow':
+          return product.quantity <= 0 || (product.quantity > 0 && product.quantity < 10);
         default:
           return true;
       }
@@ -339,7 +355,16 @@ const Products = () => {
                   </span>
                 </td>
                 <td className='inventory-actions'>
-                  <button onClick={() => handleAddToList(product.id)} title="הוסף לסל">
+                  <button 
+                    onClick={() => handleAddToList(product.id)} 
+                    title={product.quantity <= 0 ? "המוצר אזל מהמלאי" : "הוסף לסל"}
+                    disabled={product.quantity <= 0}
+                    style={product.quantity <= 0 ? { 
+                      opacity: 0.5, 
+                      cursor: 'not-allowed',
+                      color: '#ccc'
+                    } : {}}
+                  >
                     <FontAwesomeIcon icon={faCartPlus} />
                   </button>
                   <button onClick={() => handleEdit(product.id)} title="עדכן">

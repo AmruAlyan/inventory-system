@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faWallet, faShekel, faArrowLeftLong, faReceipt } from '@fortawesome/free-solid-svg-icons';
 import CustomBar from "../../components/Charts/CustomBar";
 import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
 import CustomArea from "../../components/Charts/CustomArea";
+import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
 
 import '../../styles/dashboard.css';
 import '../../styles/ForManager/products.css';
+import '../../styles/ForAdmin/switchableBarChart.css';
 
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -20,12 +23,13 @@ const ManagerDash = () => {
   const [lastBalance, setLastBalance] = useState(0);
   const [productsCount, setProductsCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
-  const [inventoryValue, setInventoryValue] = useState(0);
   const [barData, setBarData] = useState([]);
   const [budgetHistory, setBudgetHistory] = useState([]);
   const [recentPurchases, setRecentPurchases] = useState([]);
   const [products, setProducts] = useState([]);
   const [areaData, setAreaData] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,18 +73,18 @@ const ManagerDash = () => {
         const productsSnapshot = await getDocs(collection(db, 'products'));
         let count = 0;
         let lowStock = 0;
-        let value = 0;
         const productsArr = [];
         productsSnapshot.forEach(doc => {
           const p = doc.data();
           count++;
-          if (p.quantity < LOW_STOCK_THRESHOLD) lowStock++;
-          value += (p.price || 0) * (p.quantity || 0);
+          // Count items that are either out of stock OR low stock
+          if (p.quantity <= 0 || (p.quantity > 0 && p.quantity < LOW_STOCK_THRESHOLD)) {
+            lowStock++;
+          }
           productsArr.push(p);
         });
         setProductsCount(count);
         setLowStockCount(lowStock);
-        setInventoryValue(value);
         setProducts(productsArr);
 
         // Fetch last 3 purchases
@@ -182,6 +186,21 @@ const ManagerDash = () => {
     return () => unsubscribe();
   }, []);
 
+  const handleProductsCardClick = () => {
+    navigate('/manager-dashboard/products');
+  };
+
+  const handleLowStockCardClick = () => {
+    navigate('/manager-dashboard/products', { 
+      state: { 
+        applyFilter: { 
+          categories: [], 
+          stockStatus: 'outOfStockOrLow' 
+        } 
+      } 
+    });
+  };
+
   if (loading) return <Spinner text="טוען נתונים..." />;
 
   return (
@@ -206,88 +225,69 @@ const ManagerDash = () => {
           </h3>
           <h2 className="dashboard-card-value">{lastBalance.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
-        <div className="dashboard-card">
+        <div className="dashboard-card" onClick={handleProductsCardClick} style={{ cursor: 'pointer' }}>
           <h3 className="dashboard-card-title">
             <p>מוצרים</p>
             <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{productsCount}</h2>
         </div>
-        <div className="dashboard-card">
+        <div className="dashboard-card" onClick={handleLowStockCardClick} style={{ cursor: 'pointer' }}>
           <h3 className="dashboard-card-title">
-            <p>נמוך במלאי</p>
+            <p>חסר/נמוך במלאי</p>
             <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{lowStockCount}</h2>
         </div>
-        <div className="dashboard-card">
-          <h3 className="dashboard-card-title">
-            <p>ערך המלאי</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
-          </h3>
-          <h2 className="dashboard-card-value">{inventoryValue.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
-        </div>
       </div>
 
-      <div className="dashboard-charts">
-        {barData && barData.length > 0 ? (
-          <>
-            {/* <div className="dashboard-chart-wrapper">
-              <CustomBar data={barData} />
-            </div> */}
-            <div className="dashboard-chart-wrapper line-chart-wrapper">
-              <CustomLine data={barData} />
+      {/* Main chart area: two rows, two columns */}
+      <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
+          <div className="dashboard-chart-wrapper pie-chart-wrapper">
+            <CustomPie products={products} />
+          </div>
+          <div className="dashboard-chart-wrapper purchases-chart-wrapper">
+            <div className="dashboard-purchases">
+              <h2 className="dashboard-purchases-title">
+                <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
+                רכישות אחרונות
+              </h2>
+              <div className="dashboard-purchases-list">
+                {recentPurchases.length > 0 ? (
+                  <ul>
+                    {recentPurchases.map((purchase) => (
+                      <li key={purchase.id} className="dashboard-purchase-item">
+                        <span className="dashboard-purchase-date">
+                          {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
+                        </span>
+                        <span className="dashboard-purchase-amount">
+                          {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
+                        </span>
+                        <span className="dashboard-purchase-items">
+                          {purchase.items.length} פריטים
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>לא נמצאו רכישות אחרונות</p>
+                )}
+              </div>
             </div>
-            <div className="dashboard-chart-wrapper pie-chart-wrapper">
-              <CustomPie products={products} />
-            </div>
-          </>
-        ) : (
-          <div className="dashboard-chart-wrapper dashboard-chart-empty">אין נתוני תקציב להצגה</div>
-        )}
-      </div>
-
-      <div className="dashboard-level-2">
-        <div className="dashboard-purchases">
-          <h2 className="dashboard-purchases-title">
-            <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
-            רכישות אחרונות
-          </h2>
-          <p className="dashboard-purchases-text">הצג רכישות אחרונות שביצעתם</p>
-          <div className="dashboard-purchases-list">
-            {recentPurchases.length > 0 ? (
-              <ul>
-                {recentPurchases.map((purchase) => (
-                  <li key={purchase.id} className="dashboard-purchase-item">
-                    <span className="dashboard-purchase-date">
-                      {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
-                    </span>
-                    <span className="dashboard-purchase-amount">
-                      {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
-                    </span>
-                    <span className="dashboard-purchase-items">
-                      {purchase.items.length} פריטים
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>לא נמצאו רכישות אחרונות</p>
-            )}
           </div>
         </div>
-        {barData && barData.length > 0 ? (
-          <>
-            <div className="dashboard-chart-wrapper bar-chart-wrapper">
-              <CustomBar data={barData} />
-            </div>
-            </>
-        ) : (
-          <div className="dashboard-chart-wrapper dashboard-chart-empty">אין נתוני תקציב להצגה</div>
-        )}
-      </div>
-      <div className="dashboard-chart-wrapper area-chart-wrapper">
-        <CustomArea data={areaData} />
+        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
+          <div className="dashboard-chart-wrapper area-chart-wrapper">
+            <CustomArea data={areaData} />
+          </div>
+          <div className="dashboard-chart-wrapper switchable-chart-wrapper">
+            <SwitchableBarChart
+              budgetData={barData}
+              purchaseData={recentPurchases}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

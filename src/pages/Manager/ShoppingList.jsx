@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -12,6 +12,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [checkingAll, setCheckingAll] = useState(false);
   const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -227,6 +228,322 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
     setClearing(false);
   }
 };
+
+  // Check all items as purchased
+  const handleCheckAll = async () => {
+    const unpurchasedItems = shoppingList.filter(item => !item.purchased);
+    
+    if (unpurchasedItems.length === 0) {
+      toast.info('כל הפריטים כבר מסומנים כנרכשים');
+      return;
+    }
+    
+    const confirmed = window.confirm(`האם אתה בטוח שברצונך לסמן ${unpurchasedItems.length} פריטים כנרכשים?`);
+    if (!confirmed) return;
+
+    setCheckingAll(true);
+    try {
+      const batch = writeBatch(db);
+      
+      // Get reference to current purchase document
+      const currentPurchaseRef = doc(db, 'purchases', 'current');
+      const currentPurchaseDoc = await getDoc(currentPurchaseRef);
+      
+      let purchaseItems = [];
+      if (currentPurchaseDoc.exists()) {
+        purchaseItems = currentPurchaseDoc.data().items || [];
+      }
+
+      // Update each unpurchased item
+      for (const item of unpurchasedItems) {
+        const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', item.id);
+        
+        // Mark as purchased
+        batch.update(itemRef, { 
+          purchased: true
+        });
+
+        // Add to purchase list
+        purchaseItems.push({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          categoryName: categories[item.category] || 'לא מוגדר',
+          quantity: item.quantity,
+          price: item.price,
+          actualPrice: item.price,
+          checkedAt: Date.now()
+        });
+      }
+
+      // Update the current purchase document
+      batch.set(currentPurchaseRef, { items: purchaseItems }, { merge: true });
+
+      await batch.commit();
+      toast.success(`${unpurchasedItems.length} פריטים סומנו כנרכשים בהצלחה!`);
+    } catch (error) {
+      console.error('Error checking all items:', error);
+      toast.error('שגיאה בסימון הפריטים כנרכשים');
+    } finally {
+      setCheckingAll(false);
+    }
+  };
+
+  // Print shopping list
+  const handlePrint = () => {
+    if (shoppingList.length === 0) {
+      toast.info('רשימת הקניות ריקה - אין מה להדפיס');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    const unpurchasedItems = shoppingList.filter(item => !item.purchased);
+    const purchasedItems = shoppingList.filter(item => item.purchased);
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="he">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: white;
+            color: black;
+            direction: rtl;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+          }
+          .header h1 {
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+          }
+          .header p {
+            margin: 5px 0;
+            color: #666;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin: 20px 0 10px 0;
+            border-right: 4px solid #2e7d32;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+          }
+          th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+          }
+          .total-section {
+            background-color: #f0f8f0;
+            padding: 15px;
+            border: 2px solid #2e7d32;
+            border-radius: 5px;
+            margin-top: 20px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+          }
+          .total-row strong {
+            font-size: 18px;
+          }
+          .purchased-item {
+            background-color: #e8f5e9;
+            opacity: 0.7;
+          }
+          .checkbox-column {
+            width: 30px;
+            text-align: center;
+          }
+          .print-date {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 10px;
+              width: 100%;
+              max-width: 100%; /* Changed from none to 100% */
+              box-sizing: border-box;
+            }
+            html, body {
+              width: 100%;
+              height: 100%;
+              overflow: visible; /* Ensure all content is visible */
+            }
+            .no-print { display: none; }
+            .header {
+              margin-bottom: 20px;
+              padding-bottom: 15px;
+              width: 100%;
+            }
+            table {
+              width: 100%;
+              font-size: 10px; /* Adjusted font size for better fit */
+              table-layout: fixed;
+            }
+            th, td {
+              padding: 5px 3px; /* Adjusted padding */
+              font-size: 9px;  /* Adjusted font size for better fit */
+              word-wrap: break-word;
+            }
+            .checkbox-column {
+              width: 30px; /* Adjusted checkbox column width */
+            }
+            .total-section {
+              margin-top: 15px;
+              padding: 8px;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .total-row strong {
+              font-size: 12px; /* Adjusted font size */
+            }
+            .section {
+              width: 100%;
+              margin-bottom: 15px;
+            }
+            .section h2 {
+              margin: 10px 0 5px 0;
+              padding: 6px;
+              font-size: 12px; /* Adjusted font size */
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .print-date {
+              margin-top: 10px;
+              font-size: 9px; /* Adjusted font size */
+              width: 100%;
+              
+            }
+            * {
+              box-sizing: border-box;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>רשימת קניות</h1>
+          <p> עמותת ותיקי מטה יהודה</p>
+          <p>תאריך הדפסה: ${new Date().toLocaleDateString('he-IL')}</p>
+        </div>
+
+        ${unpurchasedItems.length > 0 ? `
+        <div class="section">
+          <h2>פריטים לרכישה (${unpurchasedItems.length})</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-column">✓</th>
+                <th>שם מוצר</th>
+                <th>קטגוריה</th>
+                <th>כמות</th>
+                <th>מחיר יחידה</th>
+                <th>מחיר כולל</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${unpurchasedItems.map(item => `
+                <tr>
+                  <td class="checkbox-column">☐</td>
+                  <td>${item.name}</td>
+                  <td>${categories[item.category] || 'לא מוגדר'}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)} ₪</td>
+                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${purchasedItems.length > 0 ? `
+        <div class="section">
+          <h2>פריטים שנרכשו (${purchasedItems.length})</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-column">✓</th>
+                <th>שם מוצר</th>
+                <th>קטגוריה</th>
+                <th>כמות</th>
+                <th>מחיר יחידה</th>
+                <th>מחיר כולל</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${purchasedItems.map(item => `
+                <tr class="purchased-item">
+                  <td class="checkbox-column">☑</td>
+                  <td>${item.name}</td>
+                  <td>${categories[item.category] || 'לא מוגדר'}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)} ₪</td>
+                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="total-section">
+          <div class="total-row">
+            <span>סה"כ לרכישה:</span>
+            <strong>${unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>סה"כ כללי:</span>
+            <strong>${totalPrice.toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>תקציב:</span>
+            <strong>${budget.toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>יתרה:</span>
+            <strong style="color: ${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)) >= 0 ? '#2e7d32' : '#d32f2f'}">${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)).toFixed(2)} ₪</strong>
+          </div>
+        </div>
+
+        <div class="print-date">
+          הודפס ב: ${new Date().toLocaleString('he-IL')}
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait a bit for content to load, then print
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
   // Start editing item
   const handleEdit = (item) => {
     if (item.purchased) {
@@ -275,31 +592,56 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
           <FontAwesomeIcon icon={faShoppingCart} className="page-header-icon" />
           רשימת קניות
         </h1>
-        <button
-          className="btn btn-accent"
-          style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
-          onClick={handleClearAll}
-          disabled={shoppingList.length === 0 || clearing}
-        >          {clearing ? (
-            <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
-          ) : (
-            <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
-          )}
-          נקה את כל הרשימה
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="btn btn-info"
+            style={{ border: '2px solid var(--info)', color: 'var(--info)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handlePrint}
+            disabled={shoppingList.length === 0}
+          >
+            <FontAwesomeIcon icon={faPrint} style={{ marginLeft: '8px' }} />
+            הדפס רשימה
+          </button>
+          <button
+            className="btn btn-success"
+            style={{ border: '2px solid var(--success)', color: 'var(--success)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handleCheckAll}
+            disabled={shoppingList.length === 0 || checkingAll || shoppingList.filter(item => !item.purchased).length === 0}
+          >
+            {checkingAll ? (
+              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+            ) : (
+              <FontAwesomeIcon icon={faCheckSquare} style={{ marginLeft: '8px' }} />
+            )}
+            סמן הכל כנרכש
+          </button>
+          <button
+            className="btn btn-accent"
+            style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handleClearAll}
+            disabled={shoppingList.length === 0 || clearing}
+          >
+            {clearing ? (
+              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+            ) : (
+              <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
+            )}
+            נקה את כל הרשימה
+          </button>
+        </div>
       </div>
       
-      {(loading || clearing) && (
+      {(loading || clearing || checkingAll) && (
         <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
-          <Spinner text={clearing ? 'מנקה את הרשימה...' : 'טוען נתונים...'} />
+          <Spinner text={clearing ? 'מנקה את הרשימה...' : checkingAll ? 'מסמן פריטים כנרכשים...' : 'טוען נתונים...'} />
         </div>
       )}
-      {!loading && !clearing && shoppingList.length === 0 ? (
+      {!loading && !clearing && !checkingAll && shoppingList.length === 0 ? (
         <div className="empty-list">
           <p>רשימת הקניות ריקה</p>
           <p className="empty-list-subtext">הוסף מוצרים מדף המוצרים</p>
         </div>
-      ) : !loading && !clearing && (
+      ) : !loading && !clearing && !checkingAll && (
         <>
           {/* <div className="card"> */}
             <table className="inventory-table">              

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useNavigate } from 'react-router-dom';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Text } from 'recharts';
 import '../../styles/ForAdmin/customBar.css';
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336']; // Green, Yellow, Red
@@ -25,7 +26,25 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
+// Custom title component for the chart
+const ChartTitle = ({ x, y, width, title }) => {
+  return (
+    <text
+      x={x + width / 2}
+      y={y + 20}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize={18}
+      fontWeight="bold"
+      fill="#000"
+    >
+      {title}
+    </text>
+  );
+};
+
 const CustomPie = ({ products = [] }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState([
     { name: LABELS[0], value: 0 },
     { name: LABELS[1], value: 0 },
@@ -46,29 +65,76 @@ const CustomPie = ({ products = [] }) => {
     ]);
   }, [products]);
 
+  const handlePieClick = (data, index) => {
+    let stockStatus = '';
+    
+    // Map the clicked section to the appropriate filter
+    switch (index) {
+      case 0: // במלאי (In Stock) - Green section
+        stockStatus = 'highStock';
+        break;
+      case 1: // נמוך במלאי (Low Stock) - Yellow section
+        stockStatus = 'lowStock';
+        break;
+      case 2: // אזל מהמלאי (Out of Stock) - Red section
+        stockStatus = 'outOfStock';
+        break;
+      default:
+        stockStatus = 'all';
+    }
+
+    // Navigate to products page with the appropriate filter
+    navigate('/manager-dashboard/products', { 
+      state: { 
+        applyFilter: { 
+          categories: [],
+          stockStatus: stockStatus 
+        } 
+      } 
+    });
+  };
+
   const tooltipFormatter = (value, name) => [`${value} מוצרים`, name];
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={renderCustomizedLabel}
-          outerRadius={90}
-          dataKey="value"
-          isAnimationActive={false}
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', marginBottom: '10px', paddingTop: '10px' }}>
+        סטטוס מלאי מוצרים
+      </div>
+      <ResponsiveContainer width="100%" height="90%">
+        <PieChart margin={{ top: -50, right: 0, bottom: 0, left: 0 }}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={renderCustomizedLabel}
+            outerRadius={100}
+            dataKey="value"
+            isAnimationActive={true}
+            onClick={handlePieClick}
+            style={{ cursor: 'pointer' }}
         >
           {data.map((entry, idx) => (
-            <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
+            <Cell key={`cell-${idx}`} fill={COLORS[idx]} style={{ cursor: 'pointer' }} />
           ))}
         </Pie>
         <Tooltip formatter={tooltipFormatter} />
-        <Legend align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ lineHeight: '32px', paddingLeft: 8 }} formatter={(value) => <span style={{ marginRight: 8 }}>{value}</span>} />
+        <Legend 
+          align="center" 
+          verticalAlign="bottom" 
+          iconType="circle" 
+          wrapperStyle={{ 
+            lineHeight: '24px', 
+            paddingLeft: 8,
+            marginTop: '10px',
+            marginBottom:'10px'
+          }} 
+          formatter={(value) => <span style={{ marginRight: 8 }}>{value}</span>} 
+        />
       </PieChart>
     </ResponsiveContainer>
+    </div>
   );
 };
 

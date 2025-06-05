@@ -5,6 +5,8 @@ import Sidebar from '../components/LayoutComponents/Sidebar';
 import Footer from '../components/LayoutComponents/Footer';
 import ProfileWidget from '../components/Widgets/ProfileWidget';
 import useIsMobile from '../hooks/useIsMobile';
+import useShoppingListCount from '../hooks/useShoppingListCount';
+import usePurchasesCount from '../hooks/usePurchasesCount';
 import { auth, db } from '../firebase/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -22,24 +24,28 @@ import ContentArea from '../components/LayoutComponents/ContentArea';
 
 const role = "מנהל מלאי";
 
-const sidebarIcons = [
-  { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
-  { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
-  { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
-  { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list" },
-  { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase" }
-  // { icon: faFileLines, text: 'הצג הוצאה תקציבית', id: 'budget-expense', path: "/manager-dashboard/budget-expense" }
-];
-
 const ManagerLayout = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [realName, setRealName] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  
+  // Get real-time counts
+  const shoppingListCount = useShoppingListCount();
+  const purchasesCount = usePurchasesCount();
 
   const toggleButtonRef = useRef();
   const sidebarRef = useRef();
+
+  // Create sidebar icons with dynamic counts
+  const sidebarIcons = [
+    { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
+    { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
+    { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
+    { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list", count: shoppingListCount },
+    { icon: faCashRegister, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase", count: purchasesCount }
+  ];
 
   // Fetch real user name from Firestore
   const fetchUserName = useCallback(async () => {
