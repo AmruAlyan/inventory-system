@@ -100,6 +100,16 @@ const FilterModal = ({ onClose, onApplyFilters, initialFilters, categories }) =>
               />
               מלאי נמוך
             </label>
+            <label>
+              <input
+                type="radio"
+                name="stockStatus"
+                value="outOfStockOrLow"
+                checked={filters.stockStatus === 'outOfStockOrLow'}
+                onChange={() => handleStockStatusChange('outOfStockOrLow')}
+              />
+              חסר/נמוך במלאי
+            </label>
           </div>
         </div>
 

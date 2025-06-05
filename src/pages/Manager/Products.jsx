@@ -108,6 +108,8 @@ const Products = () => {
           return product.quantity <= 0;
         case 'lowStock':
           return product.quantity > 0 && product.quantity < 10;
+        case 'outOfStockOrLow':
+          return product.quantity <= 0 || (product.quantity > 0 && product.quantity < 10);
         default:
           return true;
       }
