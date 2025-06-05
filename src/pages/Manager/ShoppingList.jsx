@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -12,6 +12,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [checkingAll, setCheckingAll] = useState(false);
   const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -227,6 +228,66 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
     setClearing(false);
   }
 };
+
+  // Check all items as purchased
+  const handleCheckAll = async () => {
+    const unpurchasedItems = shoppingList.filter(item => !item.purchased);
+    
+    if (unpurchasedItems.length === 0) {
+      toast.info('כל הפריטים כבר מסומנים כנרכשים');
+      return;
+    }
+    
+    const confirmed = window.confirm(`האם אתה בטוח שברצונך לסמן ${unpurchasedItems.length} פריטים כנרכשים?`);
+    if (!confirmed) return;
+
+    setCheckingAll(true);
+    try {
+      const batch = writeBatch(db);
+      
+      // Get reference to current purchase document
+      const currentPurchaseRef = doc(db, 'purchases', 'current');
+      const currentPurchaseDoc = await getDoc(currentPurchaseRef);
+      
+      let purchaseItems = [];
+      if (currentPurchaseDoc.exists()) {
+        purchaseItems = currentPurchaseDoc.data().items || [];
+      }
+
+      // Update each unpurchased item
+      for (const item of unpurchasedItems) {
+        const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', item.id);
+        
+        // Mark as purchased
+        batch.update(itemRef, { 
+          purchased: true
+        });
+
+        // Add to purchase list
+        purchaseItems.push({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          categoryName: categories[item.category] || 'לא מוגדר',
+          quantity: item.quantity,
+          price: item.price,
+          actualPrice: item.price,
+          checkedAt: Date.now()
+        });
+      }
+
+      // Update the current purchase document
+      batch.set(currentPurchaseRef, { items: purchaseItems }, { merge: true });
+
+      await batch.commit();
+      toast.success(`${unpurchasedItems.length} פריטים סומנו כנרכשים בהצלחה!`);
+    } catch (error) {
+      console.error('Error checking all items:', error);
+      toast.error('שגיאה בסימון הפריטים כנרכשים');
+    } finally {
+      setCheckingAll(false);
+    }
+  };
   // Start editing item
   const handleEdit = (item) => {
     if (item.purchased) {
@@ -275,31 +336,47 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
           <FontAwesomeIcon icon={faShoppingCart} className="page-header-icon" />
           רשימת קניות
         </h1>
-        <button
-          className="btn btn-accent"
-          style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
-          onClick={handleClearAll}
-          disabled={shoppingList.length === 0 || clearing}
-        >          {clearing ? (
-            <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
-          ) : (
-            <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
-          )}
-          נקה את כל הרשימה
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="btn btn-success"
+            style={{ border: '2px solid var(--success)', color: 'var(--success)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handleCheckAll}
+            disabled={shoppingList.length === 0 || checkingAll || shoppingList.filter(item => !item.purchased).length === 0}
+          >
+            {checkingAll ? (
+              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+            ) : (
+              <FontAwesomeIcon icon={faCheckSquare} style={{ marginLeft: '8px' }} />
+            )}
+            סמן הכל כנרכש
+          </button>
+          <button
+            className="btn btn-accent"
+            style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handleClearAll}
+            disabled={shoppingList.length === 0 || clearing}
+          >
+            {clearing ? (
+              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+            ) : (
+              <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
+            )}
+            נקה את כל הרשימה
+          </button>
+        </div>
       </div>
       
-      {(loading || clearing) && (
+      {(loading || clearing || checkingAll) && (
         <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
-          <Spinner text={clearing ? 'מנקה את הרשימה...' : 'טוען נתונים...'} />
+          <Spinner text={clearing ? 'מנקה את הרשימה...' : checkingAll ? 'מסמן פריטים כנרכשים...' : 'טוען נתונים...'} />
         </div>
       )}
-      {!loading && !clearing && shoppingList.length === 0 ? (
+      {!loading && !clearing && !checkingAll && shoppingList.length === 0 ? (
         <div className="empty-list">
           <p>רשימת הקניות ריקה</p>
           <p className="empty-list-subtext">הוסף מוצרים מדף המוצרים</p>
         </div>
-      ) : !loading && !clearing && (
+      ) : !loading && !clearing && !checkingAll && (
         <>
           {/* <div className="card"> */}
             <table className="inventory-table">              
