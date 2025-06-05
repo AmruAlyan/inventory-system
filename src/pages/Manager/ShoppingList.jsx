@@ -305,7 +305,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
       <html dir="rtl" lang="he">
       <head>
         <meta charset="UTF-8">
-        <title>רשימת קניות - בית אבות מטה יהודה</title>
+        <title>רשימת קניות - בית אבו מטה יהודה</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -368,7 +368,6 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
           }
           .purchased-item {
             background-color: #e8f5e9;
-            text-decoration: line-through;
             opacity: 0.7;
           }
           .checkbox-column {
@@ -386,33 +385,52 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
               margin: 0; 
               padding: 10px;
               width: 100%;
-              max-width: none;
+              max-width: 100%;
+              box-sizing: border-box;
             }
             .no-print { display: none; }
             .header {
               margin-bottom: 20px;
               padding-bottom: 15px;
+              width: 100%;
             }
             table {
               width: 100%;
               font-size: 12px;
+              table-layout: fixed;
             }
             th, td {
               padding: 6px 4px;
               font-size: 11px;
+              word-wrap: break-word;
+            }
+            .checkbox-column {
+              width: 40px;
             }
             .total-section {
               margin-top: 15px;
               padding: 10px;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .section {
+              width: 100%;
+              margin-bottom: 20px;
             }
             .section h2 {
               margin: 15px 0 8px 0;
               padding: 8px;
               font-size: 14px;
+              width: 100%;
+              box-sizing: border-box;
             }
             .print-date {
               margin-top: 15px;
               font-size: 10px;
+              width: 100%;
+            }
+            * {
+              box-sizing: border-box;
             }
           }
         </style>
