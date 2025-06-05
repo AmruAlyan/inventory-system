@@ -3,7 +3,7 @@ import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 const useShoppingListCount = () => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -14,11 +14,11 @@ const useShoppingListCount = () => {
           const data = doc.data();
           return !data.purchased;
         }).length;
-        setCount(unpurchasedCount);
+        setCount(unpurchasedCount > 0 ? unpurchasedCount : null);
       },
       (error) => {
         console.error('Error fetching shopping list count:', error);
-        setCount(0);
+        setCount(null);
       }
     );
 
