@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -288,6 +288,236 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
       setCheckingAll(false);
     }
   };
+
+  // Print shopping list
+  const handlePrint = () => {
+    if (shoppingList.length === 0) {
+      toast.info('רשימת הקניות ריקה - אין מה להדפיס');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    const unpurchasedItems = shoppingList.filter(item => !item.purchased);
+    const purchasedItems = shoppingList.filter(item => item.purchased);
+    
+    const printContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="he">
+      <head>
+        <meta charset="UTF-8">
+        <title>רשימת קניות - בית אבות מטה יהודה</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: white;
+            color: black;
+            direction: rtl;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+          }
+          .header h1 {
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+          }
+          .header p {
+            margin: 5px 0;
+            color: #666;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin: 20px 0 10px 0;
+            border-right: 4px solid #2e7d32;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+          }
+          th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+          }
+          .total-section {
+            background-color: #f0f8f0;
+            padding: 15px;
+            border: 2px solid #2e7d32;
+            border-radius: 5px;
+            margin-top: 20px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+          }
+          .total-row strong {
+            font-size: 18px;
+          }
+          .purchased-item {
+            background-color: #e8f5e9;
+            text-decoration: line-through;
+            opacity: 0.7;
+          }
+          .checkbox-column {
+            width: 30px;
+            text-align: center;
+          }
+          .print-date {
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+          }
+          @media print {
+            body { 
+              margin: 0; 
+              padding: 10px;
+              width: 100%;
+              max-width: none;
+            }
+            .no-print { display: none; }
+            .header {
+              margin-bottom: 20px;
+              padding-bottom: 15px;
+            }
+            table {
+              width: 100%;
+              font-size: 12px;
+            }
+            th, td {
+              padding: 6px 4px;
+              font-size: 11px;
+            }
+            .total-section {
+              margin-top: 15px;
+              padding: 10px;
+            }
+            .section h2 {
+              margin: 15px 0 8px 0;
+              padding: 8px;
+              font-size: 14px;
+            }
+            .print-date {
+              margin-top: 15px;
+              font-size: 10px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>רשימת קניות</h1>
+          <p> עמותת ותיקי מטה יהודה</p>
+          <p>תאריך הדפסה: ${new Date().toLocaleDateString('he-IL')}</p>
+        </div>
+
+        ${unpurchasedItems.length > 0 ? `
+        <div class="section">
+          <h2>פריטים לרכישה (${unpurchasedItems.length})</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-column">✓</th>
+                <th>שם מוצר</th>
+                <th>קטגוריה</th>
+                <th>כמות</th>
+                <th>מחיר יחידה</th>
+                <th>מחיר כולל</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${unpurchasedItems.map(item => `
+                <tr>
+                  <td class="checkbox-column">☐</td>
+                  <td>${item.name}</td>
+                  <td>${categories[item.category] || 'לא מוגדר'}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)} ₪</td>
+                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${purchasedItems.length > 0 ? `
+        <div class="section">
+          <h2>פריטים שנרכשו (${purchasedItems.length})</h2>
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-column">✓</th>
+                <th>שם מוצר</th>
+                <th>קטגוריה</th>
+                <th>כמות</th>
+                <th>מחיר יחידה</th>
+                <th>מחיר כולל</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${purchasedItems.map(item => `
+                <tr class="purchased-item">
+                  <td class="checkbox-column">☑</td>
+                  <td>${item.name}</td>
+                  <td>${categories[item.category] || 'לא מוגדר'}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)} ₪</td>
+                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="total-section">
+          <div class="total-row">
+            <span>סה"כ לרכישה:</span>
+            <strong>${unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>סה"כ כללי:</span>
+            <strong>${totalPrice.toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>תקציב:</span>
+            <strong>${budget.toFixed(2)} ₪</strong>
+          </div>
+          <div class="total-row">
+            <span>יתרה:</span>
+            <strong style="color: ${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)) >= 0 ? '#2e7d32' : '#d32f2f'}">${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)).toFixed(2)} ₪</strong>
+          </div>
+        </div>
+
+        <div class="print-date">
+          הודפס ב: ${new Date().toLocaleString('he-IL')}
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait a bit for content to load, then print
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
   // Start editing item
   const handleEdit = (item) => {
     if (item.purchased) {
@@ -337,6 +567,15 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
           רשימת קניות
         </h1>
         <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="btn btn-info"
+            style={{ border: '2px solid var(--info)', color: 'var(--info)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            onClick={handlePrint}
+            disabled={shoppingList.length === 0}
+          >
+            <FontAwesomeIcon icon={faPrint} style={{ marginLeft: '8px' }} />
+            הדפס רשימה
+          </button>
           <button
             className="btn btn-success"
             style={{ border: '2px solid var(--success)', color: 'var(--success)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
