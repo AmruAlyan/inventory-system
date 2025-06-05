@@ -43,15 +43,15 @@ const AreaChartFillByValue = ({ data = [] }) => {
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .map(item => ({
           date: item.formatted || new Intl.DateTimeFormat('he-IL', { month: 'long', day: 'numeric' }).format(item.date),
-          value: item.value,
+          ערך: item.value,
           rawDate: item.date
         }));
       setChartData(sortedData);
       // Calculate gradient offset for value sign split
       const gradientOffset = () => {
         if (!sortedData.length) return 1;
-        const dataMax = Math.max(...sortedData.map((d) => d.value));
-        const dataMin = Math.min(...sortedData.map((d) => d.value));
+        const dataMax = Math.max(...sortedData.map((d) => d.ערך));
+        const dataMin = Math.min(...sortedData.map((d) => d.ערך));
         if (dataMax <= 0) return 0;
         if (dataMin >= 0) return 1;
         return dataMax / (dataMax - dataMin);
@@ -72,11 +72,11 @@ const AreaChartFillByValue = ({ data = [] }) => {
     padding: '0.5rem',
   };
 
-  const formatTooltip = (value, name) => [`${value.toFixed(2)} ₪`, name];
+  const formatTooltip = (value, name) => [`${value.toFixed(2)} ₪`, name === 'ערך' ? 'ערך' : name];
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', paddingTop: '10px' }}>
+      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', marginBottom: '10px', paddingTop: '10px' }}>
         מגמות תקציב לאורך זמן
       </div>
       <ResponsiveContainer width="100%" height="90%">
@@ -104,7 +104,7 @@ const AreaChartFillByValue = ({ data = [] }) => {
         {chartData.length > 0 && (
           <Area
             type="monotone"
-            dataKey="value"
+            dataKey="ערך"
             stroke="#000"
             fill={`url(#${GRADIENT_ID})`}
             strokeWidth={3}

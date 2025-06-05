@@ -150,13 +150,13 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
             className={`filter-type-btn ${filterType === 'count' ? 'active' : ''}`}
             onClick={() => handleFilterTypeChange('count')}
           >
-            פילטר כמות
+           סנן לפי כמות
           </button>
           <button
             className={`filter-type-btn ${filterType === 'date' ? 'active' : ''}`}
             onClick={() => handleFilterTypeChange('date')}
           >
-            פילטר תאריכים
+            סנן לפי תאריכים
           </button>
         </div>
       </div>

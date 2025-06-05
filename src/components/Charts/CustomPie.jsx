@@ -67,11 +67,11 @@ const CustomPie = ({ products = [] }) => {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', paddingTop: '10px' }}>
+      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', marginBottom: '10px', paddingTop: '10px' }}>
         סטטוס מלאי מוצרים
       </div>
       <ResponsiveContainer width="100%" height="90%">
-        <PieChart margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+        <PieChart margin={{ top: -50, right: 0, bottom: 0, left: 0 }}>
           <Pie
             data={data}
             cx="50%"
@@ -80,7 +80,7 @@ const CustomPie = ({ products = [] }) => {
             label={renderCustomizedLabel}
             outerRadius={100}
             dataKey="value"
-            isAnimationActive={false}
+            isAnimationActive={true}
         >
           {data.map((entry, idx) => (
             <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
@@ -94,7 +94,8 @@ const CustomPie = ({ products = [] }) => {
           wrapperStyle={{ 
             lineHeight: '24px', 
             paddingLeft: 8,
-            marginTop: '10px'
+            marginTop: '10px',
+            marginBottom:'10px'
           }} 
           formatter={(value) => <span style={{ marginRight: 8 }}>{value}</span>} 
         />
