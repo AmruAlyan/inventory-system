@@ -23,7 +23,6 @@ const ManagerDash = () => {
   const [lastBalance, setLastBalance] = useState(0);
   const [productsCount, setProductsCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
-  const [inventoryValue, setInventoryValue] = useState(0);
   const [barData, setBarData] = useState([]);
   const [budgetHistory, setBudgetHistory] = useState([]);
   const [recentPurchases, setRecentPurchases] = useState([]);
@@ -74,18 +73,18 @@ const ManagerDash = () => {
         const productsSnapshot = await getDocs(collection(db, 'products'));
         let count = 0;
         let lowStock = 0;
-        let value = 0;
         const productsArr = [];
         productsSnapshot.forEach(doc => {
           const p = doc.data();
           count++;
-          if (p.quantity < LOW_STOCK_THRESHOLD) lowStock++;
-          value += (p.price || 0) * (p.quantity || 0);
+          // Count items that are either out of stock OR low stock
+          if (p.quantity <= 0 || (p.quantity > 0 && p.quantity < LOW_STOCK_THRESHOLD)) {
+            lowStock++;
+          }
           productsArr.push(p);
         });
         setProductsCount(count);
         setLowStockCount(lowStock);
-        setInventoryValue(value);
         setProducts(productsArr);
 
         // Fetch last 3 purchases
@@ -191,6 +190,17 @@ const ManagerDash = () => {
     navigate('/manager-dashboard/products');
   };
 
+  const handleLowStockCardClick = () => {
+    navigate('/manager-dashboard/products', { 
+      state: { 
+        applyFilter: { 
+          categories: [], 
+          stockStatus: 'outOfStockOrLow' 
+        } 
+      } 
+    });
+  };
+
   if (loading) return <Spinner text="טוען נתונים..." />;
 
   return (
@@ -222,19 +232,12 @@ const ManagerDash = () => {
           </h3>
           <h2 className="dashboard-card-value">{productsCount}</h2>
         </div>
-        <div className="dashboard-card">
+        <div className="dashboard-card" onClick={handleLowStockCardClick} style={{ cursor: 'pointer' }}>
           <h3 className="dashboard-card-title">
-            <p>נמוך במלאי</p>
+            <p>חסר/נמוך במלאי</p>
             <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{lowStockCount}</h2>
-        </div>
-        <div className="dashboard-card">
-          <h3 className="dashboard-card-title">
-            <p>ערך המלאי</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
-          </h3>
-          <h2 className="dashboard-card-value">{inventoryValue.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
       </div>
 

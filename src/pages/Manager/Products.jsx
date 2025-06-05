@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
@@ -24,6 +25,17 @@ const Products = () => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
+
+  const location = useLocation();
+
+  // Handle filter state passed from navigation
+  useEffect(() => {
+    if (location.state?.applyFilter) {
+      setActiveFilters(location.state.applyFilter);
+      // Clear the state to prevent reapplying on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const fetchCategories = async () => {
     try {
