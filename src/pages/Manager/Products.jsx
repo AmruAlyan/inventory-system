@@ -355,7 +355,16 @@ const Products = () => {
                   </span>
                 </td>
                 <td className='inventory-actions'>
-                  <button onClick={() => handleAddToList(product.id)} title="הוסף לסל">
+                  <button 
+                    onClick={() => handleAddToList(product.id)} 
+                    title={product.quantity <= 0 ? "המוצר אזל מהמלאי" : "הוסף לסל"}
+                    disabled={product.quantity <= 0}
+                    style={product.quantity <= 0 ? { 
+                      opacity: 0.5, 
+                      cursor: 'not-allowed',
+                      color: '#ccc'
+                    } : {}}
+                  >
                     <FontAwesomeIcon icon={faCartPlus} />
                   </button>
                   <button onClick={() => handleEdit(product.id)} title="עדכן">

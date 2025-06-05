@@ -31,7 +31,12 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef }) => {
                 {items.map((item, index) => (
                     <NavLink key={index} to={item.path} className="sidebar-button">
                         <button key={index}>
-                            <FontAwesomeIcon icon={item.icon} className="sidebar-icon" />
+                            <div className="sidebar-icon-container">
+                                <FontAwesomeIcon icon={item.icon} className="sidebar-icon" />
+                                {item.count && item.count > 0 && (
+                                    <span className="sidebar-badge">{item.count}</span>
+                                )}
+                            </div>
                             <span className="sidebar-text">{item.text}</span>
                         </button>
                     </NavLink>
