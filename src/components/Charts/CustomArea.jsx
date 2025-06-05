@@ -144,7 +144,7 @@ const AreaChartFillByValue = ({ data = [] }) => {
         <div className="custom-tooltip">
           <p className="tooltip-date">{dateStr}</p>
           <p className="tooltip-amount">
-            תקציב: <span className="amount-value">{`₪${value.toFixed(2)}`}</span>
+            תקציב: <span className="amount-value">{`₪ ${value.toFixed(2)}`}</span>
           </p>
         </div>
       );
@@ -156,12 +156,8 @@ const AreaChartFillByValue = ({ data = [] }) => {
 
   return (
     <div className="switchable-bar-chart" style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div className="chart-controls">
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-            מגמות תקציב לאורך זמן
-          </div>
-        </div>
+      <div className="chart-controls" style={{ marginBottom: '1rem' }}>
+        
         <div className="filter-type-toggle">
           <button
             className={`filter-type-btn ${filterType === 'count' ? 'active' : ''}`}
@@ -222,6 +218,10 @@ const AreaChartFillByValue = ({ data = [] }) => {
         )}
       </div>
       
+      <div className="chart-title">
+        מגמות תקציב לאורך זמן
+      </div>
+      
       <ResponsiveContainer width="100%" height="75%">
         <AreaChart
           data={filteredData}
@@ -237,9 +237,12 @@ const AreaChartFillByValue = ({ data = [] }) => {
         <XAxis axisLine={{stroke: getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim(), strokeWidth: '2px'}} dataKey="date" />
         <YAxis
           axisLine={{stroke: getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim(), strokeWidth: '2px'}}
-          tickFormatter={(value) => `${value} ₪`}
-          dx={-20}
-          width={60}
+          tickFormatter={(value) => {
+            // Ensure minus sign appears on the left side
+            const formattedValue = value < 0 ? `${Math.abs(value)}-` : value;
+            return `₪ ${formattedValue}`;
+          }}
+          
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend />

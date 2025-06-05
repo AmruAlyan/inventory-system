@@ -120,7 +120,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
           <p className="tooltip-date">{dateStr}</p>
           <p className="tooltip-amount">
             {activeChart === 'budget' ? 'תקציב: ' : 'סכום רכישה: '}
-            <span className="amount-value">{`₪${amount.toFixed(2)}`}</span>
+            <span className="amount-value">{`₪ ${amount.toFixed(2)}`}</span>
           </p>
         </div>
       );
@@ -226,7 +226,12 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
             fontSize={12}
             tick={{fill: '#333', fontWeight: 500}}
           />
-          <YAxis />
+          <YAxis 
+            tickFormatter={(value) => {
+              
+              return `₪ ${value}`;
+            }}
+          />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Bar 
