@@ -305,7 +305,6 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
       <html dir="rtl" lang="he">
       <head>
         <meta charset="UTF-8">
-        <title>רשימת קניות - בית אבו מטה יהודה</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -381,12 +380,17 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
             margin-top: 20px;
           }
           @media print {
-            body { 
-              margin: 0; 
+            body {
+              margin: 0;
               padding: 10px;
               width: 100%;
-              max-width: 100%;
+              max-width: 100%; /* Changed from none to 100% */
               box-sizing: border-box;
+            }
+            html, body {
+              width: 100%;
+              height: 100%;
+              overflow: visible; /* Ensure all content is visible */
             }
             .no-print { display: none; }
             .header {
@@ -396,38 +400,42 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
             }
             table {
               width: 100%;
-              font-size: 12px;
+              font-size: 10px; /* Adjusted font size for better fit */
               table-layout: fixed;
             }
             th, td {
-              padding: 6px 4px;
-              font-size: 11px;
+              padding: 5px 3px; /* Adjusted padding */
+              font-size: 9px;  /* Adjusted font size for better fit */
               word-wrap: break-word;
             }
             .checkbox-column {
-              width: 40px;
+              width: 30px; /* Adjusted checkbox column width */
             }
             .total-section {
               margin-top: 15px;
-              padding: 10px;
+              padding: 8px;
               width: 100%;
               box-sizing: border-box;
             }
+            .total-row strong {
+              font-size: 12px; /* Adjusted font size */
+            }
             .section {
               width: 100%;
-              margin-bottom: 20px;
+              margin-bottom: 15px;
             }
             .section h2 {
-              margin: 15px 0 8px 0;
-              padding: 8px;
-              font-size: 14px;
+              margin: 10px 0 5px 0;
+              padding: 6px;
+              font-size: 12px; /* Adjusted font size */
               width: 100%;
               box-sizing: border-box;
             }
             .print-date {
-              margin-top: 15px;
-              font-size: 10px;
+              margin-top: 10px;
+              font-size: 9px; /* Adjusted font size */
               width: 100%;
+              
             }
             * {
               box-sizing: border-box;
