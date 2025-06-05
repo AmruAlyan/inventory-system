@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome, faWallet, faShekel, faArrowLeftLong, faReceipt } from '@fortawesome/free-solid-svg-icons';
 import CustomBar from "../../components/Charts/CustomBar";
@@ -28,6 +29,8 @@ const ManagerDash = () => {
   const [recentPurchases, setRecentPurchases] = useState([]);
   const [products, setProducts] = useState([]);
   const [areaData, setAreaData] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -184,6 +187,10 @@ const ManagerDash = () => {
     return () => unsubscribe();
   }, []);
 
+  const handleProductsCardClick = () => {
+    navigate('/manager-dashboard/products');
+  };
+
   if (loading) return <Spinner text="טוען נתונים..." />;
 
   return (
@@ -208,7 +215,7 @@ const ManagerDash = () => {
           </h3>
           <h2 className="dashboard-card-value">{lastBalance.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
-        <div className="dashboard-card">
+        <div className="dashboard-card" onClick={handleProductsCardClick} style={{ cursor: 'pointer' }}>
           <h3 className="dashboard-card-title">
             <p>מוצרים</p>
             <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>

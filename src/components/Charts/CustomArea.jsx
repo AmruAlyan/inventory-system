@@ -179,7 +179,7 @@ const AreaChartFillByValue = ({ data = [] }) => {
           <div className="chart-filter">
             <label>
               <FontAwesomeIcon icon={faFilter} />
-              הצג 
+              {' '}הצג 
               <select value={dataCount} onChange={handleCountChange}>
                 <option value={3}>3</option>
                 <option value={5}>5</option>
