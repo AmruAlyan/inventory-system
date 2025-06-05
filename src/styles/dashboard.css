@@ -143,8 +143,8 @@
     display: flex;
     flex-direction: column;
     flex: 0 0 calc(65% - 0.75rem);
-    min-height: 350px;
-    height: 350px;
+    min-height: 400px;
+    height: 550px;
     background: var(--panel-bg);
     border-radius: 20px;
     border: solid 2px var(--primary);
