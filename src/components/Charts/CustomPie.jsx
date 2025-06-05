@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Text } from 'recharts';
 import '../../styles/ForAdmin/customBar.css';
 
@@ -43,6 +44,7 @@ const ChartTitle = ({ x, y, width, title }) => {
 };
 
 const CustomPie = ({ products = [] }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState([
     { name: LABELS[0], value: 0 },
     { name: LABELS[1], value: 0 },
@@ -63,6 +65,35 @@ const CustomPie = ({ products = [] }) => {
     ]);
   }, [products]);
 
+  const handlePieClick = (data, index) => {
+    let stockStatus = '';
+    
+    // Map the clicked section to the appropriate filter
+    switch (index) {
+      case 0: // במלאי (In Stock) - Green section
+        stockStatus = 'highStock';
+        break;
+      case 1: // נמוך במלאי (Low Stock) - Yellow section
+        stockStatus = 'lowStock';
+        break;
+      case 2: // אזל מהמלאי (Out of Stock) - Red section
+        stockStatus = 'outOfStock';
+        break;
+      default:
+        stockStatus = 'all';
+    }
+
+    // Navigate to products page with the appropriate filter
+    navigate('/manager-dashboard/products', { 
+      state: { 
+        applyFilter: { 
+          categories: [],
+          stockStatus: stockStatus 
+        } 
+      } 
+    });
+  };
+
   const tooltipFormatter = (value, name) => [`${value} מוצרים`, name];
 
   return (
@@ -81,9 +112,11 @@ const CustomPie = ({ products = [] }) => {
             outerRadius={100}
             dataKey="value"
             isAnimationActive={true}
+            onClick={handlePieClick}
+            style={{ cursor: 'pointer' }}
         >
           {data.map((entry, idx) => (
-            <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
+            <Cell key={`cell-${idx}`} fill={COLORS[idx]} style={{ cursor: 'pointer' }} />
           ))}
         </Pie>
         <Tooltip formatter={tooltipFormatter} />

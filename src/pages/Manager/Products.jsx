@@ -116,6 +116,8 @@ const Products = () => {
       switch (activeFilters.stockStatus) {
         case 'inStock':
           return product.quantity > 0;
+        case 'highStock':
+          return product.quantity >= 10;
         case 'outOfStock':
           return product.quantity <= 0;
         case 'lowStock':
