@@ -211,10 +211,10 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
           : 'סכומי רכישה אחרונים'}
       </div>
       
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={260}>
         <BarChart
           data={filteredData}
-          margin={{ top: 10, right: 30, left: 20, bottom: 50 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 

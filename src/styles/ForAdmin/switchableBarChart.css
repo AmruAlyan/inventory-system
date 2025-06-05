@@ -113,7 +113,7 @@
   text-align: center;
   font-weight: bold;
   margin-bottom: 0.5rem;
-  margin-top: 0;
+  margin-top: 2.5rem;
   direction: rtl;
   font-size: 1rem;
 }
@@ -146,6 +146,11 @@
 .amount-value {
   font-weight: bold;
   color: var(--primary);
+}
+
+/* Chart container spacing */
+.recharts-responsive-container {
+  padding-top: 10px;
 }
 
 /* Custom colors for the charts */
