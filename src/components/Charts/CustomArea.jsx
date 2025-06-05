@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Text } from 'recharts';
 import '../../styles/ForAdmin/customBar.css';
 
 const GRADIENT_ID = 'area-gradient';
+
+// Custom title component for the chart
+const ChartTitle = ({ x, y, width, title }) => {
+  return (
+    <text
+      x={x + width / 2}
+      y={y + 20}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize={18}
+      fontWeight="bold"
+      fill="#000"
+    >
+      {title}
+    </text>
+  );
+};
 
 const AreaChartFillByValue = ({ data = [] }) => {
   const [theme, setTheme] = useState('light');
@@ -58,12 +75,16 @@ const AreaChartFillByValue = ({ data = [] }) => {
   const formatTooltip = (value, name) => [`${value.toFixed(2)} ₪`, name];
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart
-        data={chartData}
-        margin={{ left: 25, right: 20, top: 10, bottom: 5 }}
-      >
-        <defs>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', paddingTop: '10px' }}>
+        מגמות תקציב לאורך זמן
+      </div>
+      <ResponsiveContainer width="100%" height="90%">
+        <AreaChart
+          data={chartData}
+          margin={{ left: 25, right: 20, top: 10, bottom: 5 }}
+        >
+          <defs>
           <linearGradient id={GRADIENT_ID} x1="0" y1="0" x2="0" y2="1">
             <stop offset={gradientOffset} stopColor="#518664" stopOpacity={0.8}/>
             <stop offset={gradientOffset} stopColor="#d32f2f" stopOpacity={0.8}/>
@@ -94,6 +115,7 @@ const AreaChartFillByValue = ({ data = [] }) => {
         )}
       </AreaChart>
     </ResponsiveContainer>
+    </div>
   );
 };
 

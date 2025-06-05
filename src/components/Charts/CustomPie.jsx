@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, Text } from 'recharts';
 import '../../styles/ForAdmin/customBar.css';
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336']; // Green, Yellow, Red
@@ -21,6 +21,23 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
       fontWeight={600}
     >
       {percent > 0 ? `${(percent * 100).toFixed(0)}%` : ''}
+    </text>
+  );
+};
+
+// Custom title component for the chart
+const ChartTitle = ({ x, y, width, title }) => {
+  return (
+    <text
+      x={x + width / 2}
+      y={y + 20}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize={18}
+      fontWeight="bold"
+      fill="#000"
+    >
+      {title}
     </text>
   );
 };
@@ -49,17 +66,21 @@ const CustomPie = ({ products = [] }) => {
   const tooltipFormatter = (value, name) => [`${value} מוצרים`, name];
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="40%"
-          labelLine={false}
-          label={renderCustomizedLabel}
-          outerRadius={100}
-          dataKey="value"
-          isAnimationActive={false}
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', paddingTop: '10px' }}>
+        סטטוס מלאי מוצרים
+      </div>
+      <ResponsiveContainer width="100%" height="90%">
+        <PieChart margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={renderCustomizedLabel}
+            outerRadius={100}
+            dataKey="value"
+            isAnimationActive={false}
         >
           {data.map((entry, idx) => (
             <Cell key={`cell-${idx}`} fill={COLORS[idx]} />
@@ -79,6 +100,7 @@ const CustomPie = ({ products = [] }) => {
         />
       </PieChart>
     </ResponsiveContainer>
+    </div>
   );
 };
 
