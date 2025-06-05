@@ -231,61 +231,52 @@ const ManagerDash = () => {
         </div>
       </div>
 
-      {/* First row of charts - Pie chart and Switchable chart */}
-      <div className="dashboard-charts">
-        {barData && barData.length > 0 ? (
-          <>
-            <div className="dashboard-chart-wrapper pie-chart-wrapper">
-              <CustomPie products={products} />
-            </div>
-            <div className="dashboard-chart-wrapper switchable-chart-wrapper">
-              <SwitchableBarChart
-                budgetData={barData}
-                purchaseData={recentPurchases}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="dashboard-chart-wrapper dashboard-chart-empty">אין נתוני תקציב להצגה</div>
-        )}
-      </div>
-      
-      {/* Second row - Recent purchases and Area chart */}
-      <div className="dashboard-level-2">
-        <div className="dashboard-chart-wrapper purchases-chart-wrapper">
-          <div className="dashboard-purchases">
-            <h2 className="dashboard-purchases-title">
-              <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
-              רכישות אחרונות
-            </h2>
-            <p className="dashboard-purchases-text">הצג רכישות אחרונות שביצעתם</p>
-            <div className="dashboard-purchases-list">
-              {recentPurchases.length > 0 ? (
-                <ul>
-                  {recentPurchases.map((purchase) => (
-                    <li key={purchase.id} className="dashboard-purchase-item">
-                      <span className="dashboard-purchase-date">
-                        {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
-                      </span>
-                      <span className="dashboard-purchase-amount">
-                        {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
-                      </span>
-                      <span className="dashboard-purchase-items">
-                        {purchase.items.length} פריטים
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>לא נמצאו רכישות אחרונות</p>
-              )}
+      {/* Main chart area: two rows, two columns */}
+      <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
+          <div className="dashboard-chart-wrapper pie-chart-wrapper">
+            <CustomPie products={products} />
+          </div>
+          <div className="dashboard-chart-wrapper purchases-chart-wrapper">
+            <div className="dashboard-purchases">
+              <h2 className="dashboard-purchases-title">
+                <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
+                רכישות אחרונות
+              </h2>
+              <div className="dashboard-purchases-list">
+                {recentPurchases.length > 0 ? (
+                  <ul>
+                    {recentPurchases.map((purchase) => (
+                      <li key={purchase.id} className="dashboard-purchase-item">
+                        <span className="dashboard-purchase-date">
+                          {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
+                        </span>
+                        <span className="dashboard-purchase-amount">
+                          {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
+                        </span>
+                        <span className="dashboard-purchase-items">
+                          {purchase.items.length} פריטים
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>לא נמצאו רכישות אחרונות</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Area chart moved to dashboard-level-2 */}
-        <div className="dashboard-chart-wrapper area-chart-wrapper">
-          <CustomArea data={areaData} />
+        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
+          <div className="dashboard-chart-wrapper area-chart-wrapper">
+            <CustomArea data={areaData} />
+          </div>
+          <div className="dashboard-chart-wrapper switchable-chart-wrapper">
+            <SwitchableBarChart
+              budgetData={barData}
+              purchaseData={recentPurchases}
+            />
+          </div>
         </div>
       </div>
     </div>

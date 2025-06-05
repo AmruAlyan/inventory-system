@@ -161,7 +161,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
         </div>
       </div>
       
-      <div className="filter-controls">
+      <div className="filter-controls" style={{ display: 'flex', flexDirection: 'row-reverse' }}>
         {filterType === 'count' ? (
           <div className="chart-filter">
             <label>
