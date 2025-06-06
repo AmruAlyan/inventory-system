@@ -17,7 +17,8 @@ import {
   faBoxOpen,
   faTableCellsLarge,
   faCartShopping,
-  faCartPlus
+  faCartPlus,
+  faPenToSquare
 } from '@fortawesome/free-solid-svg-icons';
 import ContentArea from '../components/LayoutComponents/ContentArea';
 
@@ -43,7 +44,8 @@ const ManagerLayout = () => {
     { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
     { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
     { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list", count: shoppingListCount },
-    { icon: faCartPlus, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase", count: purchasesCount }
+    { icon: faCartPlus, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase", count: purchasesCount },
+    { icon: faPenToSquare, text: 'עדכון מלאי', id: 'consumed-items', path: "/manager-dashboard/consumed-items" }
   ];
 
   // Fetch real user name from Firestore
