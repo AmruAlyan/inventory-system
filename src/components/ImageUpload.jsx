@@ -212,20 +212,18 @@ const ImageUpload = ({
   const handleRemoveImage = async () => {
     if (!currentImageUrl) return;
     
-    if (window.confirm('האם אתה בטוח שברצונך למחוק את התמונה?')) {
-      setUploading(true);
-      try {
-        // Delete from Firebase Storage
-        const imageRef = ref(storage, currentImageUrl);
-        await deleteObject(imageRef);
-        
-        onImageChange(null);
-      } catch (error) {
-        console.error('Error deleting image:', error);
-        toast.error('שגיאה במחיקת התמונה');
-      } finally {
-        setUploading(false);
-      }
+    setUploading(true);
+    try {
+      // Delete from Firebase Storage
+      const imageRef = ref(storage, currentImageUrl);
+      await deleteObject(imageRef);
+      
+      onImageChange(null);
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('שגיאה במחיקת התמונה');
+    } finally {
+      setUploading(false);
     }
   };
 
