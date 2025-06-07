@@ -46,6 +46,7 @@ const ManagerLayout = () => {
     { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list", count: shoppingListCount },
     { icon: faCartPlus, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase", count: purchasesCount },
     { icon: faPenToSquare, text: 'עדכון מלאי', id: 'consumed-items', path: "/manager-dashboard/consumed-items" }
+
   ];
 
   // Fetch real user name from Firestore
