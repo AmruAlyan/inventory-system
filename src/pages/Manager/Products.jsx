@@ -27,6 +27,10 @@ const Products = () => {
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'cards'
+  const [activeFilters, setActiveFilters] = useState({
+    categories: [],
+    stockStatus: 'all'
+  });
 
   const location = useLocation();
 
@@ -92,10 +96,6 @@ const Products = () => {
     setEditingProduct(product);
     setShowEditWidget(true);
   };
-  const [activeFilters, setActiveFilters] = useState({
-    categories: [],
-    stockStatus: 'all'
-  });
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
