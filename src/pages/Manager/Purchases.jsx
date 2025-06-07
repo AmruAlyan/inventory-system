@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -247,8 +247,8 @@ const handleSavePurchaseDate = async (purchaseId) => {
       )}
       <div className="page-header justify-content-between d-flex align-items-center mb-3">
         <h1>
-          <FontAwesomeIcon icon={faShoppingBag} className="page-header-icon" />
-          רשימת רכישות
+          <FontAwesomeIcon icon={faCartPlus} className="page-header-icon" />
+         קנייה חדשה
         </h1>
         <button 
           className="btn btn-secondary"
@@ -336,7 +336,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
           <Spinner />
         ) : (!currentPurchase.items || currentPurchase.items.length === 0) ? (
           <div className="empty-list">
-            <p>אין פריטים ברכישה הנוכחית</p>
+            <p>אין פריטים בקנייה הנוכחית</p>
             <p className="empty-list-subtext">סמן פריטים כנרכשו ברשימת הקניות</p>
           </div>
         ) : (

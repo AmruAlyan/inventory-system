@@ -401,7 +401,7 @@ const Products = () => {
               </button>
             </div>
             <div className="items-per-page">
-              <label>שורות בעמוד:</label>
+              <label style={{ color: 'white' }}>שורות בעמוד:</label>
               <select 
                 value={itemsPerPage} 
                 onChange={handleItemsPerPageChange}
