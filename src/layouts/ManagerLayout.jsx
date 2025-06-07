@@ -14,7 +14,7 @@ import '../styles/layout.css';
 
 import {
   faHouse,
-  faBoxOpen,
+  faBoxesStacked,
   faTableCellsLarge,
   faCartShopping,
   faCartPlus,
@@ -42,7 +42,7 @@ const ManagerLayout = () => {
   const sidebarIcons = [
     { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
     { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
-    { icon: faBoxOpen, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
+    { icon: faBoxesStacked, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
     { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list", count: shoppingListCount },
     { icon: faCartPlus, text: 'קנייה חדשה', id: 'new-purchase', path: "/manager-dashboard/new-purchase", count: purchasesCount },
     { icon: faPenToSquare, text: 'עדכון מלאי', id: 'consumed-items', path: "/manager-dashboard/consumed-items" }

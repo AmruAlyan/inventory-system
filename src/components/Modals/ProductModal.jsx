@@ -98,12 +98,14 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
         setStatus('Product updated successfully!');
         toast.success('המוצר עודכן בהצלחה');
         if (onSave) onSave();
+        onClose(); // Close modal after successful update
       } else {
         await addProduct(productData);
         setStatus('Product added successfully!');
         toast.success('המוצר נוסף בהצלחה');
         setForm({ name: '', category: '', quantity: '', price: '', imageUrl: null });
         if (onSave) onSave();
+        onClose(); // Close modal after successful addition
       }
     } catch (error) {
       setStatus(mode === 'edit' ? 'Failed to update product.' : 'Failed to add product.');

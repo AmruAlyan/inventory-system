@@ -274,7 +274,7 @@ const ImageUpload = ({
           <div className="no-image-placeholder">
             <div className="placeholder-content">
               <FontAwesomeIcon icon={faUpload} className="placeholder-icon" />
-              <p>אין תמונה</p>
+              <div> </div>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
