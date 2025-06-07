@@ -359,8 +359,15 @@ const ConsumedItems = () => {
                       title={mode === 'consumption' ? 'רשום צריכה' : 'עדכן מלאי'}
                       className="btn btn-sm btn-primary"
                       disabled={mode === 'consumption' && product.quantity <= 0}
+                      style={{
+                        color: mode === 'consumption' ? '#ffc107' : '#28a745',
+                        borderColor: mode === 'consumption' ? '#ffc107' : '#28a745',
+                      }}
                     >
-                      <FontAwesomeIcon icon={mode === 'consumption' ? faMinus : faEdit} />
+                      <FontAwesomeIcon 
+                        icon={faEdit}
+                        
+                      />
                     </button>
                   )}
                 </td>
