@@ -379,8 +379,11 @@ const ConsumedItems = () => {
                       className="btn btn-sm btn-primary"
                       disabled={mode === 'consumption' && product.quantity <= 0}
                       style={{
-                        color: mode === 'consumption' ? '#ffc107' : '#28a745',
-                        borderColor: mode === 'consumption' ? '#ffc107' : '#28a745',
+                        color: mode === 'consumption' && product.quantity <= 0 ? 'var(--secondary-text)' : mode === 'consumption' ? '#ffc107' : '#28a745',
+                        borderColor: mode === 'consumption' && product.quantity <= 0 ? 'var(--border-color)' : mode === 'consumption' ? '#ffc107' : '#28a745',
+                        opacity: mode === 'consumption' && product.quantity <= 0 ? '0.5' : '1',
+                        cursor: mode === 'consumption' && product.quantity <= 0 ? 'not-allowed' : 'pointer',
+                        backgroundColor: mode === 'consumption' && product.quantity <= 0 ? 'var(--bg-color)' : 'transparent'
                       }}
                     >
                       <FontAwesomeIcon 
