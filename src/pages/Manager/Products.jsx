@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
-import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ProductModal from '../../components/Modals/ProductModal';
 import AddToListModal from '../../components/Modals/AddToListModal';
+import ProductCard from '../../components/ProductCard';
 import { toast } from 'react-toastify';
 // import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
@@ -18,13 +19,26 @@ const Products = () => {
   const [showEditWidget, setShowEditWidget] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    // Get saved value from localStorage, default to 8 for card view
+    const saved = localStorage.getItem('productsItemsPerPage');
+    return saved ? parseInt(saved) : 8;
+  });
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [categories, setCategories] = useState({});
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState(() => {
+    // Get saved view mode from localStorage, default to 'list'
+    const saved = localStorage.getItem('productsViewMode');
+    return saved || 'list';
+  });
+  const [activeFilters, setActiveFilters] = useState({
+    categories: [],
+    stockStatus: 'all'
+  });
 
   const location = useLocation();
 
@@ -90,10 +104,6 @@ const Products = () => {
     setEditingProduct(product);
     setShowEditWidget(true);
   };
-  const [activeFilters, setActiveFilters] = useState({
-    categories: [],
-    stockStatus: 'all'
-  });
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
@@ -183,6 +193,9 @@ const Products = () => {
     const newItemsPerPage = parseInt(event.target.value);
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
+    
+    // Save to localStorage for persistence
+    localStorage.setItem('productsItemsPerPage', newItemsPerPage.toString());
   };
 
   const handleAddToList = (id) => {
@@ -257,6 +270,31 @@ const Products = () => {
           value={searchTerm}
           onChange={handleSearchChange}
         />
+        <div className="view-toggle">
+          <span className="view-toggle-label">תצוגה:</span>
+          <div className="view-toggle-buttons">
+            <button
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('list');
+                localStorage.setItem('productsViewMode', 'list');
+              }}
+            >
+              <FontAwesomeIcon icon={faList} />
+              רשימה
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('cards');
+                localStorage.setItem('productsViewMode', 'cards');
+              }}
+            >
+              <FontAwesomeIcon icon={faTableCells} />
+              כרטיסים
+            </button>
+          </div>
+        </div>
         <button onClick={handleFilter}>
           <FontAwesomeIcon icon={faFilter} /> סינון
         </button>
@@ -306,7 +344,7 @@ const Products = () => {
           <p>אין מוצרים להצגה</p>
           <p className="empty-list-subtext">הוסף מוצרים חדשים כדי להתחיל</p>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <table className="inventory-table">          
           <thead>
             <tr>
@@ -378,6 +416,21 @@ const Products = () => {
             ))}
           </tbody>
         </table>        
+      ) : (
+        <div className="product-cards-container">
+          <div className="products-grid">
+            {currentProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                categoryName={categories[product.category] || 'לא מוגדר'}
+                onAddToList={handleAddToList}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </div>
       )}
       {products.length > 0 && (
         <div className="pagination">
@@ -401,16 +454,18 @@ const Products = () => {
               </button>
             </div>
             <div className="items-per-page">
-              <label style={{ color: 'white' }}>שורות בעמוד:</label>
+              <label style={{ color: 'white' }}>
+                {viewMode === 'cards' ? 'כרטיסים בעמוד:' : 'שורות בעמוד:'}
+              </label>
               <select 
                 value={itemsPerPage} 
                 onChange={handleItemsPerPageChange}
                 className="items-per-page-select"
               >
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
+                <option value="4">4</option>
+                <option value="8">8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
               </select>
             </div>
           </div>

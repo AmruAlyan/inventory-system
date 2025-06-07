@@ -19,9 +19,15 @@
   
   /* UI Colors */
   --success: #28a745;
+  --success-dark: #1e7e34;
   --warning: #ffc107;
+  --warning-dark: #e0a800;
   --danger: #dc3545;
+  --danger-dark: #bd2130;
+  --error: #dc3545;
+  --error-dark: #bd2130;
   --info: #17a2b8;
+  --info-dark: #138496;
   
   /* Background Colors */
   --bg-color: #f5f7fa;
