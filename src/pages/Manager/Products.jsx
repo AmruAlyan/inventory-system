@@ -19,14 +19,22 @@ const Products = () => {
   const [showEditWidget, setShowEditWidget] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    // Get saved value from localStorage, default to 8 for card view
+    const saved = localStorage.getItem('productsItemsPerPage');
+    return saved ? parseInt(saved) : 8;
+  });
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [categories, setCategories] = useState({});
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'cards'
+  const [viewMode, setViewMode] = useState(() => {
+    // Get saved view mode from localStorage, default to 'list'
+    const saved = localStorage.getItem('productsViewMode');
+    return saved || 'list';
+  });
   const [activeFilters, setActiveFilters] = useState({
     categories: [],
     stockStatus: 'all'
@@ -185,6 +193,9 @@ const Products = () => {
     const newItemsPerPage = parseInt(event.target.value);
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
+    
+    // Save to localStorage for persistence
+    localStorage.setItem('productsItemsPerPage', newItemsPerPage.toString());
   };
 
   const handleAddToList = (id) => {
@@ -264,14 +275,20 @@ const Products = () => {
           <div className="view-toggle-buttons">
             <button
               className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
+              onClick={() => {
+                setViewMode('list');
+                localStorage.setItem('productsViewMode', 'list');
+              }}
             >
               <FontAwesomeIcon icon={faList} />
               רשימה
             </button>
             <button
               className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
-              onClick={() => setViewMode('cards')}
+              onClick={() => {
+                setViewMode('cards');
+                localStorage.setItem('productsViewMode', 'cards');
+              }}
             >
               <FontAwesomeIcon icon={faTableCells} />
               כרטיסים
@@ -437,16 +454,18 @@ const Products = () => {
               </button>
             </div>
             <div className="items-per-page">
-              <label style={{ color: 'white' }}>שורות בעמוד:</label>
+              <label style={{ color: 'white' }}>
+                {viewMode === 'cards' ? 'כרטיסים בעמוד:' : 'שורות בעמוד:'}
+              </label>
               <select 
                 value={itemsPerPage} 
                 onChange={handleItemsPerPageChange}
                 className="items-per-page-select"
               >
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
+                <option value="4">4</option>
+                <option value="8">8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
               </select>
             </div>
           </div>
