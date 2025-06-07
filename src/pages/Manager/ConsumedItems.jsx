@@ -27,6 +27,8 @@ const ConsumedItems = () => {
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const [processingIds, setProcessingIds] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Fetch products and categories
   useEffect(() => {
@@ -65,6 +67,22 @@ const ConsumedItems = () => {
     return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            categoryName.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Get current products for pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (event) => {
+    const newItemsPerPage = parseInt(event.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
 
   // Handle consumption mode - subtract quantity from stock
   const handleConsumption = async (productId, consumedQuantity) => {
@@ -281,6 +299,7 @@ const ConsumedItems = () => {
           </p>
         </div>
       ) : (
+        <>
         <table className="inventory-table">
           <thead>
             <tr>
@@ -293,7 +312,7 @@ const ConsumedItems = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
+            {currentProducts.map((product) => (
               <tr key={product.id}>
                 <td>{product.name}</td>
                 <td>{categories[product.category] || 'לא מוגדר'}</td>
@@ -375,6 +394,43 @@ const ConsumedItems = () => {
             ))}
           </tbody>
         </table>
+        </>
+      )}
+      {products.length > 0 && (
+        <div className="pagination">
+          <div className="pagination-controls">
+            <button 
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              הקודם
+            </button>
+            <span className="pagination-info">
+              עמוד {currentPage} מתוך {totalPages}
+            </span>
+            <button 
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              הבא
+            </button>
+          </div>
+          <div className="items-per-page">
+            <label style={{ color: 'white' }}>שורות בעמוד:</label>
+            <select 
+              value={itemsPerPage} 
+              onChange={handleItemsPerPageChange}
+              className="items-per-page-select"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -114,7 +114,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
           </div>
           <div className='Product-form-group'>
             <label>קטיגוריה:</label>          <select name="category" value={form.category} onChange={handleChange}>
-              <option value="">.....בחר קטיגוריה.....</option>
+              <option value="">בחר קטיגוריה...</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
