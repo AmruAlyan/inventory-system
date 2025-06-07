@@ -4,7 +4,9 @@ import { db } from '../../firebase/firebase'; // Using firebase from firebase fo
 import { collection, addDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import Modal from './Modal';
-import '../../styles/ForModals/productModal.css'
+import ImageUpload from '../ImageUpload';
+import '../../styles/ForModals/productModal.css';
+import '../../styles/imageUpload.css';
 
 export async function addProduct(productData) {
   try {
@@ -35,6 +37,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
     category: product ? product.category : '',
     quantity: product ? product.quantity : '',
     price: product ? product.price : '',
+    imageUrl: product ? product.imageUrl : null,
   });
   const [status, setStatus] = useState('');
   const [categories, setCategories] = useState([]);
@@ -56,6 +59,10 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (imageUrl) => {
+    setForm((prev) => ({ ...prev, imageUrl }));
   };
 
   const handleSubmit = async (e) => {
@@ -82,6 +89,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       category: form.category,
       quantity: parseInt(form.quantity),
       price: parseFloat(form.price),
+      imageUrl: form.imageUrl,
     };
 
     try {
@@ -94,7 +102,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
         await addProduct(productData);
         setStatus('Product added successfully!');
         toast.success('המוצר נוסף בהצלחה');
-        setForm({ name: '', category: '', quantity: '', price: '' });
+        setForm({ name: '', category: '', quantity: '', price: '', imageUrl: null });
         if (onSave) onSave();
       }
     } catch (error) {
@@ -119,6 +127,13 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
+          </div>
+          <div className='Product-form-group'>
+            <ImageUpload
+              currentImageUrl={form.imageUrl}
+              onImageChange={handleImageChange}
+              productId={product?.id}
+            />
           </div>
           <div className='Product-form-group'>
             <label>כמות:</label>

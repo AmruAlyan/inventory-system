@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
-import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ProductModal from '../../components/Modals/ProductModal';
 import AddToListModal from '../../components/Modals/AddToListModal';
+import ProductCard from '../../components/ProductCard';
 import { toast } from 'react-toastify';
 // import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
@@ -25,6 +26,7 @@ const Products = () => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'cards'
 
   const location = useLocation();
 
@@ -257,6 +259,25 @@ const Products = () => {
           value={searchTerm}
           onChange={handleSearchChange}
         />
+        <div className="view-toggle">
+          <span className="view-toggle-label">תצוגה:</span>
+          <div className="view-toggle-buttons">
+            <button
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              <FontAwesomeIcon icon={faList} />
+              רשימה
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              onClick={() => setViewMode('cards')}
+            >
+              <FontAwesomeIcon icon={faTableCells} />
+              כרטיסים
+            </button>
+          </div>
+        </div>
         <button onClick={handleFilter}>
           <FontAwesomeIcon icon={faFilter} /> סינון
         </button>
@@ -306,7 +327,7 @@ const Products = () => {
           <p>אין מוצרים להצגה</p>
           <p className="empty-list-subtext">הוסף מוצרים חדשים כדי להתחיל</p>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <table className="inventory-table">          
           <thead>
             <tr>
@@ -378,6 +399,21 @@ const Products = () => {
             ))}
           </tbody>
         </table>        
+      ) : (
+        <div className="product-cards-container">
+          <div className="products-grid">
+            {currentProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                categoryName={categories[product.category] || 'לא מוגדר'}
+                onAddToList={handleAddToList}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </div>
       )}
       {products.length > 0 && (
         <div className="pagination">
