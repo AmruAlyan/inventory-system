@@ -201,7 +201,6 @@ const ImageUpload = ({
       setShowCropModal(false);
       setSrc(null);
       setCompletedCrop(null);
-      toast.success('התמונה הועלתה בהצלחה');
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error(`שגיאה בהעלאת התמונה: ${error.message}`);
@@ -221,7 +220,6 @@ const ImageUpload = ({
         await deleteObject(imageRef);
         
         onImageChange(null);
-        toast.success('התמונה נמחקה בהצלחה');
       } catch (error) {
         console.error('Error deleting image:', error);
         toast.error('שגיאה במחיקת התמונה');

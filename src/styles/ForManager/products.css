@@ -400,7 +400,6 @@
 
 .view-toggle-btn:hover {
   border-color: var(--primary);
-  color: var(--primary);
 }
 
 .view-toggle-btn.active {

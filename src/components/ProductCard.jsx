@@ -35,11 +35,7 @@ const ProductCard = ({
             <span>אין תמונה</span>
           </div>
         )}
-        <div className="product-stock-badge">
-          <span className={`stock-badge ${getStockStatusClass(product.quantity)}`}>
-            {product.quantity}
-          </span>
-        </div>
+        
       </div>
       
       <div className="product-card-content">
