@@ -211,17 +211,17 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
           : 'סכומי רכישה אחרונים'}
       </div>
       
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width={'100%'} height={380}> 
         <BarChart
           data={filteredData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
             dataKey="name" 
             angle={0} 
             textAnchor="middle" 
-            height={100}
+            height={40}
             interval={0}
             fontSize={12}
             tick={{fill: '#333', fontWeight: 500}}
@@ -236,7 +236,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
           <Legend />
           <Bar 
             dataKey="amount" 
-            name={activeChart === 'budget' ? 'תקציב' : 'סכום רכישה'} 
+            name={activeChart === 'budget' ? ' תקציב' : ' סכום רכישה'} 
             fill={activeChart === 'budget' ? '#5C8D70' : '#8884d8'} 
           />
         </BarChart>

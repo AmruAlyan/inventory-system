@@ -17,6 +17,7 @@ import Categories from "./pages/Manager/Categories";
 import Purchases from "./pages/Manager/Purchases";
 import ManagerDash from "./pages/Manager/ManagerDash";
 import ConsumedItems from "./pages/Manager/ConsumedItems";
+import AdminDash from "./pages/Admin/AdminDash"; // assuming you have this
 
 function App() {
   return (
@@ -34,10 +35,17 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<h1>DASH</h1>} />
+          <Route index element={<AdminDash />} />
           <Route path="budget" element={<BudgetPage />} />
           <Route path="reports" element={<ReportsPage />} />
+
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="shopping-list" element={<ShoppingList />} />
+          <Route path="new-purchase" element={<Purchases />} />
+          <Route path="consumed-items" element={<ConsumedItems />} />
           <Route path="profile" element={<AdminProfile />} />
+
         </Route>
 
         <Route

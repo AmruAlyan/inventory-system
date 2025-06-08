@@ -195,3 +195,10 @@
     font-size: 9px;
   }
 }
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+  margin: 16px 0;
+  border-radius: 2px;
+}

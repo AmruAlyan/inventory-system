@@ -64,7 +64,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .main-content {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: flex-start;
     justify-content: space-around;
     flex-wrap: wrap;
@@ -78,57 +78,113 @@ input[type="number"]::-webkit-inner-spin-button {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     width: 100%;
-    max-width: 800px;
+    /* max-width: 800px; */
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.cards-holder {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: right;
+    justify-content: center;
+    width: 40%;
     gap: 20px;
 }
 
 .budget-chart {
-    width: 100%;
-    height: 400px;
+    /* width: 100%; */
+    /* height: auto; */
     background-color: var(--panel-bg);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.current-budget, .latest-update, .update-budget {
+.current-budget, .latest-update {
     background-color: var(--panel-bg);
-    border-radius: 8px;
-    padding: 20px;
-    width: calc(33.33% - 20px);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+    padding: 24px 20px 20px 20px;
     min-width: 250px;
     flex-grow: 1;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    margin-bottom: 0;
+    position: relative;
 }
 
-.current-budget h3, .latest-update h3, .update-budget h3 {
+.current-budget:hover, .latest-update:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary);
+}
+
+.current-budget h3, .latest-update h3 {
     margin-top: 0;
     margin-bottom: 20px;
     color: var(--primary-text);
     font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .current-budget-value, .latest-update-value {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: bold;
     color: var(--primary-blue);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 8px;
 }
 
-.latest-update-date {
-    color: var(--secondary-text);
-    font-size: 0.9rem;
+.update-budget {
+    background-color: var(--panel-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+    padding: 32px 28px 28px 28px; /* Increased padding for better balance */
+    min-width: 250px;
+    flex-grow: 1;
+    text-align: center;
+    margin-bottom: 0;
+    position: relative;
+    height: auto;
 }
 
-.shekel-icon {
-    font-size: 1.5rem;
+.update-budget:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary);
+}
+
+.update-budget h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--primary-text);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.update-budget .form input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--input-border);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    outline: none;
+    margin-bottom: 0;
+    text-align: center;
 }
 
 .update-budget-form {
@@ -213,7 +269,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 /* Improve form responsiveness */
-@media (max-width: 1200px) {
+/* @media (max-width: 1200px) {
     .main-content {
         flex-direction: column;
     }
@@ -231,10 +287,51 @@ input[type="number"]::-webkit-inner-spin-button {
     .current-budget, .latest-update, .update-budget {
         width: calc(50% - 10px);
     }
+} */
+
+@media (max-width: 900px) {
+  .budget-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .current-budget, .latest-update, .update-budget {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 0;
+    padding: 20px 10px 16px 10px;
+  }
 }
 
 @media (max-width: 768px) {
     .current-budget, .latest-update, .update-budget {
         width: 100%;
     }
+}
+
+@media (max-width: 600px) {
+  .budget-content {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .current-budget, .latest-update, .update-budget {
+    padding: 14px 4vw 12px 4vw;
+    font-size: 0.98rem;
+  }
+  .current-budget h3, .latest-update h3, .update-budget h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  .current-budget-value, .latest-update-value {
+    font-size: 1.3rem;
+    gap: 4px;
+  }
+  .update-budget .form input {
+    padding: 10px 8px;
+    font-size: 0.98rem;
+  }
+  .update-button {
+    padding: 8px 0;
+    font-size: 1rem;
+  }
 }
