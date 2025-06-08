@@ -13,7 +13,12 @@ import useIsMobile from '../hooks/useIsMobile';
 import {
   faHouse,
   faShekel,
-  faFileLines
+  faFileLines,
+  faBoxesStacked,
+  faTableCellsLarge,
+  faCartShopping,
+  faCartPlus,
+  faPenToSquare
 } from '@fortawesome/free-solid-svg-icons';
 
 import '../styles/layout.css'
@@ -21,7 +26,12 @@ import '../styles/layout.css'
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/admin-dashboard"},
   { icon: faShekel, text: 'תקציב', id: 'budget', path: "/admin-dashboard/budget" },
-  { icon: faFileLines, text: 'צפה בדוחות הוצאות', id: 'reports', path: "/admin-dashboard/reports" }
+  { icon: faFileLines, text: 'צפה בדוחות הוצאות', id: 'reports', path: "/admin-dashboard/reports" },
+  { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/admin-dashboard/categories" },
+  { icon: faBoxesStacked, text: 'מוצרים', id: 'products', path: "/admin-dashboard/products" },
+  { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/admin-dashboard/shopping-list" },
+  { icon: faCartPlus, text: 'קנייה חדשה', id: 'new-purchase', path: "/admin-dashboard/new-purchase" },
+  { icon: faPenToSquare, text: 'עדכון מלאי', id: 'consumed-items', path: "/admin-dashboard/consumed-items" }
 ];
 
 const AdminLayout = () => {
@@ -92,7 +102,11 @@ const AdminLayout = () => {
 
         <Sidebar
           isExpanded={isExpanded}
-          items={sidebarIcons}
+          items={[
+            ...sidebarIcons.slice(0, 3),
+            { type: 'divider', key: 'admin-manager-divider' },
+            ...sidebarIcons.slice(3)
+          ]}
           toggleSidebar={toggleSidebar}
           toggleSidebarRef={sidebarRef}
         />

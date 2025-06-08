@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faFilter, faSpinner, faEraser } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faFilter, faEraser } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
-import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, serverTimestamp, getDoc, limit, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
+import Spinner from '../Spinner';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
+import '../../styles/ForManager/products.css';
 
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [history, setHistory] = useState([]);
@@ -13,22 +15,41 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'week', 'month', '6months', 'year'
   const [editingEntry, setEditingEntry] = useState(null);
   const [editForm, setEditForm] = useState({ amount: 0, date: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = localStorage.getItem('budgetItemsPerPage');
+    return saved ? parseInt(saved) : 8;
+  });
 
-  // Format currency
+  // Format currency with ₪ on the right
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(amount);
+    if (typeof amount !== 'number') return '';
+    // Format as number with 2 decimals, add space and then the shekel sign
+    return amount.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₪';
   };
 
   // Format date
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    // Support JS timestamp (number) or Date object
-    const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+    let dateObj;
+    if (timestamp instanceof Date) {
+      dateObj = timestamp;
+    } else if (timestamp && typeof timestamp.toDate === 'function') {
+      dateObj = timestamp.toDate();
+    } else if (typeof timestamp === 'number') {
+      dateObj = new Date(timestamp);
+    } else if (typeof timestamp === 'string') {
+      // Try to parse string
+      const parsed = Date.parse(timestamp);
+      dateObj = isNaN(parsed) ? new Date() : new Date(parsed);
+    } else {
+      dateObj = new Date();
+    }
     return new Intl.DateTimeFormat('he-IL', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }).format(date);
+    }).format(dateObj);
   };
 
   // Filter options with Hebrew labels
@@ -48,13 +69,14 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   // Apply filters when filter value changes
   useEffect(() => {
     applyFilter(filter);
+    setCurrentPage(1); // Reset to first page on filter change
   }, [filter, history]);
 
   const fetchBudgetHistory = async () => {
     try {
       setIsLoading(true);
-      const historyRef = collection(db, "budgets", "history", "entries");
-      const q = query(historyRef, orderBy("date", "desc"));
+      const historyRef = collection(db, 'budgets', 'history', 'entries');
+      const q = query(historyRef, orderBy('date', 'desc'));
       const querySnapshot = await getDocs(q);
 
       const historyData = [];
@@ -74,7 +96,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
 
       // Check if there are no entries - in case the Firestore is not completely synced yet
       if (historyData.length === 0) {
-        const currentBudgetRef = doc(db, "budgets", "current");
+        const currentBudgetRef = doc(db, 'budgets', 'current');
         await setDoc(currentBudgetRef, {
           totalBudget: 0,
           latestUpdate: {
@@ -96,6 +118,19 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     }
   };
 
+  // Helper to get JS Date from any Firestore/JS/string/number date
+  const toDateObj = (date) => {
+    if (!date) return new Date(0);
+    if (date instanceof Date) return date;
+    if (date && typeof date.toDate === 'function') return date.toDate();
+    if (typeof date === 'number') return new Date(date);
+    if (typeof date === 'string') {
+      const parsed = Date.parse(date);
+      return isNaN(parsed) ? new Date(0) : new Date(parsed);
+    }
+    return new Date(0);
+  };
+
   const applyFilter = (filterValue) => {
     if (!history.length) return;
 
@@ -103,32 +138,49 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     let filteredData = [];
 
     switch (filterValue) {
-      case 'week':
+      case 'week': {
         // Last 7 days
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => new Date(item.date) >= weekAgo);
+        filteredData = history.filter(item => toDateObj(item.date) >= weekAgo);
         break;
-      case 'month':
+      }
+      case 'month': {
         // Last 30 days
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => new Date(item.date) >= monthAgo);
+        filteredData = history.filter(item => toDateObj(item.date) >= monthAgo);
         break;
-      case '6months':
+      }
+      case '6months': {
         // Last 180 days
         const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => new Date(item.date) >= sixMonthsAgo);
+        filteredData = history.filter(item => toDateObj(item.date) >= sixMonthsAgo);
         break;
-      case 'year':
+      }
+      case 'year': {
         // Last 365 days
         const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => new Date(item.date) >= yearAgo);
+        filteredData = history.filter(item => toDateObj(item.date) >= yearAgo);
         break;
+      }
       case 'all':
       default:
         filteredData = [...history];
     }
 
     setFilteredHistory(filteredData);
+  };
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentHistory = filteredHistory.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  const handleItemsPerPageChange = (event) => {
+    const newItemsPerPage = parseInt(event.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    localStorage.setItem('budgetItemsPerPage', newItemsPerPage.toString());
   };
 
   const handleEdit = (entry) => {
@@ -358,104 +410,144 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
 
   return (
     <div className="budget-history-container">
-      <h2 className="history-title">היסטוריית תקציבים</h2>
+      <div className="bht-header page-header">
+        <h2 className="history-title">היסטוריית תקציבים</h2>
+        <div className="history-controls searchBar" style={{ marginBottom: 0 }}>
+          <div className="filter-container">
+            <FontAwesomeIcon icon={faFilter} className="filter-icon" />
+            <select
+              className="filter-select"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              {filterOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {history.length > 0 && (
+            <div className="delete-all-container">
+              <button className="delete-all-btn" onClick={handleDeleteAll}>
+                <FontAwesomeIcon icon={faEraser} />
+                <span>אפס את כל התקציבים</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      <div className="history-controls">
-        <div className="filter-container">
-          <FontAwesomeIcon icon={faFilter} className="filter-icon" />
-          <select
-            className="filter-select"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            {filterOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {history.length > 0 && (
-          <div className="delete-all-container">
-            <button className="delete-all-btn" onClick={handleDeleteAll}>
-              <FontAwesomeIcon icon={faEraser} />
-              <span>אפס את כל התקציבים</span>
-            </button>
-          </div>
-        )}
-      </div>
 
       {isLoading ? (
-        <div className="loading-container">
-          <FontAwesomeIcon icon={faSpinner} spin className="loading-icon" />
-          <span>טוען נתונים...</span>
-        </div>
+        <Spinner text="טוען נתונים..." />
       ) : filteredHistory.length === 0 ? (
-        <div className="no-results">לא נמצאו רשומות תקציב</div>
-      ) : (
-        <div className="history-table-wrapper">
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>סכום</th>
-                <th>סה״כ תקציב</th>
-                <th>פעולות</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHistory.map(entry => (
-                <tr key={entry.id}>
-                  <td>
-                    {editingEntry === entry.id ? (
-                      <input
-                        type="date"
-                        value={editForm.date}
-                        onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                        className="date-input"
-                      />
-                    ) : (
-                      formatDate(entry.date)
-                    )}
-                  </td>
-                  <td>
-                    {editingEntry === entry.id ? (
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editForm.amount}
-                        onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-                      />
-                    ) : (
-                      formatCurrency(entry.amount)
-                    )}
-                  </td>
-                  <td>{formatCurrency(entry.totalBudget)}</td>
-                  <td className="action-buttons">
-                    {editingEntry === entry.id ? (
-                      <>
-                        <button className="save-btn" onClick={saveEdit}>שמור</button>
-                        <button className="cancel-btn" onClick={() => setEditingEntry(null)}>בטל</button>
-                      </>
-                    ) : (
-                      <>
-                        <button className="edit-btn" onClick={() => handleEdit(entry)}>
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                        <button className="delete-btn" onClick={() => handleDelete(entry.id, entry.amount, entry.totalBudget)}>
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="empty-list">
+          <p>לא נמצאו רשומות תקציב</p>
+          <p className="empty-list-subtext">הוספת עדכון תקציב תציג אותו כאן</p>
         </div>
+      ) : (
+        <>
+          <div className="history-table-wrapper">
+            <table className="inventory-table">
+              <thead>
+                <tr>
+                  <th>תאריך</th>
+                  <th style={{ direction: 'ltr', textAlign: 'center' }}>סכום</th>
+                  <th style={{ direction: 'ltr', textAlign: 'center' }}>סה״כ תקציב</th>
+                  <th>פעולות</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentHistory.map(entry => (
+                  <tr key={entry.id}>
+                    <td>
+                      {editingEntry === entry.id ? (
+                        <input
+                          type="date"
+                          value={editForm.date}
+                          onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                          className="date-input"
+                        />
+                      ) : (
+                        formatDate(entry.date)
+                      )}
+                    </td>
+                    <td style={{ direction: 'ltr', textAlign: 'center' }}>
+                      {editingEntry === entry.id ? (
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={editForm.amount}
+                          onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
+                        />
+                      ) : (
+                        formatCurrency(entry.amount)
+                      )}
+                    </td>
+                    <td style={{ direction: 'ltr', textAlign: 'center' }}>{formatCurrency(entry.totalBudget)}</td>
+                    <td className="inventory-actions">
+                      {editingEntry === entry.id ? (
+                        <>
+                          <button className="save-btn" onClick={saveEdit}>שמור</button>
+                          <button className="cancel-btn" onClick={() => setEditingEntry(null)}>בטל</button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="edit-btn" onClick={() => handleEdit(entry)}>
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                          <button className="delete-btn" onClick={() => handleDelete(entry.id, entry.amount, entry.totalBudget)}>
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {filteredHistory.length > itemsPerPage && (
+            <div className="pagination">
+              <div className="pagination-controls">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-button"
+                >
+                  הקודם
+                </button>
+                <span className="pagination-info">
+                  עמוד {currentPage} מתוך {totalPages}
+                </span>
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button"
+                >
+                  הבא
+                </button>
+              </div>
+              <div className="items-per-page">
+                <label style={{ color: 'white' }}>שורות בעמוד:</label>
+                <select 
+                  value={itemsPerPage} 
+                  onChange={handleItemsPerPageChange}
+                  className="items-per-page-select"
+                >
+                  <option value="4">4</option>
+                  <option value="8">8</option>
+                  <option value="16">16</option>
+                  <option value="32">32</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
