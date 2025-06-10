@@ -35,8 +35,19 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef }) => {
                         return <div key={item.key || `divider-${index}`} className="sidebar-divider" style={{ margin: '16px 0' }} />;
                     }
                     return (
-                        <NavLink key={index} to={item.path} className="sidebar-button">
-                            <button key={index}>
+                        <NavLink
+                            key={index}
+                            to={item.path}
+                            end={item.exact}
+                            className={({ isActive }) =>
+                                `sidebar-button${isActive ? ' sidebar-button-active' : ''}`
+                            }
+                        >
+                            <button
+                                key={index}
+                                className={isExpanded ? "sidebar-button-inner" : undefined}
+                                style={undefined}
+                            >
                                 <div className="sidebar-icon-container">
                                     <FontAwesomeIcon icon={item.icon} className="sidebar-icon" />
                                     {item.count && item.count > 0 && (

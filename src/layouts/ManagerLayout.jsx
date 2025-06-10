@@ -40,7 +40,7 @@ const ManagerLayout = () => {
 
   // Create sidebar icons with dynamic counts
   const sidebarIcons = [
-    { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard" },
+    { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/manager-dashboard", exact: true },
     { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/manager-dashboard/categories" },
     { icon: faBoxesStacked, text: 'מוצרים', id: 'products', path: "/manager-dashboard/products" },
     { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/manager-dashboard/shopping-list", count: shoppingListCount },
