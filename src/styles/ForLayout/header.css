@@ -24,16 +24,16 @@
 }
 
 .logo-text-white {
-  color: #FFFFFF !important;
+  color: var(--icon-highlight) !important;
 }
 
 .logo-container p {
-  color: #FFFFFF !important;
+  color: var(--icon-highlight) !important;
   margin: 0 !important;
 }
 
 .logo-container .logo-text-white {
-  color: #FFFFFF !important;
+  color: var(--icon-highlight) !important;
   margin: 0 !important;
 }
 
@@ -94,12 +94,12 @@
 
 .user-button:hover,
 .menu-button:hover {
-  background-color: var(--bg-color);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .user-button:active,
 .menu-button:active {
-  background-color: var(--border-color);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .dashboard-title {
