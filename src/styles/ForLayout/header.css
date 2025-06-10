@@ -23,6 +23,20 @@
   gap: var(--spacing-md);
 }
 
+.logo-text-white {
+  color: #FFFFFF !important;
+}
+
+.logo-container p {
+  color: #FFFFFF !important;
+  margin: 0 !important;
+}
+
+.logo-container .logo-text-white {
+  color: #FFFFFF !important;
+  margin: 0 !important;
+}
+
 .app-logo {
   display: flex;
   align-items: center;
@@ -97,7 +111,7 @@
 
 /* Icon Styling */
 .header-icon {
-  color: var(--icon-highlight);
+  color: #FFFFFF !important;
   width: 24px; 
   height: 24px;
 }

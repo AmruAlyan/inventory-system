@@ -264,7 +264,7 @@ const confirmEdit = async () => {
           </table>
           <button onClick={() => setShowReauthModal(true)} className="edit-button">
             <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
-            <span className="edit-text">עריכת מאפיינים שלי</span>
+            <span className="edit-text">עריכה</span>
           </button>
         </div>
       )}
