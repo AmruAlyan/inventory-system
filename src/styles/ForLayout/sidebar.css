@@ -184,7 +184,7 @@
   /* left: 12px; */
   right: -10px;
   background-color: #dc3545; /* Red color for notifications */
-  color: white;
+  color: #FFFFFF !important;
   border-radius: 25px;
   min-width: 18px;
   max-width: 24px;

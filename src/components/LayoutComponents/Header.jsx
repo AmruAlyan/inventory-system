@@ -15,7 +15,7 @@ const Header = forwardRef(({ toggleSidebar, toggleProfile, title, sidebarRef }, 
                 </button>
             </div>
             {/* <div className="app-logo"> */}
-                <Logo color="#FFC107" size={60} />
+                <Logo color="#FFC107" size={55} />
             {/* </div> */}
             <div className="header-actions">
                 <button onClick={toggleProfile} className="user-button" ref={ref}>

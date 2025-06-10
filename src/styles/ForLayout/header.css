@@ -17,10 +17,48 @@
   z-index: 1000;
 }
 
+/* Header component colors - white in light mode, yellow in dark mode */
+.logo-text-white {
+  color: #FFFFFF !important;
+}
+
+.logo-container p {
+  color: #FFFFFF !important;
+  margin: 0 !important;
+}
+
+.logo-container .logo-text-white {
+  color: #FFFFFF !important;
+  margin: 0 !important;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .logo-text-white {
+  color: #FFC107 !important;
+}
+
+[data-theme="dark"] .logo-container p {
+  color: #FFC107 !important;
+}
+
+[data-theme="dark"] .logo-container .logo-text-white {
+  color: #FFC107 !important;
+}
+
 .logo-container {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+}
+
+/* Logo image styling */
+.logo-image {
+  filter: brightness(0) invert(1); /* White in light mode */
+}
+
+/* Dark mode overrides for logo image */
+[data-theme="dark"] .logo-image {
+  filter: brightness(0) saturate(100%) invert(82%) sepia(61%) saturate(1787%) hue-rotate(354deg) brightness(104%) contrast(101%); /* Yellow #FFC107 in dark mode */
 }
 
 .app-logo {
@@ -80,12 +118,12 @@
 
 .user-button:hover,
 .menu-button:hover {
-  background-color: var(--bg-color);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .user-button:active,
 .menu-button:active {
-  background-color: var(--border-color);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .dashboard-title {
@@ -97,9 +135,14 @@
 
 /* Icon Styling */
 .header-icon {
-  color: var(--icon-highlight);
+  color: #FFFFFF !important;
   width: 24px; 
   height: 24px;
+}
+
+/* Dark mode overrides for icons */
+[data-theme="dark"] .header-icon {
+  color: #FFC107 !important;
 }
 
 /* Responsive adjustments */
