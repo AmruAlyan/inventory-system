@@ -289,18 +289,20 @@ const Budget = () => {
               </div>
             </div>
           </section>
-          <section className="budget-chart">
-            <SwitchableBarChart 
-              budgetData={budgetHistory}
-              purchaseData={[]}
-            />
-          </section>
-          <section>
-            <BudgetHistoryTable
-              onBudgetChange={handleBudgetHistoryChange}
-              refreshTrigger={tableRefreshTrigger}
-            />
-          </section>
+          <div style={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "nowrap", alignItems: "center", justifyContent: "center", gap: "20px" }}>
+            <section>
+              <BudgetHistoryTable
+                onBudgetChange={handleBudgetHistoryChange}
+                refreshTrigger={tableRefreshTrigger}
+              />
+            </section>
+            <section className="budget-chart">
+              <SwitchableBarChart 
+                budgetData={budgetHistory}
+                purchaseData={[]}
+              />
+            </section>
+          </div>
         </>
       )}
     </div>

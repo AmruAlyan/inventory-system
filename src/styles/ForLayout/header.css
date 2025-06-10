@@ -30,11 +30,13 @@
   margin-right: 20px;
 }
 
-.app-logo img {
+.app-logo-img {
   height: 50px;
   width: auto;
   object-fit: contain;
-  /* border-radius: 50%; */
+  color: blue;
+  fill: blue;
+  stroke: blue;
 }
 
 .logo-icon {
