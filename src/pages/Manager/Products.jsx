@@ -20,9 +20,14 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(() => {
-    // Get saved value from localStorage, default to 8 for card view
+    // Get saved value from localStorage, default to 2 rows (8 cards for card view, 8 rows for list view)
     const saved = localStorage.getItem('productsItemsPerPage');
     return saved ? parseInt(saved) : 8;
+  });
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    // Get saved value from localStorage, default to 2 rows
+    const saved = localStorage.getItem('productsRowsPerPage');
+    return saved ? parseInt(saved) : 2;
   });
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -190,12 +195,23 @@ const Products = () => {
   };
 
   const handleItemsPerPageChange = (event) => {
-    const newItemsPerPage = parseInt(event.target.value);
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    const newValue = parseInt(event.target.value);
     
-    // Save to localStorage for persistence
-    localStorage.setItem('productsItemsPerPage', newItemsPerPage.toString());
+    if (viewMode === 'cards') {
+      // For cards view, we're selecting rows
+      setRowsPerPage(newValue);
+      const cardsPerRow = 4; // Assume 4 cards per row for standard desktop
+      const newItemsPerPage = newValue * cardsPerRow;
+      setItemsPerPage(newItemsPerPage);
+      localStorage.setItem('productsRowsPerPage', newValue.toString());
+      localStorage.setItem('productsItemsPerPage', newItemsPerPage.toString());
+    } else {
+      // For list view, we're selecting actual items per page
+      setItemsPerPage(newValue);
+      localStorage.setItem('productsItemsPerPage', newValue.toString());
+    }
+    
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   const handleAddToList = (id) => {
@@ -455,17 +471,28 @@ const Products = () => {
             </div>
             <div className="items-per-page">
               <label style={{ color: 'white' }}>
-                {viewMode === 'cards' ? 'כרטיסים בעמוד:' : 'שורות בעמוד:'}
+                {viewMode === 'cards' ? 'שורות בעמוד:' : 'שורות בעמוד:'}
               </label>
               <select 
-                value={itemsPerPage} 
+                value={viewMode === 'cards' ? rowsPerPage : itemsPerPage} 
                 onChange={handleItemsPerPageChange}
                 className="items-per-page-select"
               >
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option value="16">16</option>
-                <option value="32">32</option>
+                {viewMode === 'cards' ? (
+                  <>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                  </>
+                )}
               </select>
             </div>
           </div>
