@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faFileLines, 
@@ -10,13 +10,16 @@ import {
   faSave, 
   faTimes,
   faSpinner,
-  faPenToSquare
+  faPenToSquare,
+  faList,
+  faTableCells
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, getDocs, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
+import ProductCard from '../../components/ProductCard';
 
 const ConsumedItems = () => {
   const [products, setProducts] = useState([]);
@@ -29,6 +32,20 @@ const ConsumedItems = () => {
   const [processingIds, setProcessingIds] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(() => {
+    // Get saved value from localStorage, default to 2 rows
+    const saved = localStorage.getItem('consumedItemsRowsPerPage');
+    return saved ? parseInt(saved) : 2;
+  });
+  // Track actual cards per row dynamically
+  const [actualCardsPerRow, setActualCardsPerRow] = useState(4);
+  // Add a debounced timer ref
+  const [debounceTimer, setDebounceTimer] = useState(null);
+  const [viewMode, setViewMode] = useState(() => {
+    // Get saved view mode from localStorage, default to 'list'
+    const saved = localStorage.getItem('consumedItemsViewMode');
+    return saved || 'list';
+  });
 
   // Fetch products and categories
   useEffect(() => {
@@ -68,19 +85,51 @@ const ConsumedItems = () => {
            categoryName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  // For cards view, calculate based on exact rows
+  let itemsToShow = itemsPerPage;
+  if (viewMode === 'cards' && actualCardsPerRow > 0) {
+    itemsToShow = rowsPerPage * actualCardsPerRow;
+  }
+
   // Get current products for pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsToShow;
+  const indexOfFirstItem = indexOfLastItem - itemsToShow;
+  let currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // Ensure we show exactly the requested number of rows (except on last page)
+  if (viewMode === 'cards' && actualCardsPerRow > 0) {
+    const maxItemsForExactRows = rowsPerPage * actualCardsPerRow;
+    const isLastPage = currentPage === Math.ceil(filteredProducts.length / itemsToShow);
+    
+    if (!isLastPage) {
+      // For non-last pages, show exact number of complete rows
+      currentProducts = currentProducts.slice(0, maxItemsForExactRows);
+    }
+  }
+  
+  const totalPages = Math.ceil(filteredProducts.length / (viewMode === 'cards' && actualCardsPerRow > 0 ? rowsPerPage * actualCardsPerRow : itemsPerPage));
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
   const handleItemsPerPageChange = (event) => {
-    const newItemsPerPage = parseInt(event.target.value);
-    setItemsPerPage(newItemsPerPage);
+    const newValue = parseInt(event.target.value);
+    
+    if (viewMode === 'cards') {
+      // For cards view, we're selecting rows
+      setRowsPerPage(newValue);
+      // Use actual cards per row instead of assumed 4
+      const newItemsPerPage = newValue * actualCardsPerRow;
+      setItemsPerPage(newItemsPerPage);
+      localStorage.setItem('consumedItemsRowsPerPage', newValue.toString());
+      localStorage.setItem('consumedItemsItemsPerPage', newItemsPerPage.toString());
+    } else {
+      // For list view, we're selecting actual items per page
+      setItemsPerPage(newValue);
+      localStorage.setItem('consumedItemsItemsPerPage', newValue.toString());
+    }
+    
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
@@ -230,6 +279,112 @@ const ConsumedItems = () => {
     setEditingValue('');
   };
 
+  // Handle actions for cards view
+  const handleCardAction = (product) => {
+    if (mode === 'consumption') {
+      const quantity = prompt(`כמה יחידות של ${product.name} נצרכו?`, '1');
+      if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+        handleConsumption(product.id, parseInt(quantity));
+      }
+    } else {
+      const quantity = prompt(`מה הכמות הנוכחית של ${product.name} במלאי?`, product.quantity.toString());
+      if (quantity !== null && !isNaN(quantity) && parseInt(quantity) >= 0) {
+        handleStocktaking(product.id, parseInt(quantity));
+      }
+    }
+  };
+
+  // Calculate actual cards per row based on container width
+  const calculateActualCardsPerRow = useCallback(() => {
+    if (viewMode === 'cards') {
+      const productsGrid = document.querySelector('.products-grid');
+      if (productsGrid) {
+        const containerWidth = productsGrid.offsetWidth;
+        const cardMinWidth = 280; // Based on CSS minmax(280px, 1fr)
+        const gap = 24; // Based on var(--spacing-lg) which is typically 24px
+        const possibleCards = Math.floor((containerWidth + gap) / (cardMinWidth + gap));
+        const cardsPerRow = Math.max(1, possibleCards); // At least 1 card per row
+        
+        if (cardsPerRow !== actualCardsPerRow) {
+          console.log(`Cards per row changed from ${actualCardsPerRow} to ${cardsPerRow}`);
+          setActualCardsPerRow(cardsPerRow);
+          
+          // Force recalculation of current page to ensure we don't exceed total pages
+          const newItemsPerPage = rowsPerPage * cardsPerRow;
+          const newTotalPages = Math.ceil(filteredProducts.length / newItemsPerPage);
+          if (currentPage > newTotalPages && newTotalPages > 0) {
+            setCurrentPage(newTotalPages);
+          }
+        }
+      }
+    }
+  }, [viewMode, actualCardsPerRow, rowsPerPage, currentPage, filteredProducts.length]);
+
+  // Debounced version for high-frequency events
+  const debouncedCalculateActualCardsPerRow = useCallback(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    const timer = setTimeout(calculateActualCardsPerRow, 100);
+    setDebounceTimer(timer);
+  }, [calculateActualCardsPerRow, debounceTimer]);
+
+  // Effect to recalculate cards per row when layout changes
+  useEffect(() => {
+    if (viewMode === 'cards') {
+      // Initial calculation with delay to ensure DOM is ready
+      const timeoutId = setTimeout(calculateActualCardsPerRow, 200);
+      
+      // Set up ResizeObserver to watch for container size changes
+      const contentArea = document.querySelector('.content-area');
+      const productsGrid = document.querySelector('.products-grid');
+      
+      if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+          // Use debounced calculation for smooth performance
+          debouncedCalculateActualCardsPerRow();
+        });
+        
+        // Observe both content area and the grid container
+        if (contentArea) resizeObserver.observe(contentArea);
+        if (productsGrid) resizeObserver.observe(productsGrid);
+        
+        return () => {
+          clearTimeout(timeoutId);
+          if (debounceTimer) clearTimeout(debounceTimer);
+          resizeObserver.disconnect();
+        };
+      }
+      
+      // Fallback: also listen for window resize and transition events
+      const handleResize = () => debouncedCalculateActualCardsPerRow();
+      const handleTransition = (event) => {
+        if (event.propertyName === 'width' || event.propertyName === 'transform') {
+          debouncedCalculateActualCardsPerRow();
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      if (contentArea) {
+        contentArea.addEventListener('transitionend', handleTransition);
+      }
+      
+      return () => {
+        clearTimeout(timeoutId);
+        if (debounceTimer) clearTimeout(debounceTimer);
+        window.removeEventListener('resize', handleResize);
+        if (contentArea) {
+          contentArea.removeEventListener('transitionend', handleTransition);
+        }
+      };
+    }
+    
+    // Cleanup debounce timer when component unmounts or view mode changes
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
+  }, [viewMode, calculateActualCardsPerRow, debouncedCalculateActualCardsPerRow, debounceTimer]);
+
   return (
     <div className="inventory-container">
       <div className="page-header">
@@ -249,6 +404,32 @@ const ConsumedItems = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%' }}
           />
+        </div>
+        
+        <div className="view-toggle">
+          <span className="view-toggle-label">תצוגה:</span>
+          <div className="view-toggle-buttons">
+            <button
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('list');
+                localStorage.setItem('consumedItemsViewMode', 'list');
+              }}
+            >
+              <FontAwesomeIcon icon={faList} />
+              רשימה
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              onClick={() => {
+                setViewMode('cards');
+                localStorage.setItem('consumedItemsViewMode', 'cards');
+              }}
+            >
+              <FontAwesomeIcon icon={faTableCells} />
+              כרטיסים
+            </button>
+          </div>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'var(--panel-bg)', borderRadius: '8px', border: '2px solid var(--primary)' }}>
@@ -288,7 +469,7 @@ const ConsumedItems = () => {
         )}
       </div>
 
-      {/* Products Table */}
+      {/* Products Display */}
       {loading ? (
         <Spinner />
       ) : filteredProducts.length === 0 ? (
@@ -298,7 +479,7 @@ const ConsumedItems = () => {
             {searchTerm ? 'נסה לשנות את מונחי החיפוש' : 'הוסף מוצרים חדשים כדי להתחיל'}
           </p>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <>
         <table className="inventory-table">
           <thead>
@@ -398,6 +579,24 @@ const ConsumedItems = () => {
           </tbody>
         </table>
         </>
+      ) : (
+        <div className="products-grid">
+          {currentProducts.map((product) => (
+            <div key={product.id} className="product-card-wrapper">
+              <ProductCard
+                product={product}
+                categoryName={categories[product.category] || 'לא מוגדר'}
+                onEdit={() => handleCardAction(product)}
+                onAddToCart={() => handleCardAction(product)}
+                hidePrice={true}
+                mode="consumed-items"
+                consumedItemsMode={mode}
+                isProcessing={processingIds.has(product.id)}
+                disabled={mode === 'consumption' && product.quantity <= 0}
+              />
+            </div>
+          ))}
+        </div>
       )}
       {products.length > 0 && (
         <div className="pagination">
@@ -421,16 +620,29 @@ const ConsumedItems = () => {
             </button>
           </div>
           <div className="items-per-page">
-            <label style={{ color: 'white' }}>שורות בעמוד:</label>
+            <label style={{ color: 'white' }}>
+              {viewMode === 'cards' ? 'שורות בעמוד:' : 'פריטים בעמוד:'}
+            </label>
             <select 
-              value={itemsPerPage} 
+              value={viewMode === 'cards' ? rowsPerPage : itemsPerPage} 
               onChange={handleItemsPerPageChange}
               className="items-per-page-select"
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
+              {viewMode === 'cards' ? (
+                <>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </>
+              ) : (
+                <>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                </>
+              )}
             </select>
           </div>
         </div>
