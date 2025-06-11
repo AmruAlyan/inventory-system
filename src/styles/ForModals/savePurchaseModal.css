@@ -1,0 +1,180 @@
+/* Enhanced Save Purchase Modal Styles */
+
+.save-purchase-modal {
+  animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(4px);
+}
+
+.save-purchase-modal-content {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: translateY(0);
+  animation: modalContentSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes modalContentSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* File upload area enhancements */
+.file-upload-area {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-upload-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(76, 175, 80, 0.05) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.file-upload-area:hover::before {
+  transform: translateX(100%);
+}
+
+/* Success animation for file selected */
+.file-selected {
+  animation: fileSelectedAnimation 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fileSelectedAnimation {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Purchase summary cards animation */
+.purchase-summary-card {
+  animation: summaryCardSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.purchase-summary-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.purchase-summary-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+@keyframes summaryCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button hover effects */
+.save-purchase-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.save-purchase-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.save-purchase-btn:hover::before {
+  left: 100%;
+}
+
+/* Loading state animations */
+.uploading-state {
+  position: relative;
+}
+
+.uploading-state::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .save-purchase-modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+  
+  .purchase-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+  
+  .modal-footer button {
+    width: 100%;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .file-upload-area {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .file-upload-area:hover {
+    background-color: #2a4365;
+    border-color: #4299e1;
+  }
+}
