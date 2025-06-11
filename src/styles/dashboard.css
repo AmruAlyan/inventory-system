@@ -51,6 +51,7 @@
 
 .dashboard-card-title p {
     margin: 0;
+    padding: 10px 0;
 }
 
 .dashboard-card-title button {

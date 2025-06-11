@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   width: 90%;
-  max-width: 500px;
+  max-width: 600px; /* Increased from 500px to accommodate side-by-side layout */
   background-color: var(--panel-bg);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-lg);
@@ -30,6 +30,35 @@
   flex-direction: column;
   width: 100%;
   gap: var(--spacing-md);
+}
+
+/* New two-column layout container */
+.Product-form-content {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+}
+
+/* Text fields column */
+.Product-form-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Image column */
+.Product-form-image {
+  flex: 0 0 220px; /* Slightly increased width for better appearance */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Make image upload component fit better in side layout */
+.Product-form-image .image-upload-container {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .Product-form-group {
@@ -158,6 +187,19 @@
   .Product-form-group label {
     min-width: 120px;
     margin-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Stack vertically on smaller screens */
+  .Product-form-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .Product-form-image {
+    flex: none;
+    order: -1; /* Move image to top on mobile */
   }
 }
 

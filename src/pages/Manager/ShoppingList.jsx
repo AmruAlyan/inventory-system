@@ -616,8 +616,8 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
             סמן הכל כנרכש
           </button>
           <button
-            className="btn btn-accent"
-            style={{ border: '2px solid var(--warning)', color: 'var(--warning)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            className="btn btn-danger"
+            style={{ border: '2px solid var(--danger)', color: 'var(--danger)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
             onClick={handleClearAll}
             disabled={shoppingList.length === 0 || clearing}
           >

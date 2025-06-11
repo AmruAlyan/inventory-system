@@ -8,6 +8,7 @@
   margin-bottom: var(--spacing-sm);
   font-weight: 600;
   color: var(--primary-text);
+  text-align: center; /* Center align for side layout */
 }
 
 .current-image-display {
@@ -16,6 +17,10 @@
   padding: var(--spacing-md);
   text-align: center;
   transition: border-color var(--transition-fast);
+  min-height: 180px; /* Ensure consistent height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .current-image-display:hover {
@@ -36,8 +41,8 @@
 }
 
 .product-image-preview {
-  width: 150px;
-  height: 150px;
+  width: 180px; /* Increased to better fill the border area */
+  height: 180px; /* Increased to better fill the border area */
   object-fit: contain;
   border-radius: var(--border-radius-md);
   box-shadow: 0 2px 8px var(--shadow-color);
@@ -113,7 +118,7 @@
 }
 
 .no-image-placeholder {
-  min-height: 150px;
+  min-height: 180px; /* Match the increased product-image-preview height */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,6 +141,12 @@
 .placeholder-content p {
   margin: var(--spacing-sm) 0;
   font-size: 0.9rem;
+}
+
+.placeholder-text {
+  font-size: 0.9rem;
+  color: var(--secondary-text);
+  font-weight: 500;
 }
 
 .upload-btn {

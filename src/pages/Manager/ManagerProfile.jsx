@@ -251,10 +251,7 @@ const confirmEdit = async () => {
         </div>
       </div>
       
-      <div className="profile-content">
-        <p>ברוכים הבאים לפרופיל שלך!</p>
-        <p>כאן אתה יכול לראות ולערוך את המאפיינים שלך.</p>
-      </div>
+      
 
       {!isEditing && (
         <div className="profile-info">

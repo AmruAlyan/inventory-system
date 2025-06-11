@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
-import '../../styles/ForModals/PurchaseModal.css'
+import '../../styles/ForModals/PurchaseModal.css';
+import '../../styles/ForModals/overlay.css';
+import '../../styles/ForModals/productModal.css';
+import '../../styles/ForModals/savePurchaseModal.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
 import { useLocation } from 'react-router-dom';
@@ -23,6 +26,9 @@ const Purchases = () => {
   const [loading, setLoading] = useState(true);
   const [editingPurchaseId, setEditingPurchaseId] = useState(null);
   const [editPurchaseDate, setEditPurchaseDate] = useState("");
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
 
   // Subscribe to current purchase
@@ -129,69 +135,139 @@ const handleSavePrice = async (itemId) => {
 
   // Save final purchase
   const handleSavePurchase = async () => {
-  if (!currentPurchase.items || currentPurchase.items.length === 0) {
-    toast.warning('אין פריטים לשמירה');
-    return;
-  }
-
-  const confirmed = window.confirm('האם אתה בטוח שברצונך לשמור את הרכישה?');
-  if (!confirmed) return;
-
-  try {
-    const batch = writeBatch(db);
-    const purchaseId = Date.now().toString();
-
-    // Calculate total purchase amount
-    const purchaseAmount = currentPurchase.items.reduce((sum, item) => 
-      sum + (item.actualPrice * item.quantity), 0
-    );
-
-    // Get current budget
-    const budgetSnapshot = await getDocs(collection(db, 'budgets'));
-    if (budgetSnapshot.empty) {
-      throw new Error('לא נמצא תקציב במערכת');
+    if (!currentPurchase.items || currentPurchase.items.length === 0) {
+      toast.warning('אין פריטים לשמירה');
+      return;
     }
 
-    // Get latest budget document
-    const latestBudget = budgetSnapshot.docs
-      .map(doc => ({ ...doc.data(), id: doc.id }))
-      .sort((a, b) => b.date - a.date)[0];
+    // Show the save modal instead of direct confirmation
+    setShowSaveModal(true);
+  };
 
-    // if (latestBudget.totalBudget < purchaseAmount) {
-    //   toast.error('חריגה מהתקציב! לא ניתן לשמור את הרכישה');
-    //   return;
-    // }
+  // Actually save the purchase with optional receipt
+  const confirmSavePurchase = async () => {
+    setUploadingReceipt(true);
+    
+    try {
+      const batch = writeBatch(db);
+      const purchaseId = Date.now().toString();
 
-    // Update budget
-    const budgetRef = doc(db, 'budgets', latestBudget.id);
-    batch.update(budgetRef, {
-      totalBudget: latestBudget.totalBudget - purchaseAmount
-    });
+      // Calculate total purchase amount
+      const purchaseAmount = currentPurchase.items.reduce((sum, item) => 
+        sum + (item.actualPrice * item.quantity), 0
+      );
 
-    // Add to purchase history
-    await addDoc(collection(db, 'purchases/history/items'), {
-      date: Timestamp.fromDate(new Date()),
-      items: currentPurchase.items,
-      totalAmount: purchaseAmount,
-      budgetBefore: latestBudget.totalBudget,
-      budgetAfter: latestBudget.totalBudget - purchaseAmount
-    });
+      // Get current budget
+      const budgetSnapshot = await getDocs(collection(db, 'budgets'));
+      if (budgetSnapshot.empty) {
+        throw new Error('לא נמצא תקציב במערכת');
+      }
 
-    // Clear current purchase
-    batch.update(doc(db, 'purchases', 'current'), { items: [] });
+      // Get latest budget document
+      const latestBudget = budgetSnapshot.docs
+        .map(doc => ({ ...doc.data(), id: doc.id }))
+        .sort((a, b) => b.date - a.date)[0];
 
-    // Delete items from shopping list
-    currentPurchase.items.forEach(item => {
-      batch.delete(doc(db, 'sharedShoppingList', 'globalList', 'items', item.id));
-    });
+      // Update budget
+      const budgetRef = doc(db, 'budgets', latestBudget.id);
+      batch.update(budgetRef, {
+        totalBudget: latestBudget.totalBudget - purchaseAmount
+      });
 
-    await batch.commit();
-    toast.success('הרכישה נשמרה בהצלחה והתקציב עודכן!');
-  } catch (error) {
-    console.error('Error saving purchase:', error);
-    toast.error(error.message || 'שגיאה בשמירת הרכישה');
-  }
-};
+      // Prepare purchase data
+      const purchaseData = {
+        date: Timestamp.fromDate(new Date()),
+        items: currentPurchase.items,
+        totalAmount: purchaseAmount,
+        budgetBefore: latestBudget.totalBudget,
+        budgetAfter: latestBudget.totalBudget - purchaseAmount
+      };
+
+      // Upload receipt if provided
+      if (receiptFile) {
+        try {
+          const storageRef = ref(storage, `receipts/${purchaseId}/${receiptFile.name}`);
+          await uploadBytes(storageRef, receiptFile);
+          const downloadURL = await getDownloadURL(storageRef);
+          
+          purchaseData.receiptURL = downloadURL;
+          purchaseData.receiptName = receiptFile.name;
+          purchaseData.uploadedAt = Timestamp.fromDate(new Date());
+        } catch (receiptError) {
+          console.warn('Receipt upload failed, but continuing with purchase save:', receiptError);
+          toast.warning('הרכישה נשמרה אך הייתה בעיה בהעלאת הקבלה');
+        }
+      }
+
+      // Add to purchase history
+      await addDoc(collection(db, 'purchases/history/items'), purchaseData);
+
+      // Clear current purchase
+      batch.update(doc(db, 'purchases', 'current'), { items: [] });
+
+      // Delete items from shopping list
+      currentPurchase.items.forEach(item => {
+        batch.delete(doc(db, 'sharedShoppingList', 'globalList', 'items', item.id));
+      });
+
+      await batch.commit();
+      
+      // Reset modal state
+      setShowSaveModal(false);
+      setReceiptFile(null);
+      // Reset file input
+      const fileInput = document.getElementById('receipt-file-input');
+      if (fileInput) fileInput.value = '';
+      
+      toast.success('הרכישה נשמרה בהצלחה והתקציב עודכן!');
+    } catch (error) {
+      console.error('Error saving purchase:', error);
+      toast.error(error.message || 'שגיאה בשמירת הרכישה');
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
+  // Handle receipt file selection
+  const handleReceiptFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type (images and PDFs)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('ניתן להעלות רק תמונות (JPG, PNG, GIF) או קבצי PDF');
+        event.target.value = '';
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast.error('גודל הקובץ חייב להיות קטן מ-10MB');
+        event.target.value = '';
+        return;
+      }
+      
+      setReceiptFile(file);
+    }
+  };
+
+  // Remove selected receipt file
+  const handleRemoveReceiptFile = () => {
+    setReceiptFile(null);
+    // Reset file input
+    const fileInput = document.getElementById('receipt-file-input');
+    if (fileInput) fileInput.value = '';
+  };
+
+  // Close save modal and reset state
+  const closeSaveModal = () => {
+    setShowSaveModal(false);
+    setReceiptFile(null);
+    // Reset file input
+    const fileInput = document.getElementById('receipt-file-input');
+    if (fileInput) fileInput.value = '';
+  };
 
 // Add the handleViewPurchaseDetails function
 const handleViewPurchaseDetails = (purchase) => {
@@ -296,6 +372,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <th>תאריך רכישה</th>
                   <th>מספר פריטים</th>
                   <th>סה"כ רכישה</th>
+                  <th>קבלה</th>
                   <th>פעולות</th>
                 </tr>
               </thead>
@@ -304,13 +381,70 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <tr key={purchase.id}>
                     <td>
                       {editingPurchaseId === purchase.id ? (
+                        <input
+                          type="date"
+                          value={editPurchaseDate}
+                          onChange={e => setEditPurchaseDate(e.target.value)}
+                          style={{ maxWidth: 140 }}
+                        />
+                      ) : (
+                        purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')
+                      )}
+                    </td>
+                    <td>{purchase.items?.length || 0}</td>
+                    <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
+                    <td style={{ textAlign: 'center' }}>
+                      {purchase.receiptURL ? (
+                        <a
+                          href={purchase.receiptURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="צפה בקבלה"
+                          style={{ 
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            color: 'var(--success)',
+                            fontSize: '1.1rem',
+                            textDecoration: 'none',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            e.target.style.backgroundColor = 'var(--success)';
+                            e.target.style.color = 'white';
+                            e.target.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+                            e.target.style.color = 'var(--success)';
+                            e.target.style.transform = 'scale(1)';
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faFileAlt} />
+                        </a>
+                      ) : (
+                        <span style={{ 
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                          color: 'var(--secondary-text)',
+                          fontSize: '1rem'
+                        }} title="לא הועלתה קבלה">
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td className='purchases-actions'>
+                      {editingPurchaseId === purchase.id ? (
                         <>
-                          <input
-                            type="date"
-                            value={editPurchaseDate}
-                            onChange={e => setEditPurchaseDate(e.target.value)}
-                            style={{ maxWidth: 140 }}
-                          />
                           <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך">
                             <FontAwesomeIcon icon={faSave} />
                           </button>
@@ -320,7 +454,9 @@ const handleSavePurchaseDate = async (purchaseId) => {
                         </>
                       ) : (
                         <>
-                          {purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')}
+                          <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
+                            <FontAwesomeIcon icon={faEye} />
+                          </button>
                           <button
                             className="btn btn-sm btn-primary ms-2"
                             onClick={() => {
@@ -335,13 +471,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                           </button>
                         </>
                       )}
-                    </td>
-                    <td>{purchase.items?.length || 0}</td>
-                    <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
-                    <td className='purchases-actions'>
-                      <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
-                        <FontAwesomeIcon icon={faEye} />
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -438,6 +567,355 @@ const handleSavePurchaseDate = async (purchaseId) => {
             </div>
           </>
         )
+      )}
+
+      {/* Save Purchase Modal */}
+      {showSaveModal && (
+        <div className="modal-overlay save-purchase-modal" onClick={closeSaveModal}>
+          <div className="Product-modal save-purchase-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px', padding: '0' }}>
+            {/* Modal Header */}
+            <div style={{ 
+              background: 'linear-gradient(135deg, var(--primary) 0%, #4CAF50 100%)',
+              color: 'white',
+              padding: '1.5rem',
+              borderTopLeftRadius: 'var(--border-radius-lg)',
+              borderTopRightRadius: 'var(--border-radius-lg)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FontAwesomeIcon icon={faReceipt} style={{ fontSize: '1.5rem' }} />
+                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '600' }}>שמירת רכישה</h2>
+              </div>
+              <button 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.3s ease'
+                }}
+                onClick={closeSaveModal}
+                onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
+                onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div style={{ padding: '2rem' }}>
+              {/* Purchase Summary */}
+              <div style={{ 
+                marginBottom: '2rem', 
+                padding: '1.5rem', 
+                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <FontAwesomeIcon icon={faShoppingBag} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
+                  <h3 style={{ margin: 0, color: 'var(--primary-text)', fontSize: '1.1rem' }}>סיכום הרכישה</h3>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ 
+                    padding: '1rem', 
+                    backgroundColor: 'white', 
+                    borderRadius: '8px',
+                    border: '1px solid #dee2e6',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      {currentPurchase.items.reduce((sum, item) => sum + (item.actualPrice * item.quantity), 0).toFixed(2)} ₪
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)', marginTop: '0.25rem' }}>
+                      סה"כ עלות
+                    </div>
+                  </div>
+                  <div style={{ 
+                    padding: '1rem', 
+                    backgroundColor: 'white', 
+                    borderRadius: '8px',
+                    border: '1px solid #dee2e6',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--info)' }}>
+                      {currentPurchase.items.length}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)', marginTop: '0.25rem' }}>
+                      פריטים
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Receipt Upload Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <FontAwesomeIcon icon={faCloudUploadAlt} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
+                  <label style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--primary-text)', margin: 0 }}>
+                    העלאת קבלה
+                  </label>
+                  <span style={{ 
+                    fontSize: '0.8rem', 
+                    color: 'var(--secondary-text)', 
+                    backgroundColor: '#e9ecef',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '12px'
+                  }}>
+                    אופציונלי
+                  </span>
+                </div>
+                
+                <p style={{ 
+                  fontSize: '0.9rem', 
+                  color: 'var(--secondary-text)', 
+                  marginBottom: '1rem',
+                  lineHeight: '1.5'
+                }}>
+                  צרף תמונה או PDF של הקבלה לתיעוד הרכישה
+                </p>
+                
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="receipt-file-input"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleReceiptFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                  
+                  {!receiptFile ? (
+                    <div
+                      onClick={() => document.getElementById('receipt-file-input').click()}
+                      style={{
+                        width: '100%',
+                        minHeight: '120px',
+                        padding: '2rem',
+                        border: '2px dashed #cbd5e0',
+                        borderRadius: '12px',
+                        backgroundColor: '#f8f9fa',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        textAlign: 'center'
+                      }}
+                      onMouseOver={(e) => {
+                        e.target.style.borderColor = 'var(--primary)';
+                        e.target.style.backgroundColor = '#f0f8f0';
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.borderColor = '#cbd5e0';
+                        e.target.style.backgroundColor = '#f8f9fa';
+                      }}
+                    >
+                      <FontAwesomeIcon 
+                        icon={faCloudUploadAlt} 
+                        style={{ fontSize: '2.5rem', color: 'var(--primary)', opacity: 0.7 }} 
+                      />
+                      <div>
+                        <div style={{ fontSize: '1rem', fontWeight: '500', color: 'var(--primary-text)', marginBottom: '0.25rem' }}>
+                          לחץ לבחירת קובץ קבלה
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--secondary-text)' }}>
+                          או גרור ושחרר כאן
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      padding: '1.5rem',
+                      border: '2px solid var(--success)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(40, 167, 69, 0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem'
+                    }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--success)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <FontAwesomeIcon icon={faCheckCircle} style={{ color: 'white', fontSize: '1.5rem' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ 
+                          fontSize: '1rem', 
+                          fontWeight: '600', 
+                          color: 'var(--success)',
+                          marginBottom: '0.25rem',
+                          wordBreak: 'break-word'
+                        }}>
+                          {receiptFile.name}
+                        </div>
+                        <div style={{ 
+                          fontSize: '0.85rem', 
+                          color: 'var(--secondary-text)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <span>{(receiptFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                          <span>•</span>
+                          <span>{receiptFile.type.includes('image') ? '📷 תמונה' : '📄 PDF'}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveReceiptFile}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: 'rgba(220, 53, 69, 0.1)',
+                          border: '1px solid rgba(220, 53, 69, 0.3)',
+                          color: 'var(--danger)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s ease',
+                          flexShrink: 0
+                        }}
+                        title="הסר קובץ"
+                        onMouseOver={(e) => {
+                          e.target.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                          e.target.style.borderColor = 'var(--danger)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+                          e.target.style.borderColor = 'rgba(220, 53, 69, 0.3)';
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faTimes} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <div style={{ 
+                  fontSize: '0.8rem', 
+                  color: 'var(--secondary-text)', 
+                  marginTop: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  justifyContent: 'center'
+                }}>
+                  <span>📏 מקסימום 10MB</span>
+                  <span>•</span>
+                  <span>📷 JPG, PNG, GIF</span>
+                  <span>•</span>
+                  <span>📄 PDF</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div style={{ 
+              padding: '1.5rem 2rem',
+              borderTop: '1px solid var(--border-color)',
+              backgroundColor: '#f8f9fa',
+              borderBottomLeftRadius: 'var(--border-radius-lg)',
+              borderBottomRightRadius: 'var(--border-radius-lg)',
+              display: 'flex', 
+              gap: '1rem', 
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '8px',
+                  backgroundColor: 'white',
+                  color: 'var(--secondary-text)',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  transition: 'all 0.3s ease',
+                  minWidth: '100px'
+                }}
+                onClick={closeSaveModal}
+                disabled={uploadingReceipt}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f8f9fa';
+                  e.target.style.borderColor = '#adb5bd';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'white';
+                  e.target.style.borderColor = '#dee2e6';
+                }}
+              >
+                ביטול
+              </button>
+              <button
+                style={{
+                  padding: '0.75rem 2rem',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: uploadingReceipt 
+                    ? 'linear-gradient(135deg, #6c757d 0%, #495057 100%)'
+                    : 'linear-gradient(135deg, var(--primary) 0%, #4CAF50 100%)',
+                  color: 'white',
+                  cursor: uploadingReceipt ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  minWidth: '140px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: uploadingReceipt ? 'none' : '0 4px 12px rgba(76, 175, 80, 0.4)'
+                }}
+                onClick={confirmSavePurchase}
+                disabled={uploadingReceipt}
+                onMouseOver={(e) => {
+                  if (!uploadingReceipt) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.5)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!uploadingReceipt) {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.4)';
+                  }
+                }}
+              >
+                {uploadingReceipt ? (
+                  <>
+                    <FontAwesomeIcon icon={faCartPlus} spin />
+                    שומר...
+                  </>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faSave} />
+                    שמור רכישה
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
