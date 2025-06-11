@@ -1,0 +1,463 @@
+/* Reports Page Styles */
+.report-config {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.config-section h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.config-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents overflow */
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+
+.form-control {
+  padding: 0.75rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #518664;
+}
+
+.generate-btn {
+  background: linear-gradient(135deg, #518664, #3d6b4e);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  min-width: 120px;
+  height: 47px;
+  white-space: nowrap;
+  margin-top: 8px;
+}
+
+.generate-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3d6b4e, #2d5238);
+  transform: translateY(-2px);
+}
+
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Report Content */
+.report-content {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.report-header {
+  background: var(--primary-color, #518664);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.report-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.report-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #dee2e6;
+  background: var(--panel-bg, #f8f9fa);
+  color: var(--primary-text, #333);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-actions .btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Printable Report */
+.printable-report {
+  padding: 2rem;
+}
+
+.report-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #518664;
+  padding-bottom: 1rem;
+}
+
+.report-title h2 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.report-period,
+.report-generated {
+  color: #666;
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+/* Report Summary */
+.report-summary {
+  margin-bottom: 2rem;
+}
+
+.report-summary h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-top: 1rem;
+  padding: 1rem;
+  text-align: right;
+  direction: rtl;
+}
+
+.budget-summary {
+  border-right: 4px solid #28a745;
+}
+
+.purchase-summary {
+  border-right: 4px solid #dc3545;
+}
+
+.summary-card h4 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  direction: rtl;
+}
+
+.summary-card p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #555;
+  text-align: right;
+  direction: rtl;
+}
+
+/* Report Sections */
+.report-section {
+  margin-bottom: 2rem;
+}
+
+.report-section h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+/* Report Table */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.report-table th {
+  background: linear-gradient(135deg, #518664, #3d6b4e);
+  color: white;
+  padding: 1rem;
+  text-align: right;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.report-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  text-align: right;
+  color: #555;
+}
+
+.report-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.report-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* No Data */
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.125rem;
+}
+
+.no-data p {
+  margin: 0;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .inventory-container {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .page-header {
+    display: none;
+  }
+  
+  .report-config {
+    display: none;
+  }
+  
+  .report-content {
+    box-shadow: none;
+    border-radius: 0;
+  }
+  
+  .printable-report {
+    padding: 0;
+  }
+  
+  .report-title {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .summary-card {
+    background: white !important;
+    border: 1px solid #333;
+    page-break-inside: avoid;
+  }
+  
+  .report-table {
+    box-shadow: none;
+    border: 1px solid #333;
+  }
+  
+  .report-table th {
+    background: #f0f0f0 !important;
+    color: #333 !important;
+    border: 1px solid #333;
+  }
+  
+  .report-table td {
+    border: 1px solid #333;
+  }
+  
+  .report-section {
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  /* Ensure Hebrew text prints correctly */
+  * {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+/* Professional Print Styles */
+@media print {
+  /* Hide non-essential elements during print */
+  .page-header,
+  .report-config,
+  .report-actions,
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Ensure proper page margins and layout */
+  @page {
+    margin: 15mm;
+    size: A4;
+  }
+  
+  /* Professional print header */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #518664;
+  }
+  
+  .print-header h1 {
+    color: #518664 !important;
+    font-size: 24px !important;
+    margin: 0 0 10px 0 !important;
+    font-weight: bold !important;
+  }
+  
+  .print-header .company-info {
+    font-size: 12px !important;
+    color: #666 !important;
+    margin: 5px 0 !important;
+  }
+  
+  /* Ensure RTL layout for print */
+  body {
+    direction: rtl !important;
+    text-align: right !important;
+  }
+  
+  /* Professional table styling for print */
+  .report-table {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+    .report-table th {
+    background-color: #518664 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Prevent page breaks inside important content */
+  .summary-cards,
+  .report-section {
+    page-break-inside: avoid !important;
+  }
+  
+  /* Professional spacing */
+  .report-section {
+    margin: 25px 0 !important;
+  }
+  
+  /* Print timestamp styling */
+  .print-timestamp {
+    display: block !important;
+    text-align: center !important;
+    font-size: 10px !important;
+    color: #888 !important;
+    margin-top: 20px !important;
+    border-top: 1px solid #ddd !important;
+    padding-top: 10px !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .config-form {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .report-actions {
+    flex-direction: column;
+  }
+  
+  .printable-report {
+    padding: 1rem;
+  }
+  
+  .report-table {
+    font-size: 0.875rem;
+  }
+  
+  .report-table th,
+  .report-table td {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .config-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .config-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .generate-btn {
+    width: 100%;
+    margin-top: 1rem;
+  }
+}
