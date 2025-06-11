@@ -21,6 +21,7 @@ const Budget = () => {
   const [budgetHistory, setBudgetHistory] = useState([]);
   const [refreshData, setRefreshData] = useState(false);
   const [tableRefreshTrigger, setTableRefreshTrigger] = useState(0);
+  const [purchaseChartData, setPurchaseChartData] = useState([]);
 
   useEffect(() => {
     const fetchBudgetData = async () => {
@@ -49,6 +50,28 @@ const Budget = () => {
         });
         historyData.sort((a, b) => b.date - a.date);
         setBudgetHistory(historyData);
+        // Fetch purchases for the chart
+        const purchasesQuery = query(
+          collection(db, 'purchases/history/items'),
+          orderBy('date', 'desc')
+        );
+        const purchasesSnapshot = await getDocs(purchasesQuery);
+        const purchasesData = [];
+        purchasesSnapshot.forEach(doc => {
+          const data = doc.data();
+          purchasesData.push({
+            id: doc.id,
+            totalAmount: data.totalAmount || 0,
+            date: data.date && data.date.toDate ? data.date.toDate() : new Date(),
+            formatted: data.date && data.date.toDate ? new Intl.DateTimeFormat('he-IL', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }).format(data.date.toDate()) : ''
+          });
+        });
+        purchasesData.sort((a, b) => b.date - a.date);
+        setPurchaseChartData(purchasesData);
         if (budgetSnapshot.exists()) {
           const data = budgetSnapshot.data();
           if (data && data.latestUpdate && data.latestUpdate.date && data.latestUpdate.date.toDate) {
@@ -217,91 +240,93 @@ const Budget = () => {
         <Spinner text="טוען נתונים..." />
       ) : (
         <>
-          <section className="budget-content">
-            <div className="cards-holder">
-              <div className="current-budget">
-                <h3>התקציב הנוכחי</h3>
-                <div className="current-budget-value">
-                  <FontAwesomeIcon icon={faShekelSign} className="shekel-icon" />
-                  {formData.current.toFixed(2)}
+          <div className="budget-content">
+            <div className="budget-content-row">
+              <div className="cards-holder">
+                <div className="current-budget">
+                  <h3>התקציב הנוכחי</h3>
+                  <div className="current-budget-value">
+                    <FontAwesomeIcon icon={faShekelSign} className="shekel-icon" />
+                    {formData.current.toFixed(2)}
+                  </div>
                 </div>
-              </div>
-              <div className="latest-update">
-                <h3>עדכון אחרון</h3>
-                <div className="latest-update-value">
-                  <FontAwesomeIcon icon={faShekelSign} className="shekel-icon" />
-                  {formData.latest.amount.toFixed(2)}
-                </div>
-                <div className="latest-update-date">
-                  {formatDate(formData.latest.date)}
+                <div className="latest-update">
+                  <h3>עדכון אחרון</h3>
+                  <div className="latest-update-value">
+                    <FontAwesomeIcon icon={faShekelSign} className="shekel-icon" />
+                    {formData.latest.amount.toFixed(2)}
+                  </div>
+                  <div className="latest-update-date">
+                    {formatDate(formData.latest.date)}
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="update-budget">
-              <h3>הגדלת התקציב</h3>
-              <div className="update-budget-form">
-                <div className="form">
-                  <label htmlFor="budget-amount">סכום:</label>
-                  <input
-                    id="budget-amount"
-                    type="number"
-                    step={0.10}
-                    required
-                    value={formData.updates.amount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (parseFloat(value) >= 0 || value === "") {
+            <div className="budget-content-row">
+              <div className="update-budget">
+                <h3>הגדלת התקציב</h3>
+                <div className="update-budget-form">
+                  <div className="form">
+                    <label htmlFor="budget-amount">סכום:</label>
+                    <input
+                      id="budget-amount"
+                      type="number"
+                      step={0.10}
+                      required
+                      value={formData.updates.amount}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (parseFloat(value) >= 0 || value === "") {
+                          setFormData({
+                            ...formData,
+                            updates: { ...formData.updates, amount: value },
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="form">
+                    <label htmlFor="budget-date">תאריך:</label>
+                    <input
+                      id="budget-date"
+                      type="date"
+                      required
+                      value={formData.updates.date}
+                      className="date-input"
+                      onChange={(e) => {
+                        const inputDate = e.target.value;
                         setFormData({
                           ...formData,
-                          updates: { ...formData.updates, amount: value },
+                          updates: { ...formData.updates, date: inputDate },
                         });
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="update-button"
+                    onClick={handleUpdate}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <FontAwesomeIcon icon={faSpinner} spin />
+                    ) : "עדכן"}
+                  </button>
                 </div>
-                <div className="form">
-                  <label htmlFor="budget-date">תאריך:</label>
-                  <input
-                    id="budget-date"
-                    type="date"
-                    required
-                    value={formData.updates.date}
-                    className="date-input"
-                    onChange={(e) => {
-                      const inputDate = e.target.value;
-                      setFormData({
-                        ...formData,
-                        updates: { ...formData.updates, date: inputDate },
-                      });
-                    }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="update-button"
-                  onClick={handleUpdate}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <FontAwesomeIcon icon={faSpinner} spin />
-                  ) : "עדכן"}
-                </button>
+              </div>
+              <div className="budget-chart">
+                <SwitchableBarChart
+                  budgetData={budgetHistory}
+                  purchaseData={purchaseChartData}
+                />
               </div>
             </div>
-          </section>
-          <div style={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "nowrap", alignItems: "center", justifyContent: "center", gap: "20px" }}>
-            <section>
+            <div className="budget-content-row">
               <BudgetHistoryTable
                 onBudgetChange={handleBudgetHistoryChange}
                 refreshTrigger={tableRefreshTrigger}
               />
-            </section>
-            <section className="budget-chart">
-              <SwitchableBarChart 
-                budgetData={budgetHistory}
-                purchaseData={[]}
-              />
-            </section>
+            </div>
           </div>
         </>
       )}
