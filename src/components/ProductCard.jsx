@@ -71,7 +71,7 @@ const ProductCard = ({
           {isProcessing ? (
             <div className="processing-indicator">
               <FontAwesomeIcon icon={faSpinner} spin />
-              <span>מעבד...</span>
+              <span>מתעדכן...</span>
             </div>
           ) : mode === 'consumed-items' ? (
             <button 
