@@ -67,6 +67,24 @@ const ProductCard = ({
           </span>
         </div>
         
+        {mode === 'consumed-items' && (
+          <div className="product-last-modified">
+            <span className="last-modified-label">עדכון אחרון:</span>
+            <span className="last-modified-date">
+              {product.lastModified ? (
+                new Date(product.lastModified.seconds * 1000).toLocaleDateString('he-IL', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              ) : (
+                'לא עודכן'
+              )}
+            </span>
+          </div>
+        )}
+        
         <div className="product-card-actions">
           {isProcessing ? (
             <div className="processing-indicator">

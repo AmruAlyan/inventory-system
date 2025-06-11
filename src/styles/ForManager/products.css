@@ -671,6 +671,80 @@
   box-shadow: none !important;
 }
 
+/* Sort Controls Styles */
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background-color: var(--panel-bg);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--border-color);
+}
+
+.sort-label {
+  font-weight: 600;
+  color: var(--primary-text);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.sort-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--primary-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.sort-select:hover {
+  border-color: var(--primary);
+  background-color: var(--panel-bg);
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
+}
+
+.sort-direction-btn {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.sort-direction-btn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive sort controls */
+@media (max-width: 768px) {
+  .sort-controls {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .sort-select {
+    min-width: 100px;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .inventory-container {
@@ -830,3 +904,25 @@
 }
 
 /* Improved product card sizing */
+.product-last-modified {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--bg-color);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.last-modified-label {
+  font-size: 0.8rem;
+  color: var(--secondary-text);
+  font-weight: 500;
+}
+
+.last-modified-date {
+  font-size: 0.8rem;
+  color: var(--primary-text);
+  font-weight: 600;
+}

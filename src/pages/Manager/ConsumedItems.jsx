@@ -12,7 +12,10 @@ import {
   faSpinner,
   faPenToSquare,
   faList,
-  faTableCells
+  faTableCells,
+  faSort,
+  faSortUp,
+  faSortDown
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, getDocs, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
@@ -41,6 +44,8 @@ const ConsumedItems = () => {
   const [actualCardsPerRow, setActualCardsPerRow] = useState(4);
   // Add a debounced timer ref
   const [debounceTimer, setDebounceTimer] = useState(null);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
   const [viewMode, setViewMode] = useState(() => {
     // Get saved view mode from localStorage, default to 'list'
     const saved = localStorage.getItem('consumedItemsViewMode');
@@ -78,12 +83,61 @@ const ConsumedItems = () => {
     fetchData();
   }, []);
 
-  // Filter products based on search term
-  const filteredProducts = products.filter(product => {
-    const categoryName = categories[product.category] || '';
-    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           categoryName.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortProducts = (products) => {
+    if (!sortField) return products;
+
+    return [...products].sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      // Special handling for category field
+      if (sortField === 'category') {
+        aValue = categories[a.category] || 'לא מוגדר';
+        bValue = categories[b.category] || 'לא מוגדר';
+      }
+
+      // Special handling for lastModified field
+      if (sortField === 'lastModified') {
+        aValue = a.lastModified ? new Date(a.lastModified.seconds * 1000) : new Date(0);
+        bValue = b.lastModified ? new Date(b.lastModified.seconds * 1000) : new Date(0);
+      }
+
+      // Convert to numbers for quantity
+      if (sortField === 'quantity') {
+        aValue = Number(aValue);
+        bValue = Number(bValue);
+      }
+
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  // Filter and sort products based on search term
+  const filterProducts = (products) => {
+    return products.filter(product => {
+      const categoryName = categories[product.category] || '';
+      return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  };
+
+  const filteredProducts = sortProducts(filterProducts(products));
 
   // For cards view, calculate based on exact rows
   let itemsToShow = itemsPerPage;
@@ -158,7 +212,8 @@ const ConsumedItems = () => {
       
       // Update product quantity
       await updateDoc(doc(db, 'products', productId), {
-        quantity: newQuantity
+        quantity: newQuantity,
+        lastModified: Timestamp.fromDate(new Date())
       });
 
       // Log consumption activity
@@ -175,7 +230,7 @@ const ConsumedItems = () => {
 
       // Update local state
       setProducts(prev => prev.map(p => 
-        p.id === productId ? { ...p, quantity: newQuantity } : p
+        p.id === productId ? { ...p, quantity: newQuantity, lastModified: Timestamp.fromDate(new Date()) } : p
       ));
 
       toast.success(`צריכה נרשמה בהצלחה: ${consumedQuantity} יחידות של ${product.name}`);
@@ -209,7 +264,8 @@ const ConsumedItems = () => {
     try {
       // Update product quantity
       await updateDoc(doc(db, 'products', productId), {
-        quantity: newQuantity
+        quantity: newQuantity,
+        lastModified: Timestamp.fromDate(new Date())
       });
 
       // Log stocktaking activity
@@ -226,7 +282,7 @@ const ConsumedItems = () => {
 
       // Update local state
       setProducts(prev => prev.map(p => 
-        p.id === productId ? { ...p, quantity: newQuantity } : p
+        p.id === productId ? { ...p, quantity: newQuantity, lastModified: Timestamp.fromDate(new Date()) } : p
       ));
 
       toast.success(`מלאי עודכן בהצלחה: ${product.name} - ${newQuantity} יחידות`);
@@ -431,6 +487,40 @@ const ConsumedItems = () => {
             </button>
           </div>
         </div>
+
+        {viewMode === 'cards' && (
+          <div className="sort-controls">
+            <span className="sort-label">מיון:</span>
+            <select 
+              value={sortField || ''} 
+              onChange={(e) => {
+                const field = e.target.value;
+                if (field) {
+                  handleSort(field);
+                } else {
+                  setSortField(null);
+                  setSortDirection('asc');
+                }
+              }}
+              className="sort-select"
+            >
+              <option value="">ללא מיון</option>
+              <option value="name">שם מוצר</option>
+              <option value="category">קטגוריה</option>
+              <option value="quantity">כמות במלאי</option>
+              <option value="lastModified">תאריך עדכון אחרון</option>
+            </select>
+            {sortField && (
+              <button
+                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                className="sort-direction-btn"
+                title={sortDirection === 'asc' ? 'מיון עולה' : 'מיון יורד'}
+              >
+                <FontAwesomeIcon icon={sortDirection === 'asc' ? faSortUp : faSortDown} />
+              </button>
+            )}
+          </div>
+        )}
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'var(--panel-bg)', borderRadius: '8px', border: '2px solid var(--primary)' }}>
           <span style={{ fontWeight: mode === 'consumption' ? 'bold' : 'normal', color: mode === 'consumption' ? 'var(--primary)' : 'var(--secondary-text)' }}>
@@ -484,10 +574,31 @@ const ConsumedItems = () => {
         <table className="inventory-table">
           <thead>
             <tr>
-              <th>שם מוצר</th>
-              <th>קטיגוריה</th>
-              <th>מלאי נוכחי</th>
+              <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+                שם מוצר{' '}
+                <FontAwesomeIcon 
+                  icon={sortField === 'name' ? (sortDirection === 'asc' ? faSortUp : faSortDown) : faSort}
+                />
+              </th>
+              <th onClick={() => handleSort('category')} style={{ cursor: 'pointer' }}>
+                קטגוריה{' '}
+                <FontAwesomeIcon 
+                  icon={sortField === 'category' ? (sortDirection === 'asc' ? faSortUp : faSortDown) : faSort}
+                />
+              </th>
+              <th onClick={() => handleSort('quantity')} style={{ cursor: 'pointer' }}>
+                מלאי נוכחי{' '}
+                <FontAwesomeIcon 
+                  icon={sortField === 'quantity' ? (sortDirection === 'asc' ? faSortUp : faSortDown) : faSort}
+                />
+              </th>
               <th>סטטוס מלאי</th>
+              <th onClick={() => handleSort('lastModified')} style={{ cursor: 'pointer' }}>
+                עדכון אחרון{' '}
+                <FontAwesomeIcon 
+                  icon={sortField === 'lastModified' ? (sortDirection === 'asc' ? faSortUp : faSortDown) : faSort}
+                />
+              </th>
               <th>{mode === 'consumption' ? 'כמות לצריכה' : 'כמות חדשה'}</th>
               <th>פעולות</th>
             </tr>
@@ -515,6 +626,21 @@ const ConsumedItems = () => {
                     <span style={{ color: 'var(--warning)', fontWeight: 'bold' }}>נמוך</span>
                   ) : (
                     <span style={{ color: 'var(--success)', fontWeight: 'bold' }}>תקין</span>
+                  )}
+                </td>
+                <td>
+                  {product.lastModified ? (
+                    <span style={{ fontSize: '0.85rem', color: 'var(--secondary-text)' }}>
+                      {new Date(product.lastModified.seconds * 1000).toLocaleDateString('he-IL', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  ) : (
+                    <span style={{ color: 'var(--secondary-text)' }}>לא עודכן</span>
                   )}
                 </td>
                 <td>
