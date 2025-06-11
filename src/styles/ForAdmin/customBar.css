@@ -31,3 +31,8 @@
   .recharts-cartesian-grid {
     margin-left: 10px;
   }
+
+  .recharts-cartesian-axis-ticks {
+    /* padding-top: 70px; */
+    margin-top: 100px;
+  }

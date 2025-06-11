@@ -9,8 +9,10 @@ import '../../styles/ForManager/products.css';
 import '../../styles/ForModals/PurchaseModal.css'
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
+import { useLocation } from 'react-router-dom';
 
 const Purchases = () => {
+  const location = useLocation();
   const [currentPurchase, setCurrentPurchase] = useState({ items: [] });
   const [categories, setCategories] = useState({});
   const [editingId, setEditingId] = useState(null);
@@ -235,6 +237,25 @@ const handleSavePurchaseDate = async (purchaseId) => {
     toast.error('שגיאה בעדכון תאריך הרכישה');
   }
 };
+
+  useEffect(() => {
+    // If navigated with showHistory or showPurchaseModal, open history and modal
+    if (location.state && (location.state.showPurchaseModal || location.state.showHistory)) {
+      setShowHistory(true);
+      if (location.state.showPurchaseModal && location.state.purchaseId) {
+        // Wait for purchaseHistory to load, then open modal
+        const interval = setInterval(() => {
+          const found = purchaseHistory.find(p => p.id === location.state.purchaseId);
+          if (found) {
+            setSelectedPurchase(found);
+            clearInterval(interval);
+          }
+        }, 100);
+        // Clean up interval if component unmounts
+        return () => clearInterval(interval);
+      }
+    }
+  }, [location.state, purchaseHistory]);
 
   return (
     <div className="inventory-container">      {selectedPurchase && (

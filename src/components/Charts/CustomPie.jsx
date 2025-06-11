@@ -43,7 +43,7 @@ const ChartTitle = ({ x, y, width, title }) => {
   );
 };
 
-const CustomPie = ({ products = [] }) => {
+const CustomPie = ({ products = [], userRole = 'manager' }) => {
   const navigate = useNavigate();
   const [data, setData] = useState([
     { name: LABELS[0], value: 0 },
@@ -84,7 +84,9 @@ const CustomPie = ({ products = [] }) => {
     }
 
     // Navigate to products page with the appropriate filter
-    navigate('/manager-dashboard/products', { 
+    // Determine path based on userRole
+    const basePath = userRole === 'admin' ? '/admin-dashboard/products' : '/manager-dashboard/products';
+    navigate(basePath, { 
       state: { 
         applyFilter: { 
           categories: [],

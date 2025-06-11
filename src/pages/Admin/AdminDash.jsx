@@ -28,6 +28,7 @@ const ManagerDash = () => {
   const [recentPurchases, setRecentPurchases] = useState([]);
   const [products, setProducts] = useState([]);
   const [areaData, setAreaData] = useState([]);
+  const [inventoryValue, setInventoryValue] = useState(0);
 
   const navigate = useNavigate();
 
@@ -73,6 +74,7 @@ const ManagerDash = () => {
         const productsSnapshot = await getDocs(collection(db, 'products'));
         let count = 0;
         let lowStock = 0;
+        let totalInventoryValue = 0;
         const productsArr = [];
         productsSnapshot.forEach(doc => {
           const p = doc.data();
@@ -82,10 +84,15 @@ const ManagerDash = () => {
             lowStock++;
           }
           productsArr.push(p);
+          // Calculate inventory value (quantity * price)
+          if (typeof p.quantity === 'number' && typeof p.price === 'number') {
+            totalInventoryValue += p.quantity * p.price;
+          }
         });
         setProductsCount(count);
         setLowStockCount(lowStock);
         setProducts(productsArr);
+        setInventoryValue(totalInventoryValue);
 
         // Fetch last 3 purchases
         const purchasesQuery = query(
@@ -186,19 +193,38 @@ const ManagerDash = () => {
     return () => unsubscribe();
   }, []);
 
+  const handleBudgetCardClick = () => {
+    navigate('/admin-dashboard/budget');
+  };
+
   const handleProductsCardClick = () => {
-    navigate('/manager-dashboard/products');
+    navigate('/admin-dashboard/products');
   };
 
   const handleLowStockCardClick = () => {
-    navigate('/manager-dashboard/products', { 
-      state: { 
-        applyFilter: { 
-          categories: [], 
-          stockStatus: 'outOfStockOrLow' 
-        } 
-      } 
+    navigate('/admin-dashboard/products', {
+      state: {
+        applyFilter: {
+          categories: [],
+          stockStatus: 'outOfStockOrLow'
+        }
+      }
     });
+  };
+
+  const handleLastPurchaseCardClick = () => {
+    if (recentPurchases.length > 0) {
+      // Navigate to purchases history page and pass the last purchase id to trigger modal
+      navigate('/admin-dashboard/new-purchase', {
+        state: {
+          showPurchaseModal: true,
+          purchaseId: recentPurchases[0].id
+        }
+      });
+    } else {
+      // Just navigate to purchases history if no purchases
+      navigate('/admin-dashboard/new-purchase');
+    }
   };
 
   if (loading) return <Spinner text="טוען נתונים..." />;
@@ -214,30 +240,42 @@ const ManagerDash = () => {
         <div className="dashboard-card">
           <h3 className="dashboard-card-title">
             <p>תקציב</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
+            <button onClick={handleBudgetCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{budget.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
         <div className="dashboard-card">
           <h3 className="dashboard-card-title">
             <p>יתרה אחרונה</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
+            <button onClick={handleBudgetCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{lastBalance.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
-        <div className="dashboard-card" onClick={handleProductsCardClick} style={{ cursor: 'pointer' }}>
+        <div className="dashboard-card">
           <h3 className="dashboard-card-title">
-            <p>מוצרים</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
+            <p>רכישה אחרונה</p>
+            <button onClick={handleLastPurchaseCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
-          <h2 className="dashboard-card-value">{productsCount}</h2>
+          <h2 className="dashboard-card-value">
+            {recentPurchases.length > 0 && recentPurchases[0].totalAmount !== undefined
+              ? `${recentPurchases[0].totalAmount.toFixed(2)} `
+              : '--- '}
+            <FontAwesomeIcon icon={faShekel} className="dashboard-icon" />
+          </h2>
         </div>
-        <div className="dashboard-card" onClick={handleLowStockCardClick} style={{ cursor: 'pointer' }}>
+        <div className="dashboard-card">
           <h3 className="dashboard-card-title">
-            <p>חסר/נמוך במלאי</p>
-            <button><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
+            <p>נמוך במלאי</p>
+            <button onClick={handleLowStockCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
-          <h2 className="dashboard-card-value">{lowStockCount}</h2>
+          <h2 className="dashboard-card-value">{lowStockCount} / {productsCount}</h2>
+        </div>
+        <div className="dashboard-card">
+          <h3 className="dashboard-card-title">
+            <p>ערך המלאי</p>
+            <button onClick={handleProductsCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
+          </h3>
+          <h2 className="dashboard-card-value">{inventoryValue.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
       </div>
 
@@ -245,8 +283,13 @@ const ManagerDash = () => {
       <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
           <div className="dashboard-chart-wrapper pie-chart-wrapper">
-            <CustomPie products={products} />
+            <CustomPie products={products} userRole="admin" />
           </div>
+          <div className="dashboard-chart-wrapper area-chart-wrapper">
+            <CustomArea data={areaData} />
+          </div>
+        </div>
+        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
           <div className="dashboard-chart-wrapper purchases-chart-wrapper">
             <div className="dashboard-purchases">
               <h2 className="dashboard-purchases-title">
@@ -275,11 +318,6 @@ const ManagerDash = () => {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-        <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
-          <div className="dashboard-chart-wrapper area-chart-wrapper">
-            <CustomArea data={areaData} />
           </div>
           <div className="dashboard-chart-wrapper switchable-chart-wrapper">
             <SwitchableBarChart

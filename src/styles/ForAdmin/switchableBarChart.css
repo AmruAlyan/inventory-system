@@ -113,7 +113,8 @@
   text-align: center;
   font-weight: bold;
   margin-bottom: 0.5rem;
-  margin-top: 2.5rem;
+  /* margin-top: 2.5rem; */
+  margin-top: 1rem;
   direction: rtl;
   font-size: 1rem;
 }
