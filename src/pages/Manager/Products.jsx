@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -29,6 +29,10 @@ const Products = () => {
     const saved = localStorage.getItem('productsRowsPerPage');
     return saved ? parseInt(saved) : 2;
   });
+  // Track actual cards per row dynamically
+  const [actualCardsPerRow, setActualCardsPerRow] = useState(4);
+  // Add a debounced timer ref
+  const [debounceTimer, setDebounceTimer] = useState(null);
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [categories, setCategories] = useState({});
@@ -185,11 +189,29 @@ const Products = () => {
   };
   const filteredProducts = sortProducts(filterProducts(products));
   
+  // For cards view, calculate based on exact rows
+  let itemsToShow = itemsPerPage;
+  if (viewMode === 'cards' && actualCardsPerRow > 0) {
+    itemsToShow = rowsPerPage * actualCardsPerRow;
+  }
+  
   // Get current products for pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsToShow;
+  const indexOfFirstItem = indexOfLastItem - itemsToShow;
+  let currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // Ensure we show exactly the requested number of rows (except on last page)
+  if (viewMode === 'cards' && actualCardsPerRow > 0) {
+    const maxItemsForExactRows = rowsPerPage * actualCardsPerRow;
+    const isLastPage = currentPage === Math.ceil(filteredProducts.length / itemsToShow);
+    
+    if (!isLastPage) {
+      // For non-last pages, show exact number of complete rows
+      currentProducts = currentProducts.slice(0, maxItemsForExactRows);
+    }
+  }
+  
+  const totalPages = Math.ceil(filteredProducts.length / (viewMode === 'cards' && actualCardsPerRow > 0 ? rowsPerPage * actualCardsPerRow : itemsPerPage));
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -200,8 +222,8 @@ const Products = () => {
     if (viewMode === 'cards') {
       // For cards view, we're selecting rows
       setRowsPerPage(newValue);
-      const cardsPerRow = 4; // Assume 4 cards per row for standard desktop
-      const newItemsPerPage = newValue * cardsPerRow;
+      // Use actual cards per row instead of assumed 4
+      const newItemsPerPage = newValue * actualCardsPerRow;
       setItemsPerPage(newItemsPerPage);
       localStorage.setItem('productsRowsPerPage', newValue.toString());
       localStorage.setItem('productsItemsPerPage', newItemsPerPage.toString());
@@ -268,6 +290,97 @@ const Products = () => {
       (product) => product.name.trim().toLowerCase() === name.trim().toLowerCase()
     );
   };
+
+  // Function to calculate actual cards per row based on container width
+  const calculateActualCardsPerRow = useCallback(() => {
+    if (viewMode !== 'cards') return;
+    
+    const container = document.querySelector('.products-grid');
+    if (container) {
+      const containerWidth = container.offsetWidth;
+      const cardMinWidth = 280; // Based on CSS minmax(280px, 1fr)
+      const gap = 24; // Based on var(--spacing-lg) which is typically 24px
+      const possibleCards = Math.floor((containerWidth + gap) / (cardMinWidth + gap));
+      const cardsPerRow = Math.max(1, possibleCards); // At least 1 card per row
+      
+      if (cardsPerRow !== actualCardsPerRow) {
+        console.log(`Cards per row changed from ${actualCardsPerRow} to ${cardsPerRow}`);
+        setActualCardsPerRow(cardsPerRow);
+        
+        // Force recalculation of current page to ensure we don't exceed total pages
+        const newItemsPerPage = rowsPerPage * cardsPerRow;
+        const newTotalPages = Math.ceil(filteredProducts.length / newItemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
+      }
+    }
+  }, [viewMode, actualCardsPerRow, rowsPerPage, currentPage, filteredProducts.length]);
+
+  // Debounced version for high-frequency events
+  const debouncedCalculateActualCardsPerRow = useCallback(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    const timer = setTimeout(calculateActualCardsPerRow, 100);
+    setDebounceTimer(timer);
+  }, [calculateActualCardsPerRow, debounceTimer]);
+
+  // Effect to recalculate cards per row when layout changes
+  useEffect(() => {
+    if (viewMode === 'cards') {
+      // Initial calculation with delay to ensure DOM is ready
+      const timeoutId = setTimeout(calculateActualCardsPerRow, 200);
+      
+      // Set up ResizeObserver to watch for container size changes
+      const contentArea = document.querySelector('.content-area');
+      const productsGrid = document.querySelector('.products-grid');
+      
+      if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+          // Use debounced calculation for smooth performance
+          debouncedCalculateActualCardsPerRow();
+        });
+        
+        // Observe both content area and the grid container
+        if (contentArea) resizeObserver.observe(contentArea);
+        if (productsGrid) resizeObserver.observe(productsGrid);
+        
+        return () => {
+          clearTimeout(timeoutId);
+          if (debounceTimer) clearTimeout(debounceTimer);
+          resizeObserver.disconnect();
+        };
+      }
+      
+      // Fallback: also listen for window resize and transition events
+      const handleResize = () => debouncedCalculateActualCardsPerRow();
+      const handleTransition = (event) => {
+        if (event.propertyName === 'width' || event.propertyName === 'transform') {
+          debouncedCalculateActualCardsPerRow();
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      if (contentArea) {
+        contentArea.addEventListener('transitionend', handleTransition);
+      }
+      
+      return () => {
+        clearTimeout(timeoutId);
+        if (debounceTimer) clearTimeout(debounceTimer);
+        window.removeEventListener('resize', handleResize);
+        if (contentArea) {
+          contentArea.removeEventListener('transitionend', handleTransition);
+        }
+      };
+    }
+    
+    // Cleanup debounce timer when component unmounts or view mode changes
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
+  }, [viewMode, calculateActualCardsPerRow, debouncedCalculateActualCardsPerRow, debounceTimer]);
 
   return (
     <div className='inventory-container'>
