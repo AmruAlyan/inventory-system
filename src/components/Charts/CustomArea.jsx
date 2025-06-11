@@ -222,7 +222,7 @@ const AreaChartFillByValue = ({ data = [] }) => {
         מגמות תקציב לאורך זמן
       </div>
       
-      <ResponsiveContainer width="100%" height="75%">
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={filteredData}
           margin={{ left: 25, right: 20, top: 10, bottom: 5 }}
