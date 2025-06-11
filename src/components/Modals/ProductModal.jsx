@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // AddProductPage.jsx
-import { db } from '../../firebase/firebase'; // Using firebase from firebase folder
+import { db, storage } from '../../firebase/firebase'; // Using firebase from firebase folder
 import { collection, addDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
 import { toast } from 'react-toastify';
 import Modal from './Modal';
 import ImageUpload from '../ImageUpload';
@@ -41,6 +42,10 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
   });
   const [status, setStatus] = useState('');
   const [categories, setCategories] = useState([]);
+  // Track if image should be deleted on update
+  const [pendingImageDeletion, setPendingImageDeletion] = useState(false);
+  // Store original image URL for restoration on cancel
+  const [originalImageUrl] = useState(product ? product.imageUrl : null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -63,6 +68,28 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
 
   const handleImageChange = (imageUrl) => {
     setForm((prev) => ({ ...prev, imageUrl }));
+    // If a new image is uploaded, we don't need to delete the old one anymore
+    if (imageUrl) {
+      setPendingImageDeletion(false);
+    }
+  };
+
+  const handleImageDelete = () => {
+    // Only hide the image from the modal and mark for deletion
+    setForm((prev) => ({ ...prev, imageUrl: null }));
+    // Mark that we should delete the original image when updating
+    if (originalImageUrl && mode === 'edit') {
+      setPendingImageDeletion(true);
+    }
+  };
+
+  const handleCancel = () => {
+    // If user cancels and we had marked an image for deletion, restore it
+    if (pendingImageDeletion && originalImageUrl) {
+      setForm((prev) => ({ ...prev, imageUrl: originalImageUrl }));
+      setPendingImageDeletion(false);
+    }
+    onClose();
   };
 
   const handleSubmit = async (e) => {
@@ -94,6 +121,18 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
 
     try {
       if (mode === 'edit' && product && product.id) {
+        // Handle pending image deletion if needed
+        if (pendingImageDeletion && originalImageUrl) {
+          try {
+            const imageRef = ref(storage, originalImageUrl);
+            await deleteObject(imageRef);
+            console.log('Original image deleted from storage');
+          } catch (deleteError) {
+            console.error('Error deleting original image:', deleteError);
+            // Don't fail the update if image deletion fails
+          }
+        }
+        
         await updateProduct(product.id, productData);
         setStatus('Product updated successfully!');
         toast.success('המוצר עודכן בהצלחה');
@@ -114,7 +153,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
   };
 
   return (
-    <Modal onClose={onClose}>
+    <Modal onClose={handleCancel}>
       <div className='Product-modal'>
         <h2>{mode === 'edit' ? 'עריכת מוצר' : 'הוספת מוצר חדש'}</h2>
         <form onSubmit={handleSubmit} className='Product-form'>
@@ -134,7 +173,9 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
             <ImageUpload
               currentImageUrl={form.imageUrl}
               onImageChange={handleImageChange}
+              onImageDelete={handleImageDelete}
               productId={product?.id}
+              mode={mode}
             />
           </div>
           <div className='Product-form-group'>
@@ -147,7 +188,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
           </div>
           <div className='Product-button-group'>
             <button type="submit" className='NewProduct-button'>{mode === 'edit' ? 'עדכן מוצר' : 'הוסף מוצר'}</button>
-            <button type="button" onClick={onClose} className='NewProduct-button'>ביטול</button>
+            <button type="button" onClick={handleCancel} className='NewProduct-button'>ביטול</button>
           </div>
 
         </form>

@@ -10,8 +10,10 @@ import { toast } from 'react-toastify';
 const ImageUpload = ({ 
   currentImageUrl = null, 
   onImageChange, 
+  onImageDelete = null, // Custom delete handler
   productId = null,
-  disabled = false 
+  disabled = false,
+  mode = 'add' // 'add' or 'edit'
 }) => {
   const [src, setSrc] = useState(null);
   const [crop, setCrop] = useState({ aspect: 1 });
@@ -212,6 +214,14 @@ const ImageUpload = ({
   const handleRemoveImage = async () => {
     if (!currentImageUrl) return;
     
+    // If in edit mode and a custom delete handler is provided, use it
+    // This allows the parent component to handle the deletion logic
+    if (mode === 'edit' && onImageDelete) {
+      onImageDelete();
+      return;
+    }
+    
+    // For add mode or when no custom handler is provided, delete immediately
     setUploading(true);
     try {
       // Delete from Firebase Storage
