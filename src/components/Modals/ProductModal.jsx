@@ -157,34 +157,38 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       <div className='Product-modal'>
         <h2>{mode === 'edit' ? 'עריכת מוצר' : 'הוספת מוצר חדש'}</h2>
         <form onSubmit={handleSubmit} className='Product-form'>
-          <div className='Product-form-group'>
-            <label>שם מוצר:</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} />
-          </div>
-          <div className='Product-form-group'>
-            <label>קטיגוריה:</label>          <select name="category" value={form.category} onChange={handleChange}>
-              <option value="">בחר קטיגוריה...</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className='Product-form-group'>
-            <ImageUpload
-              currentImageUrl={form.imageUrl}
-              onImageChange={handleImageChange}
-              onImageDelete={handleImageDelete}
-              productId={product?.id}
-              mode={mode}
-            />
-          </div>
-          <div className='Product-form-group'>
-            <label>כמות:</label>
-            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} />
-          </div>
-          <div className='Product-form-group'>
-            <label>מחיר:</label>
-            <input type="number" step="0.01" name="price" value={form.price} onChange={handleChange} />
+          <div className='Product-form-content'>
+            <div className='Product-form-fields'>
+              <div className='Product-form-group'>
+                <label>שם מוצר:</label>
+                <input type="text" name="name" value={form.name} onChange={handleChange} />
+              </div>
+              <div className='Product-form-group'>
+                <label>קטיגוריה:</label>          <select name="category" value={form.category} onChange={handleChange}>
+                  <option value="">בחר קטיגוריה...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className='Product-form-group'>
+                <label>כמות:</label>
+                <input type="number" name="quantity" value={form.quantity} onChange={handleChange} />
+              </div>
+              <div className='Product-form-group'>
+                <label>מחיר:</label>
+                <input type="number" step="0.01" name="price" value={form.price} onChange={handleChange} />
+              </div>
+            </div>
+            <div className='Product-form-image'>
+              <ImageUpload
+                currentImageUrl={form.imageUrl}
+                onImageChange={handleImageChange}
+                onImageDelete={handleImageDelete}
+                productId={product?.id}
+                mode={mode}
+              />
+            </div>
           </div>
           <div className='Product-button-group'>
             <button type="submit" className='NewProduct-button'>{mode === 'edit' ? 'עדכן מוצר' : 'הוסף מוצר'}</button>
