@@ -304,13 +304,21 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <tr key={purchase.id}>
                     <td>
                       {editingPurchaseId === purchase.id ? (
+                        <input
+                          type="date"
+                          value={editPurchaseDate}
+                          onChange={e => setEditPurchaseDate(e.target.value)}
+                          style={{ maxWidth: 140 }}
+                        />
+                      ) : (
+                        purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')
+                      )}
+                    </td>
+                    <td>{purchase.items?.length || 0}</td>
+                    <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
+                    <td className='purchases-actions'>
+                      {editingPurchaseId === purchase.id ? (
                         <>
-                          <input
-                            type="date"
-                            value={editPurchaseDate}
-                            onChange={e => setEditPurchaseDate(e.target.value)}
-                            style={{ maxWidth: 140 }}
-                          />
                           <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך">
                             <FontAwesomeIcon icon={faSave} />
                           </button>
@@ -320,7 +328,9 @@ const handleSavePurchaseDate = async (purchaseId) => {
                         </>
                       ) : (
                         <>
-                          {purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')}
+                          <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
+                            <FontAwesomeIcon icon={faEye} />
+                          </button>
                           <button
                             className="btn btn-sm btn-primary ms-2"
                             onClick={() => {
@@ -335,13 +345,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                           </button>
                         </>
                       )}
-                    </td>
-                    <td>{purchase.items?.length || 0}</td>
-                    <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
-                    <td className='purchases-actions'>
-                      <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
-                        <FontAwesomeIcon icon={faEye} />
-                      </button>
                     </td>
                   </tr>
                 ))}

@@ -207,7 +207,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
       
       <div className="chart-title">
         {activeChart === 'budget' 
-          ? 'תקציבים אחרונים שהוגדרו על ידי המנהל' 
+          ? 'תקציבים אחרונים שהוגדרו ע״י המנכ״ל' 
           : 'סכומי רכישה אחרונים'}
       </div>
       
