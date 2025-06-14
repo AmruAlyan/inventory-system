@@ -112,55 +112,293 @@ body {
   padding: 0;
 }
 
-/* Button Styles */
+/* Enhanced Button Styles */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 12px 24px;
   border-radius: var(--border-radius-md);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   outline: none;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 44px;
+  gap: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s ease;
+  opacity: 0;
+}
+
+.btn:hover::before {
+  left: 100%;
+  opacity: 1;
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  /* background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%); */
   color: white;
 }
 
+/* Base primary button hover - used for inventory counting mode (ספירת מלאי) */
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #3d654a 100%);
+  transform: translateY(-4px) scale(1.07) rotate(-1deg);
+  box-shadow: 0 10px 32px 0 rgba(81, 134, 100, 0.55), 0 2px 8px 0 rgba(81, 134, 100, 0.15);
+  filter: brightness(1.08) saturate(1.15) drop-shadow(0 0 8px #4a7c5a44);
+  border: 1.5px solid #fff;
+  outline: 0.5px solid #fff;
 }
 
+/* Consumption mode button style (צריכה) */
+body[data-mode="consumption"] .btn-primary:hover {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%);
+  transform: translateY(-4px) scale(1.07) rotate(-1deg);
+  box-shadow: 0 10px 32px 0 rgba(255, 193, 7, 0.55), 0 2px 8px 0 rgba(255, 193, 7, 0.15);
+  filter: brightness(1.08) saturate(1.15) drop-shadow(0 0 8px rgba(255, 193, 7, 0.4));
+  border: 1.5px solid #fff;
+  outline: 0.5px solid #fff;
+}
+
+.btn-primary:hover svg,
+.btn-primary:hover .icon,
+.btn-primary:hover i {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* Icon coloring for consumption mode */
+body[data-mode="consumption"] .btn-primary:hover svg,
+body[data-mode="consumption"] .btn-primary:hover .icon,
+body[data-mode="consumption"] .btn-primary:hover i {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+.btn-primary:focus-visible {
+  outline: 2.5px solid var(--primary-dark);
+  outline-offset: 2px;
+}
+
+
 .btn-secondary {
-  background-color: var(--secondary);
+  background: linear-gradient(135deg, var(--secondary) 0%, #1976d2 100%);
   color: white;
 }
 
 .btn-secondary:hover {
-  background-color: var(--secondary-dark);
+  background: linear-gradient(135deg, var(--secondary-dark) 0%, #155fa0 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
 }
 
 .btn-accent {
-  background-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, #f57c00 100%);
   color: var(--primary-text);
 }
 
 .btn-accent:hover {
-  background-color: var(--accent-dark);
+  background: linear-gradient(135deg, var(--accent-dark) 0%, #ef6c00 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
 }
 
 .btn-danger {
-  background-color: var(--danger);
+  background: linear-gradient(135deg, var(--danger) 0%, #c62828 100%);
   color: white;
 }
 
 .btn-danger:hover {
-  background-color: #c82333;
+  background: linear-gradient(135deg, #c82333 0%, #b71c1c 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success) 0%, #2e7d32 100%);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--success-dark) 0%, #1b5e20 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%);
+  color: var(--primary-text);
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, var(--warning-dark) 0%, #ef6c00 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, var(--info) 0%, #0277bd 100%);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, var(--info-dark) 0%, #01579b 100%);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  min-height: 52px;
+}
+
+.btn-xl {
+  padding: 20px 40px;
+  font-size: 1.2rem;
+  min-height: 60px;
+}
+
+/* Button Variants */
+.btn-outline {
+  background: transparent;
+  border: 2px solid;
+  box-shadow: none;
+}
+
+.btn-outline.btn-primary {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-outline.btn-primary:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(81, 134, 100, 0.4);
+}
+
+.btn-outline.btn-secondary {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.btn-outline.btn-secondary:hover {
+  background: var(--secondary);
+  color: white;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+.btn-outline.btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-outline.btn-danger:hover {
+  background: var(--danger);
+  color: white;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Icon Buttons */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--border-radius-pill);
+  min-height: auto;
+}
+
+.btn-icon-sm {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--border-radius-pill);
+  min-height: auto;
+  font-size: 0.875rem;
+}
+
+.btn-icon-lg {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: var(--border-radius-pill);
+  min-height: auto;
+  font-size: 1.1rem;
+}
+
+/* Disabled State */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn:disabled::before {
+  display: none;
+}
+
+/* Loading State */
+.btn-loading {
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  margin-left: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: btn-spin 0.8s linear infinite;
+  color: white;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Card Styles */
@@ -344,4 +582,4 @@ html {
 .gap-2 { gap: var(--spacing-sm); }
 .gap-3 { gap: var(--spacing-md); }
 .gap-4 { gap: var(--spacing-lg); }
-.gap-5 { gap: var(--spacing-xl); } 
+.gap-5 { gap: var(--spacing-xl); }

@@ -170,7 +170,6 @@
 
 .inventory-actions button:hover {
   background-color: var(--bg-color);
-  color: var(--primary-text);
 }
 
 .inventory-actions button:first-child {
@@ -182,22 +181,18 @@
   border-color: var(--success);
 }
 
-.inventory-actions button:nth-child(2) {
-  color: var(--secondary);
-}
+
 
 .inventory-actions button:nth-child(2):hover {
   background-color: rgba(33, 150, 243, 0.1);
   border-color: var(--secondary);
 }
 
-.inventory-actions button:last-child {
-  color: var(--danger);
-}
+
 
 .inventory-actions button:last-child:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  border-color: var(--danger);
+  background-color: rgba(177, 125, 140, 0.1);
+  border-color: rgb(197, 4, 4);
 }
 
 /* Overlay for modals */
@@ -297,6 +292,20 @@
 
 .page-header-icon {
   color: var(--primary);
+  transition: color var(--transition-normal);
+}
+
+/* Specific style for the shopping cart icon in new-purchase page */
+.page-header h1 .page-header-icon {
+  color: var(--success);
+  font-size: 1.2em;
+  margin-left: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.2));
+}
+
+.page-header h1 .page-header-icon:hover {
+  color: var(--success-dark);
+  transform: scale(1.1);
 }
 
 /* Quantity display and inputs */

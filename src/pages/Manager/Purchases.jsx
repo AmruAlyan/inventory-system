@@ -658,7 +658,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
               </div>
               
               {/* Receipt Upload Section */}
-              <div style={{ marginBottom: '2rem' }}>
+              <div style={{ marginBottom: '2  rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                   <FontAwesomeIcon icon={faCloudUploadAlt} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
                   <label style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--primary-text)', margin: 0 }}>
@@ -699,7 +699,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                       style={{
                         width: '100%',
                         minHeight: '120px',
-                        padding: '2rem',
                         border: '2px dashed #cbd5e0',
                         borderRadius: '12px',
                         backgroundColor: '#f8f9fa',

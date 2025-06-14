@@ -111,35 +111,63 @@
 .NewProduct-button {
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: 14px 28px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
-  min-width: 120px;
+  min-width: 140px;
+  min-height: 48px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.NewProduct-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.NewProduct-button:hover::before {
+  left: 100%;
 }
 
 .NewProduct-button:first-child {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
   color: white;
 }
 
 .NewProduct-button:first-child:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #3d654a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
 }
 
 .NewProduct-button:last-child {
-  background-color: transparent;
-  border: 1px solid var(--border-color);
+  background: white;
+  border: 2px solid var(--border-color);
   color: var(--secondary-text);
 }
 
 .NewProduct-button:last-child:hover {
-  background-color: var(--bg-color);
+  background: var(--bg-color);
   color: var(--primary-text);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.NewProduct-button:active {
+  transform: translateY(0);
 }
 
 /* Status message */

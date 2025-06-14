@@ -80,39 +80,69 @@
 }
 
 .apply-button, .reset-button, .cancel-button {
-  padding: 8px 16px;
+  padding: 12px 24px;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
   border: none;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 44px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.apply-button, .reset-button, .cancel-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.apply-button:hover::before, .reset-button:hover::before, .cancel-button:hover::before {
+  left: 100%;
 }
 
 .apply-button {
-  background-color: var(--success);
+  background: linear-gradient(135deg, var(--success) 0%, #2e7d32 100%);
   color: white;
 }
 
 .apply-button:hover {
-  background-color: var(--success-dark);
+  background: linear-gradient(135deg, var(--success-dark) 0%, #1b5e20 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
 }
 
 .reset-button {
-  background-color: var(--warning);
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%);
   color: white;
 }
 
 .reset-button:hover {
-  background-color: var(--warning-dark);
+  background: linear-gradient(135deg, var(--warning-dark) 0%, #ef6c00 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
 }
 
 .cancel-button {
-  background-color: var(--error);
+  background: linear-gradient(135deg, var(--error) 0%, #c62828 100%);
   color: white;
 }
 
 .cancel-button:hover {
-  background-color: var(--error-dark);
+  background: linear-gradient(135deg, var(--error-dark) 0%, #b71c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+}
+
+.apply-button:active, .reset-button:active, .cancel-button:active {
+  transform: translateY(0);
 }
 
 /* Checkbox and Radio styling */
