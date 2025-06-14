@@ -366,7 +366,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
           </div>
         ) : (
           <>
-            <table className="inventory-table">
+            <table className="inventory-table purchases-table">
               <thead>
                 <tr>
                   <th>תאריך רכישה</th>
@@ -491,7 +491,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
           </div>
         ) : (
           <>
-            <table className="inventory-table">
+            <table className="inventory-table purchases-table">
               <thead>
                 <tr>
                   <th>שם מוצר</th>

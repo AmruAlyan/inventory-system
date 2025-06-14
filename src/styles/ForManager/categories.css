@@ -159,17 +159,19 @@
   border: 1px solid var(--border-color);
   width: 36px;
   height: 36px;
-  border-radius: var(--border-radius-pill);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inventory-actions button:hover {
-  background-color: var(--bg-color);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .inventory-actions button:first-child {
@@ -177,22 +179,32 @@
 }
 
 .inventory-actions button:first-child:hover {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: var(--success);
+  color: white;
   border-color: var(--success);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
-
+.inventory-actions button:nth-child(2) {
+  color: var(--secondary);
+}
 
 .inventory-actions button:nth-child(2):hover {
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: var(--secondary);
+  color: white;
   border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
-
+.inventory-actions button:last-child {
+  color: var(--danger);
+}
 
 .inventory-actions button:last-child:hover {
-  background-color: rgba(177, 125, 140, 0.1);
-  border-color: rgb(197, 4, 4);
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 /* Overlay for modals */

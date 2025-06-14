@@ -134,25 +134,35 @@
 .edit-btn:hover,
 .delete-btn:hover {
   background-color: rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .save-btn {
   background-color: #27ae60;
   color: white;
   margin-right: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cancel-btn {
   background-color: #7f8c8d;
   color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .save-btn:hover {
   background-color: #2ecc71;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
 }
 
 .cancel-btn:hover {
   background-color: #95a5a6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(127, 140, 141, 0.3);
 }
 
 .loading-container {

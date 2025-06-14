@@ -235,13 +235,16 @@ input[type="number"]::-webkit-inner-spin-button {
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-top: 10px;
     width: 100%;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.2);
 }
 
 .update-button:hover {
     background-color: #2ecc71;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 /* Loading and error states */

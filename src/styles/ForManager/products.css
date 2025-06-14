@@ -199,18 +199,19 @@
   border: 1px solid var(--border-color);
   width: 36px;
   height: 36px;
-  border-radius: var(--border-radius-pill);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inventory-actions button:hover {
-  background-color: var(--bg-color);
-  color: var(--primary-text);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .inventory-actions button:first-child {
@@ -218,15 +219,18 @@
 }
 
 .inventory-actions button:first-child:hover {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: var(--success);
+  color: white;
   border-color: var(--success);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 /* Consumption mode style overrides */
 body[data-mode="consumption"] .inventory-actions button:first-child:hover {
-  background-color: rgba(255, 193, 7, 0.1);
+  background-color: var(--warning);
   border-color: var(--warning);
   color: white;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
 .inventory-actions button:nth-child(2) {
@@ -234,17 +238,21 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 }
 
 .inventory-actions button:nth-child(2):hover {
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: var(--secondary);
+  color: white;
   border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .inventory-actions button:last-child {
-  color: white;
+  color: var(--danger);
 }
 
 .inventory-actions button:last-child:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  border-color: white;
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .purchases-actions {
@@ -255,26 +263,6 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 
 .purchases-actions button {
   background-color: transparent;
-  color: var(--success);
-  border: 1px solid var(--border-color);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--border-radius-pill);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.purchases-actions button:hover {
-  background-color: rgba(40, 167, 69, 0.1);
-  border-color: var(--success);
-}
-
-/* Enhanced styling for purchase history action buttons */
-.purchases-actions button {
   border-radius: 50%;
   width: 38px;
   height: 38px;
@@ -288,6 +276,14 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
   background-color: rgba(81, 134, 100, 0.1);
   color: var(--primary);
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.purchases-actions button:hover {
+  background-color: var(--success);
+  color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .purchases-actions button:hover {
@@ -667,11 +663,12 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
   border: 2px solid;
   background-color: transparent;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .add-btn {
@@ -682,6 +679,8 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .add-btn:hover:not(.disabled) {
   background-color: var(--success);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .add-btn.disabled {
@@ -699,6 +698,8 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .edit-btn:hover {
   background-color: var(--secondary);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .delete-btn {
@@ -709,6 +710,8 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .delete-btn:hover {
   background-color: var(--danger);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 /* Consumed Items Mode Styles */
@@ -718,24 +721,25 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
   border-radius: var(--border-radius-md) !important;
   font-weight: 600 !important;
   border: none !important;
-  transition: all var(--transition-fast) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   display: flex !important;
   align-items: center !important;
   gap: var(--spacing-xs) !important;
   min-width: 120px !important;
   justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
 }
 
 .consumption-btn:hover:not(.disabled) {
   background-color: #e6a800 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4) !important;
 }
 
 .stocktaking-btn:hover:not(.disabled) {
   background-color: #218838 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
 }
 
 .processing-indicator {
@@ -1067,8 +1071,8 @@ body[data-mode="consumption"] .consumption-btn {
 
 body[data-mode="consumption"] .consumption-btn:hover {
   background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%) !important;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4) !important;
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 6px 14px rgba(255, 193, 7, 0.5) !important;
 }
 
 /* Default mode */
@@ -1081,8 +1085,8 @@ body[data-mode="stocktaking"] .stocktaking-btn,
 body[data-mode="stocktaking"] .stocktaking-btn:hover,
 .stocktaking-btn:hover {
   background: linear-gradient(135deg, var(--success) 0%, #218838 100%) !important;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 6px 14px rgba(40, 167, 69, 0.5) !important;
 }
 
 /* Enhanced styling for the save purchase button */
@@ -1120,46 +1124,83 @@ body[data-mode="stocktaking"] .stocktaking-btn:hover,
   box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
 }
 
-.inventory-actions .btn-primary:hover {
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
-}
-
-.inventory-actions .btn-primary svg,
-.inventory-actions .btn-success svg,
-.inventory-actions .btn-danger svg {
-  transition: all 0.3s ease;
-}
-
-.inventory-actions .btn-primary:hover svg,
-.inventory-actions .btn-success:hover svg,
-.inventory-actions .btn-danger:hover svg {
-  transform: scale(1.2);
-  color: white !important;
-}
-
-/* Enhance the save and cancel buttons for price editing */
-.inventory-actions .btn-success,
-.inventory-actions .btn-danger {
-  border-radius: 50%;
+/* Ensure small buttons in inventory-actions have consistent styling */
+.inventory-actions .btn-sm.btn-primary {
   width: 36px;
   height: 36px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  margin: 0 4px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
 }
 
-.inventory-actions .btn-success:hover {
+.inventory-actions .btn-sm.btn-primary:hover {
   transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
 }
 
-.inventory-actions .btn-danger:hover {
+.inventory-actions .btn-sm.btn-primary svg {
+  transition: all 0.3s ease;
+}
+
+.inventory-actions .btn-sm.btn-primary:hover svg {
+  transform: scale(1.2);
+  color: white !important;
+}
+
+/* Specific styles for buttons in the purchases table */
+.purchases-table .btn-sm.btn-primary {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
+}
+
+.purchases-table .btn-sm.btn-primary:hover {
   transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
+  background-color: var(--info);
+  color: white;
+  border-color: var(--info);
+}
+
+.purchases-table .btn-sm.btn-primary svg {
+  transition: all 0.3s ease;
+}
+
+.purchases-table .btn-sm.btn-primary:hover svg {
+  transform: scale(1.2);
+  color: white !important;
+}
+
+/* Enhanced styling for btn-primary in Purchases page */
+.btn-sm.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-sm.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.btn-sm.btn-primary:hover::before {
+  left: 100%;
 }
 
 
