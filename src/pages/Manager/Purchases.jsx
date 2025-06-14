@@ -414,14 +414,14 @@ const handleSavePurchaseDate = async (purchaseId) => {
                             transition: 'all 0.3s ease'
                           }}
                           onMouseOver={(e) => {
-                            e.target.style.backgroundColor = 'var(--success)';
-                            e.target.style.color = 'white';
-                            e.target.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.backgroundColor = 'var(--success)';
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.transform = 'scale(1.1)';
                           }}
                           onMouseOut={(e) => {
-                            e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
-                            e.target.style.color = 'var(--success)';
-                            e.target.style.transform = 'scale(1)';
+                            e.currentTarget.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+                            e.currentTarget.style.color = 'var(--success)';
+                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >
                           <FontAwesomeIcon icon={faFileAlt} />
@@ -528,10 +528,20 @@ const handleSavePurchaseDate = async (purchaseId) => {
                     <td className="inventory-actions">
                       {editingId === item.id ? (
                         <>
-                          <button onClick={() => handleSavePrice(item.id)} title="שמור" className="btn btn-sm btn-success">
+                          <button onClick={() => handleSavePrice(item.id)} title="שמור" className="btn btn-sm btn-success"
+                            style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}>
                             <FontAwesomeIcon icon={faSave} />
                           </button>
-                          <button onClick={handleCancelEdit} title="בטל" className="btn btn-sm btn-danger">
+                          <button onClick={handleCancelEdit} title="בטל" className="btn btn-sm btn-danger"
+                          style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}>
                             <FontAwesomeIcon icon={faTimes} />
                           </button>
                         </>
@@ -540,6 +550,17 @@ const handleSavePurchaseDate = async (purchaseId) => {
                           className="btn btn-sm btn-primary"
                           onClick={() => handleEditPrice(item)}
                           title="ערוך מחיר"
+                          style={{
+                            color: 'green',
+                            border: '1px solid green',
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseOver={(e) => {
+                            e.target.style.borderColor = 'white';
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.borderColor = 'green';
+                          }}
                         >
                           <FontAwesomeIcon icon={faEdit} />
                         </button>

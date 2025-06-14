@@ -703,6 +703,11 @@ const ConsumedItems = () => {
                         onClick={() => handleSave(product.id)} 
                         title="שמור"
                         className="btn btn-sm btn-success"
+                        style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}
                       >
                         <FontAwesomeIcon icon={faSave} />
                       </button>
@@ -710,6 +715,11 @@ const ConsumedItems = () => {
                         onClick={handleCancelEdit} 
                         title="בטל"
                         className="btn btn-sm btn-danger"
+                        style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </button>
