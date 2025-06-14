@@ -30,6 +30,16 @@ const ConsumedItems = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState('consumption'); // 'consumption' or 'stocktaking'
+  
+  // Update body attribute when mode changes
+  useEffect(() => {
+    document.body.setAttribute('data-mode', mode);
+    
+    // Cleanup function to remove attribute when component unmounts
+    return () => {
+      document.body.removeAttribute('data-mode');
+    };
+  }, [mode]);
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const [processingIds, setProcessingIds] = useState(new Set());
@@ -522,18 +532,42 @@ const ConsumedItems = () => {
           </div>
         )}
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'var(--panel-bg)', borderRadius: '8px', border: '2px solid var(--primary)' }}>
-          <span style={{ fontWeight: mode === 'consumption' ? 'bold' : 'normal', color: mode === 'consumption' ? 'var(--primary)' : 'var(--secondary-text)' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem', 
+          padding: '0.5rem 1rem', 
+          background: 'var(--panel-bg)', 
+          borderRadius: '8px', 
+          border: `2px solid ${mode === 'consumption' ? 'var(--warning)' : 'var(--success)'}`,
+          transition: 'border-color 0.3s ease'
+        }}>
+          <span style={{ 
+            fontWeight: mode === 'consumption' ? 'bold' : 'normal', 
+            color: mode === 'consumption' ? 'var(--warning)' : 'var(--secondary-text)',
+            transition: 'color 0.3s ease'
+          }}>
             צריכה
           </span>
           <button
             onClick={toggleMode}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: 'var(--primary)' }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer', 
+              fontSize: '1.5rem', 
+              color: mode === 'consumption' ? 'var(--warning)' : 'var(--success)',
+              transition: 'color 0.3s ease'
+            }}
             title={mode === 'consumption' ? 'עבור למצב ספירת מלאי' : 'עבור למצב צריכה'}
           >
             <FontAwesomeIcon icon={mode === 'consumption' ? faToggleOn : faToggleOff} />
           </button>
-          <span style={{ fontWeight: mode === 'stocktaking' ? 'bold' : 'normal', color: mode === 'stocktaking' ? 'var(--primary)' : 'var(--secondary-text)' }}>
+          <span style={{ 
+            fontWeight: mode === 'stocktaking' ? 'bold' : 'normal', 
+            color: mode === 'stocktaking' ? 'var(--success)' : 'var(--secondary-text)',
+            transition: 'color 0.3s ease'
+          }}>
             ספירת מלאי
           </span>
         </div>
@@ -546,7 +580,8 @@ const ConsumedItems = () => {
         background: mode === 'consumption' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(40, 167, 69, 0.1)', 
         border: `2px solid ${mode === 'consumption' ? 'var(--warning)' : 'var(--success)'}`,
         borderRadius: '8px',
-        textAlign: 'center'
+        textAlign: 'center',
+        transition: 'background 0.3s ease, border-color 0.3s ease'
       }}>
         {mode === 'consumption' ? (
           <p style={{ margin: 0, color: 'var(--warning)' }}>
@@ -668,6 +703,11 @@ const ConsumedItems = () => {
                         onClick={() => handleSave(product.id)} 
                         title="שמור"
                         className="btn btn-sm btn-success"
+                        style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}
                       >
                         <FontAwesomeIcon icon={faSave} />
                       </button>
@@ -675,6 +715,11 @@ const ConsumedItems = () => {
                         onClick={handleCancelEdit} 
                         title="בטל"
                         className="btn btn-sm btn-danger"
+                        style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}
                       >
                         <FontAwesomeIcon icon={faTimes} />
                       </button>

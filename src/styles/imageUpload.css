@@ -88,12 +88,13 @@
   border: 1px solid var(--secondary-dark) !important;
   visibility: visible !important;
   opacity: 1 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .edit-btn:hover {
   background-color: var(--secondary-dark) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4) !important;
 }
 
 .delete-btn {
@@ -102,12 +103,13 @@
   border: 1px solid var(--danger-dark) !important;
   visibility: visible !important;
   opacity: 1 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .delete-btn:hover {
   background-color: var(--danger-dark) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4) !important;
 }
 
 .image-action-btn:disabled {
@@ -156,12 +158,31 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .upload-btn:hover {
   background-color: var(--primary-dark);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 15px rgba(81, 134, 100, 0.4);
+}
+
+.upload-btn:hover::before {
+  left: 100%;
 }
 
 .upload-btn:disabled {
@@ -241,19 +262,25 @@
 .confirm-btn {
   background-color: var(--success);
   color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .confirm-btn:hover {
   background-color: var(--success-dark);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
 }
 
 .cancel-btn {
   background-color: var(--danger);
   color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cancel-btn:hover {
   background-color: var(--danger-dark);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
 }
 
 .crop-btn:disabled {

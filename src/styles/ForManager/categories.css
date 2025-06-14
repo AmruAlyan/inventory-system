@@ -88,21 +88,47 @@
 }
 
 .searchBar button {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
   color: white;
   border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.95rem;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.searchBar button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .searchBar button:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #3d654a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
+}
+
+.searchBar button:hover::before {
+  left: 100%;
+}
+
+.searchBar button:active {
+  transform: translateY(0);
 }
 
 .inventory-table {
@@ -155,49 +181,74 @@
 
 .inventory-actions button {
   background-color: transparent;
-  color: var(--secondary-text);
+  color: var(--primary-text);
   border: 1px solid var(--border-color);
   width: 36px;
   height: 36px;
-  border-radius: var(--border-radius-pill);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inventory-actions button:hover {
-  background-color: var(--bg-color);
-  color: var(--primary-text);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .inventory-actions button:first-child {
   color: var(--success);
+  border-color: var(--success);
+  background-color: rgba(40, 167, 69, 0.1);
 }
 
 .inventory-actions button:first-child:hover {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: var(--success);
+  color: white;
   border-color: var(--success);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  transform: translateY(-2px) scale(1.1);
 }
 
 .inventory-actions button:nth-child(2) {
   color: var(--secondary);
+  border-color: var(--secondary);
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .inventory-actions button:nth-child(2):hover {
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: var(--secondary);
+  color: white;
   border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  transform: translateY(-2px) scale(1.1);
 }
 
 .inventory-actions button:last-child {
   color: var(--danger);
+  border-color: var(--danger);
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .inventory-actions button:last-child:hover {
-  background-color: rgba(220, 53, 69, 0.1);
+  background-color: var(--danger);
+  color: white;
   border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* Icon animations for buttons */
+.inventory-actions button svg {
+  transition: all 0.3s ease;
+}
+
+.inventory-actions button:hover svg {
+  transform: scale(1.2);
 }
 
 /* Overlay for modals */
@@ -297,6 +348,20 @@
 
 .page-header-icon {
   color: var(--primary);
+  transition: color var(--transition-normal);
+}
+
+/* Specific style for the shopping cart icon in new-purchase page */
+.page-header h1 .page-header-icon {
+  color: var(--success);
+  font-size: 1.2em;
+  margin-left: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.2));
+}
+
+.page-header h1 .page-header-icon:hover {
+  color: var(--success-dark);
+  transform: scale(1.1);
 }
 
 /* Quantity display and inputs */

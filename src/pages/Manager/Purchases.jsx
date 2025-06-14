@@ -414,14 +414,14 @@ const handleSavePurchaseDate = async (purchaseId) => {
                             transition: 'all 0.3s ease'
                           }}
                           onMouseOver={(e) => {
-                            e.target.style.backgroundColor = 'var(--success)';
-                            e.target.style.color = 'white';
-                            e.target.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.backgroundColor = 'var(--success)';
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.transform = 'scale(1.1)';
                           }}
                           onMouseOut={(e) => {
-                            e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
-                            e.target.style.color = 'var(--success)';
-                            e.target.style.transform = 'scale(1)';
+                            e.currentTarget.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+                            e.currentTarget.style.color = 'var(--success)';
+                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >
                           <FontAwesomeIcon icon={faFileAlt} />
@@ -528,10 +528,20 @@ const handleSavePurchaseDate = async (purchaseId) => {
                     <td className="inventory-actions">
                       {editingId === item.id ? (
                         <>
-                          <button onClick={() => handleSavePrice(item.id)} title="שמור" className="btn btn-sm btn-success">
+                          <button onClick={() => handleSavePrice(item.id)} title="שמור" className="btn btn-sm btn-success"
+                            style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}>
                             <FontAwesomeIcon icon={faSave} />
                           </button>
-                          <button onClick={handleCancelEdit} title="בטל" className="btn btn-sm btn-danger">
+                          <button onClick={handleCancelEdit} title="בטל" className="btn btn-sm btn-danger"
+                          style={{
+                            color: 'white',
+                            border: '1px solid white',
+                            backgroundColor: 'transparent'
+                          }}>
                             <FontAwesomeIcon icon={faTimes} />
                           </button>
                         </>
@@ -540,6 +550,17 @@ const handleSavePurchaseDate = async (purchaseId) => {
                           className="btn btn-sm btn-primary"
                           onClick={() => handleEditPrice(item)}
                           title="ערוך מחיר"
+                          style={{
+                            color: 'green',
+                            border: '1px solid green',
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseOver={(e) => {
+                            e.target.style.borderColor = 'white';
+                          }}
+                          onMouseOut={(e) => {
+                            e.target.style.borderColor = 'green';
+                          }}
                         >
                           <FontAwesomeIcon icon={faEdit} />
                         </button>
@@ -658,7 +679,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
               </div>
               
               {/* Receipt Upload Section */}
-              <div style={{ marginBottom: '2rem' }}>
+              <div style={{ marginBottom: '2  rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                   <FontAwesomeIcon icon={faCloudUploadAlt} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
                   <label style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--primary-text)', margin: 0 }}>
@@ -699,7 +720,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                       style={{
                         width: '100%',
                         minHeight: '120px',
-                        padding: '2rem',
                         border: '2px dashed #cbd5e0',
                         borderRadius: '12px',
                         backgroundColor: '#f8f9fa',

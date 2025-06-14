@@ -30,25 +30,43 @@
 
 .edit-button {
     margin-top: 20px;
-    padding: 10px 20px;
-    border-radius: 25px;
+    padding: 14px 28px;
+    border-radius: var(--border-radius-md);
     cursor: pointer;
-    background-color: var(--login-bg, #4a90e2);
+    background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
     color: #ffffff;
     border: none;
-    font-size: 16px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
 }
 
 .edit-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
-    background-color: var(--login-hover-bg, #3a80d2);
+    box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #3d654a 100%);
+}
+
+.edit-button:hover::before {
+    left: 100%;
 }
 
 .edit-button .profile-icon {
@@ -56,7 +74,7 @@
 }
 
 .edit-button:active {
-    box-shadow: 0 0 5px 1px var(--header-bg);
+    transform: translateY(0);
 }
 
 .edit-text {
@@ -229,19 +247,24 @@
     top: 50%;
     right: 140px;
     transform: translateY(-50%);
-    background: none;
+    background: transparent;
     border: none;
     cursor: pointer;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--secondary-text);
 }
 
 .eye-button:hover {
-    opacity: 0.7;
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .pass-eye-icon {
@@ -271,12 +294,25 @@
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
+    background: transparent;
     border: none;
     cursor: pointer;
-    color: var(--icon-highlight);
+    color: var(--secondary-text);
     font-size: 18px;
     margin-top: 12px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-wrapper button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+    transform: translateY(-50%) scale(1.1);
 }
 
 .profile-avatar-container {

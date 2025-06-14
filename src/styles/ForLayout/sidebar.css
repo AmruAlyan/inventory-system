@@ -44,41 +44,63 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  /* border: solid 1px black; */
+  border-radius: var(--border-radius-md);
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-  margin: 10px;
-  background: none;
-  box-shadow: 0 0 5px 1px rgb(80, 79, 79);
-  background-color: var(--panel-bg);
-  /* background-color: #7BB08E; */
+  width: 44px;
+  height: 44px;
+  margin: 8px;
+  background: var(--panel-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.sidebar-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(81, 134, 100, 0.1), transparent);
+  transition: left 0.4s ease;
+}
+
+.sidebar-button:hover::before {
+  left: 100%;
+}
+
+.sidebar-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(81, 134, 100, 0.2);
 }
 
 .sidebar.expanded .sidebar-button {
-  border-radius: 10px;
-  width: 100%;
-  height: 40px;
-  margin: 10px;
-  justify-content: right;
+  border-radius: var(--border-radius-md);
+  width: calc(100% - 16px);
+  height: 44px;
+  margin: 8px;
+  justify-content: flex-start;
+  padding-left: 16px;
 }
 
 .sidebar-button:active {
-  /* background-color: transparent; */
-  /* box-shadow: 0 0 5px 1px var(--panel-bg); */
-  box-shadow: none;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-button-active {
-  background-color: transparent;
-  color: var(--panel-bg);
-  /* box-shadow: 0 0 0 0 #ff9800; */
-  border: 1px solid var(--panel-bg);
+  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
+  transform: translateY(-1px);
   position: relative;
-  overflow: visible;
-  /* animation: sidebar-active-shadow-lap 1.5s linear infinite; */
+  overflow: hidden;
 }
 
 @keyframes sidebar-active-shadow-lap {

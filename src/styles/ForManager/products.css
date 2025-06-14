@@ -66,21 +66,47 @@
 }
 
 .searchBar button {
-  background-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
   color: white;
   border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.95rem;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.searchBar button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .searchBar button:hover {
-  background-color: var(--primary-dark);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #3d654a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
+}
+
+.searchBar button:hover::before {
+  left: 100%;
+}
+
+.searchBar button:active {
+  transform: translateY(0);
 }
 
 .inventory-table {
@@ -169,49 +195,76 @@
 
 .inventory-actions button {
   background-color: transparent;
-  color: var(--secondary-text);
+  color: var(--primary-text);
   border: 1px solid var(--border-color);
   width: 36px;
   height: 36px;
-  border-radius: var(--border-radius-pill);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .inventory-actions button:hover {
-  background-color: var(--bg-color);
-  color: var(--primary-text);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .inventory-actions button:first-child {
   color: var(--success);
+  border-color: var(--success);
+  background-color: rgba(40, 167, 69, 0.1);
 }
 
 .inventory-actions button:first-child:hover {
-  background-color: rgba(40, 167, 69, 0.1);
+  background-color: var(--success);
+  color: white;
   border-color: var(--success);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Consumption mode style overrides */
+body[data-mode="consumption"] .inventory-actions button:first-child {
+  color: var(--warning);
+  border-color: var(--warning);
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+body[data-mode="consumption"] .inventory-actions button:first-child:hover {
+  background-color: var(--warning);
+  border-color: var(--warning);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
 .inventory-actions button:nth-child(2) {
   color: var(--secondary);
+  border-color: var(--secondary);
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .inventory-actions button:nth-child(2):hover {
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: var(--secondary);
+  color: white;
   border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .inventory-actions button:last-child {
   color: var(--danger);
+  border-color: var(--danger);
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .inventory-actions button:last-child:hover {
-  background-color: rgba(220, 53, 69, 0.1);
+  background-color: var(--danger);
+  color: white;
   border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .purchases-actions {
@@ -222,22 +275,66 @@
 
 .purchases-actions button {
   background-color: transparent;
-  color: var(--success);
-  border: 1px solid var(--border-color);
-  width: 36px;
-  height: 36px;
-  border-radius: var(--border-radius-pill);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all var(--transition-fast);
-  display: flex;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  background-color: rgba(81, 134, 100, 0.1);
+  color: var(--primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .purchases-actions button:hover {
-  background-color: rgba(40, 167, 69, 0.1);
-  border-color: var(--success);
+  background-color: var(--success);
+  color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.purchases-actions button:hover {
+  background-color: var(--success);
+  color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.purchases-actions button svg {
+  transition: all 0.3s ease;
+}
+
+.purchases-actions button:hover svg {
+  transform: scale(1.2);
+}
+
+/* Specific styles for view details button */
+.purchases-actions button:nth-child(1) {
+  background-color: rgba(23, 162, 184, 0.1);
+  color: var(--info);
+}
+
+.purchases-actions button:nth-child(1):hover {
+  background-color: var(--info);
+  color: white;
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+/* Specific styles for edit date button */
+.purchases-actions button:nth-child(2) {
+  background-color: rgba(81, 134, 100, 0.1);
+  color: var(--primary);
+}
+
+.purchases-actions button:nth-child(2):hover {
+  background-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(81, 134, 100, 0.3);
 }
 
 /* Overlay for modals */
@@ -578,11 +675,12 @@
   border: 2px solid;
   background-color: transparent;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .add-btn {
@@ -593,6 +691,8 @@
 .add-btn:hover:not(.disabled) {
   background-color: var(--success);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .add-btn.disabled {
@@ -610,6 +710,8 @@
 .edit-btn:hover {
   background-color: var(--secondary);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .delete-btn {
@@ -620,6 +722,8 @@
 .delete-btn:hover {
   background-color: var(--danger);
   color: white;
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 /* Consumed Items Mode Styles */
@@ -629,24 +733,25 @@
   border-radius: var(--border-radius-md) !important;
   font-weight: 600 !important;
   border: none !important;
-  transition: all var(--transition-fast) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   display: flex !important;
   align-items: center !important;
   gap: var(--spacing-xs) !important;
   min-width: 120px !important;
   justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
 }
 
 .consumption-btn:hover:not(.disabled) {
   background-color: #e6a800 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4) !important;
 }
 
 .stocktaking-btn:hover:not(.disabled) {
   background-color: #218838 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
 }
 
 .processing-indicator {
@@ -825,6 +930,20 @@
 
 .page-header-icon {
   color: var(--primary);
+  transition: color var(--transition-normal);
+}
+
+/* Specific style for the shopping cart icon in new-purchase page */
+.page-header h1 .page-header-icon {
+  color: var(--success);
+  font-size: 1.2em;
+  margin-left: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.2));
+}
+
+.page-header h1 .page-header-icon:hover {
+  color: var(--success-dark);
+  transform: scale(1.1);
 }
 
 /* Quantity display and inputs */
@@ -926,3 +1045,302 @@
   color: var(--primary-text);
   font-weight: 600;
 }
+
+/* Consumption mode specific styling */
+body[data-mode="consumption"] .btn-primary {
+  border-color: var(--warning);
+  background: white;
+  color: var(--warning);
+}
+
+body[data-mode="consumption"] .btn-primary:hover {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%) !important;
+  color: white !important;
+  border-color: var(--warning);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+  transform: translateY(-2px);
+}
+
+body[data-mode="consumption"] .inventory-actions button:hover {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+/* Indicator for consumed items mode buttons */
+body[data-mode="consumption"] .btn-success:hover {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%);
+  color: white;
+  border-color: var(--warning);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+/* ProductCard button styling for consumption vs stocktaking mode */
+body[data-mode="consumption"] .consumption-btn {
+  background: var(--warning) !important;
+  color: white !important;
+}
+
+body[data-mode="consumption"] .consumption-btn:hover {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%) !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4) !important;
+}
+
+/* Default mode */
+body[data-mode="stocktaking"] .stocktaking-btn,
+.stocktaking-btn {
+  background: var(--success) !important;
+  color: white !important;
+}
+
+body[data-mode="stocktaking"] .stocktaking-btn:hover,
+.stocktaking-btn:hover {
+  background: linear-gradient(135deg, var(--success) 0%, #218838 100%) !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
+}
+
+/* Enhanced styling for the save purchase button */
+.purchase-summary .btn-primary {
+  background: linear-gradient(135deg, var(--success) 0%, #2e7d32 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.purchase-summary .btn-primary:hover {
+  background: linear-gradient(135deg, var(--success-dark) 0%, #1b5e20 100%);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+
+.purchase-summary .btn-primary svg {
+  transition: transform 0.3s ease;
+}
+
+.purchase-summary .btn-primary:hover svg {
+  transform: rotate(-10deg) scale(1.2);
+  color: white !important;
+}
+
+/* Enhanced styling for the edit price button */
+.inventory-actions .btn-primary {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.2);
+}
+
+.inventory-actions .btn-primary:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
+}
+
+.inventory-actions .btn-primary svg,
+.inventory-actions .btn-success svg,
+.inventory-actions .btn-danger svg {
+  transition: all 0.3s ease;
+}
+
+.inventory-actions .btn-primary:hover svg,
+.inventory-actions .btn-success:hover svg,
+.inventory-actions .btn-danger:hover svg {
+  transform: scale(1.2);
+  color: white !important;
+}
+
+/* Enhance the save and cancel buttons for price editing */
+.inventory-actions .btn-success,
+.inventory-actions .btn-danger {
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inventory-actions .btn-success:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+}
+
+.inventory-actions .btn-danger:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* ==========================================
+   GLOBAL BUTTON STANDARDIZATION
+   ========================================== */
+
+/* Global standardized button effects for all add/update/delete buttons */
+.btn-sm, .btn-primary, .btn-success, .btn-danger, .btn-secondary, .btn-warning, .btn-info {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Shimmer effect for all buttons */
+.btn-sm::before, .btn-primary::before, .btn-success::before, .btn-danger::before, 
+.btn-secondary::before, .btn-warning::before, .btn-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.btn-sm:hover::before, .btn-primary:hover::before, .btn-success:hover::before, 
+.btn-danger:hover::before, .btn-secondary:hover::before, .btn-warning:hover::before, 
+.btn-info:hover::before {
+  left: 100%;
+}
+
+/* Standardized hover effects for all button types */
+.btn-primary:hover:not(:disabled):not(.disabled),
+.btn-success:hover:not(:disabled):not(.disabled),
+.btn-danger:hover:not(:disabled):not(.disabled),
+.btn-secondary:hover:not(:disabled):not(.disabled),
+.btn-warning:hover:not(:disabled):not(.disabled),
+.btn-info:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* Specific color-based shadows for each button type */
+.btn-primary:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
+}
+
+.btn-success:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-danger:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+}
+
+.btn-secondary:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4);
+}
+
+.btn-warning:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+}
+
+.btn-info:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 6px 15px rgba(23, 162, 184, 0.4);
+}
+
+/* Icon animations for all buttons */
+.btn-primary svg, .btn-success svg, .btn-danger svg, 
+.btn-secondary svg, .btn-warning svg, .btn-info svg,
+.inventory-actions svg, .purchases-actions svg, .product-card-actions svg {
+  transition: all 0.3s ease;
+}
+
+/* Icon scaling on hover (without color change) */
+.btn-primary:hover svg, .btn-success:hover svg, .btn-danger:hover svg,
+.btn-secondary:hover svg, .btn-warning:hover svg, .btn-info:hover svg,
+.inventory-actions button:hover svg, .purchases-actions button:hover svg, 
+.product-card-actions button:hover svg {
+  transform: scale(1.2);
+}
+
+/* ==========================================
+   CONSUMPTION MODE OVERRIDES
+   ========================================== */
+
+/* Special consumption mode effects - buttons change based on mode */
+body[data-mode="consumption"] .btn-primary:hover:not(:disabled):not(.disabled) {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%) !important;
+  color: white !important;
+  border-color: var(--warning);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+  transform: translateY(-2px) scale(1.1);
+}
+
+body[data-mode="consumption"] .btn-success:hover:not(:disabled):not(.disabled) {
+  background: linear-gradient(135deg, var(--warning) 0%, #f57c00 100%) !important;
+  color: white !important;
+  border-color: var(--warning);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+}
+
+body[data-mode="consumption"] .inventory-actions button:hover:not(:disabled):not(.disabled) {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: var(--warning);
+  color: var(--warning);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+}
+
+/* ==========================================
+   ADDITIONAL GLOBAL BUTTON ENHANCEMENTS
+   ========================================== */
+
+/* Ensure all action containers have consistent icon animations */
+.inventory-actions, .purchases-actions, .product-card-actions,
+.crop-modal-actions, .modal-footer, .profile-actions {
+  svg, i, .icon {
+    transition: all 0.3s ease;
+  }
+}
+
+.inventory-actions button:hover svg,
+.purchases-actions button:hover svg,
+.product-card-actions button:hover svg,
+.crop-modal-actions button:hover svg,
+.modal-footer button:hover svg,
+.profile-actions button:hover svg {
+  transform: scale(1.2);
+}
+
+/* Additional button classes that should have consistent effects */
+.action-btn, .edit-button, .NewProduct-button, .update-button, 
+.generate-btn, .save-btn, .cancel-btn, .confirm-btn, .upload-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn::before, .edit-button::before, .NewProduct-button::before,
+.update-button::before, .generate-btn::before, .save-btn::before,
+.cancel-btn::before, .confirm-btn::before, .upload-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.action-btn:hover::before, .edit-button:hover::before, .NewProduct-button:hover::before,
+.update-button:hover::before, .generate-btn:hover::before, .save-btn:hover::before,
+.cancel-btn:hover::before, .confirm-btn:hover::before, .upload-btn:hover::before {
+  left: 100%;
+}
+
+/* Ensure consumption mode takes precedence for specific buttons */
+body[data-mode="consumption"] .action-btn:hover:not(:disabled):not(.disabled),
+body[data-mode="consumption"] .edit-btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4);
+}
+
+
