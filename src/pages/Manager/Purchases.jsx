@@ -31,6 +31,7 @@ const Purchases = () => {
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [dragActive, setDragActive] = useState(false);
 
 
   // Subscribe to current purchase
@@ -262,6 +263,53 @@ const handleSavePrice = async (itemId) => {
     if (fileInput) fileInput.value = '';
   };
 
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragIn = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragActive(true);
+    }
+  };
+
+  const handleDragOut = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      
+      // Validate file type (images and PDFs)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('ניתן להעלות רק תמונות (JPG, PNG, GIF) או קבצי PDF');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast.error('גודל הקובץ חייב להיות קטן מ-10MB');
+        return;
+      }
+      
+      setReceiptFile(file);
+      e.dataTransfer.clearData();
+    }
+  };
+
   // Close save modal and reset state
   const closeSaveModal = () => {
     setShowSaveModal(false);
@@ -376,6 +424,27 @@ const handleSavePurchaseDate = async (purchaseId) => {
       }
     }
   }, [location.state, purchaseHistory]);
+
+  // Prevent default drag behaviors on window
+  useEffect(() => {
+    const preventDefaults = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
+    events.forEach(eventName => {
+      document.addEventListener(eventName, preventDefaults, false);
+      document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    return () => {
+      events.forEach(eventName => {
+        document.removeEventListener(eventName, preventDefaults, false);
+        document.body.removeEventListener(eventName, preventDefaults, false);
+      });
+    };
+  }, []);
 
   return (
     <div className="inventory-container">      {selectedPurchase && (
@@ -800,12 +869,16 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   {!receiptFile ? (
                     <div
                       onClick={() => document.getElementById('receipt-file-input').click()}
+                      onDragEnter={handleDragIn}
+                      onDragLeave={handleDragOut}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
                       style={{
                         width: '100%',
                         minHeight: '120px',
-                        border: '2px dashed #cbd5e0',
+                        border: `2px dashed ${dragActive ? 'var(--primary)' : '#cbd5e0'}`,
                         borderRadius: '12px',
-                        backgroundColor: '#f8f9fa',
+                        backgroundColor: dragActive ? '#e3f2fd' : '#f8f9fa',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         display: 'flex',
@@ -816,24 +889,43 @@ const handleSavePurchaseDate = async (purchaseId) => {
                         textAlign: 'center'
                       }}
                       onMouseOver={(e) => {
-                        e.target.style.borderColor = 'var(--primary)';
-                        e.target.style.backgroundColor = '#f0f8f0';
+                        if (!dragActive) {
+                          e.target.style.borderColor = 'var(--primary)';
+                          e.target.style.backgroundColor = '#f0f8f0';
+                        }
                       }}
                       onMouseOut={(e) => {
-                        e.target.style.borderColor = '#cbd5e0';
-                        e.target.style.backgroundColor = '#f8f9fa';
+                        if (!dragActive) {
+                          e.target.style.borderColor = '#cbd5e0';
+                          e.target.style.backgroundColor = '#f8f9fa';
+                        }
                       }}
                     >
                       <FontAwesomeIcon 
                         icon={faCloudUploadAlt} 
-                        style={{ fontSize: '2.5rem', color: 'var(--primary)', opacity: 0.7 }} 
+                        style={{ 
+                          fontSize: '2.5rem', 
+                          color: dragActive ? 'var(--primary)' : 'var(--primary)', 
+                          opacity: dragActive ? 1 : 0.7,
+                          transition: 'all 0.3s ease'
+                        }} 
                       />
                       <div>
-                        <div style={{ fontSize: '1rem', fontWeight: '500', color: 'var(--primary-text)', marginBottom: '0.25rem' }}>
-                          לחץ לבחירת קובץ קבלה
+                        <div style={{ 
+                          fontSize: '1rem', 
+                          fontWeight: '500', 
+                          color: dragActive ? 'var(--primary)' : 'var(--primary-text)', 
+                          marginBottom: '0.25rem',
+                          transition: 'color 0.3s ease'
+                        }}>
+                          {dragActive ? 'שחרר לכן להעלאה' : 'לחץ לבחירת קובץ קבלה'}
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--secondary-text)' }}>
-                          או גרור ושחרר כאן
+                        <div style={{ 
+                          fontSize: '0.85rem', 
+                          color: 'var(--secondary-text)',
+                          fontWeight: dragActive ? '500' : 'normal'
+                        }}>
+                          {dragActive ? 'קובץ מוכן להעלאה' : 'או גרור ושחרר כאן'}
                         </div>
                       </div>
                     </div>
