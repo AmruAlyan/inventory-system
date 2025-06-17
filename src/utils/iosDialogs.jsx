@@ -1,15 +1,11 @@
 /**
- * Modern Async System Dialogs with iOS Design
- * 
- * This module provides async replacements for browser dialogs with iOS styling.
- * Instead of trying to make async dialogs synchronous (which causes issues),
- * we'll update the codebase to use async/await patterns.
+ * Provides showAlert and showConfirm functions 
  */
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
-// Theme detection and CSS variables
+// CSS styles for the dialogs
 const createThemeCSS = () => {
   if (document.querySelector('#ios-dialog-theme')) return;
   
@@ -20,19 +16,19 @@ const createThemeCSS = () => {
       --dialog-bg-light: #ffffff;
       --dialog-text-light: #000000;
       --dialog-border-light: rgba(0, 0, 0, 0.1);
-      --button-blue-light: #007aff;
+      --button-green-light: #28a745;
       
       --dialog-bg-dark: #2c2c2e;
       --dialog-text-dark: #ffffff;
       --dialog-border-dark: rgba(84, 84, 88, 0.6);
-      --button-blue-dark: #0a84ff;
+      --button-green-dark: #34d058;
     }
     
     .ios-dialog-overlay {
       --dialog-bg: var(--dialog-bg-light);
       --dialog-text: var(--dialog-text-light);
       --dialog-border: var(--dialog-border-light);
-      --button-blue: var(--button-blue-light);
+      --button-green: var(--button-green-light);
     }
     
     @media (prefers-color-scheme: dark) {
@@ -40,24 +36,15 @@ const createThemeCSS = () => {
         --dialog-bg: var(--dialog-bg-dark);
         --dialog-text: var(--dialog-text-dark);
         --dialog-border: var(--dialog-border-dark);
-        --button-blue: var(--button-blue-dark);
+        --button-green: var(--button-green-dark);
       }
     }
     
-    /* Your app's theme system */
     [data-theme="dark"] .ios-dialog-overlay {
       --dialog-bg: var(--dialog-bg-dark);
       --dialog-text: var(--dialog-text-dark);
       --dialog-border: var(--dialog-border-dark);
-      --button-blue: var(--button-blue-dark);
-    }
-    
-    /* Legacy support */
-    .dark-mode .ios-dialog-overlay {
-      --dialog-bg: var(--dialog-bg-dark);
-      --dialog-text: var(--dialog-text-dark);
-      --dialog-border: var(--dialog-border-dark);
-      --button-blue: var(--button-blue-dark);
+      --button-green: var(--button-green-dark);
     }
     
     @keyframes iosOverlayFadeIn {
@@ -79,14 +66,14 @@ const createThemeCSS = () => {
   document.head.appendChild(style);
 };
 
-// Initialize theme CSS
+// Initialize CSS when module loads
 createThemeCSS();
 
-// Global state
+// Global state for dialog management
 let dialogContainer = null;
 let dialogRoot = null;
 
-// Utility functions
+// Dialog utilities
 const getDialogContainer = () => {
   if (!dialogContainer) {
     dialogContainer = document.createElement('div');
@@ -200,7 +187,7 @@ const IOSAlertDialog = ({ title, message, onClose }) => {
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: 'var(--button-blue)',
+              color: 'var(--button-green)',
               fontSize: '17px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -212,10 +199,10 @@ const IOSAlertDialog = ({ title, message, onClose }) => {
               justifyContent: 'center'
             }}
             onClick={onClose}
-            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.1)'}
-            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'}
+            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
             autoFocus
           >
             אישור
@@ -347,15 +334,15 @@ const IOSConfirmDialog = ({ title, message, onConfirm, onCancel }) => {
           <button
             style={{
               ...buttonStyle,
-              color: 'var(--button-blue)',
+              color: 'var(--button-green)',
               fontWeight: '600',
               borderLeft: '0.5px solid var(--dialog-border)'
             }}
             onClick={onConfirm}
-            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.1)'}
-            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'}
+            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
           >
             אישור
           </button>
@@ -409,41 +396,4 @@ export const showConfirm = (message, title = 'אישור פעולה') => {
       />
     );
   });
-};
-
-// Helper function to replace window.confirm calls
-export const asyncConfirm = showConfirm;
-export const asyncAlert = showAlert;
-
-// Install overrides (for gradual migration)
-export function installDialogOverrides() {
-  const originalAlert = window.alert;
-  const originalConfirm = window.confirm;
-  
-  // Override alert (safe since alert doesn't return values)
-  window.alert = function(message) {
-    showAlert(message);
-    return undefined;
-  };
-  
-  // For confirm, we'll just console.warn and use original for now
-  // Individual files will be updated to use asyncConfirm
-  window.confirm = function(message) {
-    console.warn('Using old window.confirm. Consider updating to asyncConfirm for better UX:', message);
-    return originalConfirm(message);
-  };
-  
-  return function cleanup() {
-    window.alert = originalAlert;
-    window.confirm = originalConfirm;
-    clearDialog();
-  };
-}
-
-export default {
-  showAlert,
-  showConfirm,
-  asyncAlert,
-  asyncConfirm,
-  installDialogOverrides
 };
