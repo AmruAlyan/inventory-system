@@ -7,6 +7,8 @@ import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-s
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
+import { showAlert } from "../../utils/iosDialogs";
+import { toast } from 'react-toastify';
 
 const labelMap = {
   name: "שם",
@@ -82,7 +84,7 @@ const AdminProfile = () => {
 const confirmEdit = async () => {
     const allFilled = Object.values(formData).every((value) => value.trim() !== "");
     if (!allFilled) {
-      alert("אנא מלא את כל השדות");
+      showAlert("אנא מלא את כל השדות");
       return;
     }
   
@@ -99,7 +101,7 @@ const confirmEdit = async () => {
           console.log(credentials)
           await reauthenticateWithCredential(user, credentials); // Reauthentication step
         } catch (error) {
-          alert("נכשל בהתחברות מחדש: " + error.message);
+          showAlert("נכשל בהתחברות מחדש: " + error.message);
           return; // Stop if reauthentication fails
         }
       }
@@ -109,7 +111,7 @@ const confirmEdit = async () => {
         try {
           await updateEmail(user, formData.email); // Update email
         } catch (error) {
-          alert("נכשל בעדכון כתובת הדוא\"ל: " + error.message);
+          showAlert("נכשל בעדכון כתובת הדוא\"ל: " + error.message);
           return; // Stop if email update fails
         }
       }
@@ -119,7 +121,7 @@ const confirmEdit = async () => {
         try {
           await updatePassword(user, formData.password); // Update password
         } catch (error) {
-          alert("נכשל בעדכון הסיסמה: " + error.message);
+          showAlert("נכשל בעדכון הסיסמה: " + error.message);
           return; // Stop if password update fails
         }
       }
@@ -139,15 +141,15 @@ const confirmEdit = async () => {
 
         // Update Firestore with the new data
         await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
-        alert("העדכון בוצע בהצלחה!");
+        toast.success("העדכון בוצע בהצלחה!");
       } catch (error) {
         console.error("Firestore update failed:", error.message);
-        alert("נכשל בעדכון בפרופיל.");
+        await showAlert("נכשל בעדכון בפרופיל.", "שגיאה");
       }
   
       setIsEditing(false); // Close the edit mode
     } else {
-      alert("לא ניתן לזהות את המשתמש. אנא התחבר מחדש.");
+      showAlert("לא ניתן לזהות את המשתמש. אנא התחבר מחדש.");
     }
   };
 

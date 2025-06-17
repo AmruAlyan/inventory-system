@@ -1,0 +1,127 @@
+
+/* Custom toast container styles - matches application design aesthetic */
+.custom-toast-container {
+  font-family: inherit;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
+  padding: 0;
+  margin: 0;
+  direction: rtl;
+}
+
+/* Alert toast */
+.custom-toast-alert {
+  padding: 16px;
+}
+
+/* Confirm toast with buttons */
+.custom-toast-confirm,
+.custom-toast-prompt {
+  padding: 16px;
+}
+
+.toast-message {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.toast-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.toast-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.toast-button.confirm {
+  background-color: #3498db;
+  color: white;
+}
+
+.toast-button.confirm:hover {
+  background-color: #2980b9;
+}
+
+.toast-button.cancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.toast-button.cancel:hover {
+  background-color: #ccc;
+}
+
+/* Toast variants */
+.custom-toast-container.alert {
+  background-color: #3498db;
+  color: white;
+}
+
+.custom-toast-container.error {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.custom-toast-container.success {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.custom-toast-container.warning {
+  background-color: #f39c12;
+  color: white;
+}
+
+.custom-toast-container.confirm,
+.custom-toast-container.prompt {
+  background-color: white;
+  color: #333;
+}
+
+/* Input field for prompt */
+.toast-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.toast-input:focus {
+  border-color: #3498db;
+}
+
+/* Make sure the toasts are on top of other UI elements */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+/* Custom colored toast text */
+.custom-toast-container.alert .toast-message,
+.custom-toast-container.error .toast-message,
+.custom-toast-container.success .toast-message,
+.custom-toast-container.warning .toast-message {
+  color: white;
+}
+
+/* Adjust close button for RTL */
+.Toastify__close-button {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  right: auto;
+}

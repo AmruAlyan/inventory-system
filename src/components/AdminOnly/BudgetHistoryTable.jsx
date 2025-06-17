@@ -4,6 +4,7 @@ import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes } from '@fortaweso
 import { db } from '../../firebase/firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
+import { showConfirm } from '../../utils/iosDialogs';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
 
@@ -192,7 +193,11 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   };
 
   const handleDeleteAll = async () => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק את כל רשומות התקציב? פעולה זו אינה ניתנת לביטול.')) {
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך למחוק את כל רשומות התקציב? פעולה זו אינה ניתנת לביטול.',
+      'מחק הכל'
+    );
+    if (confirmed) {
       try {
         setIsLoading(true);
 
@@ -238,7 +243,11 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   };
 
   const handleDelete = async (id, amount, totalBudget) => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק רשומה זו?')) {
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך למחוק רשומה זו?',
+      'מחק'
+    );
+    if (confirmed) {
       try {
         setIsLoading(true);
 

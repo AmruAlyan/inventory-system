@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
 import { toast } from 'react-toastify';
 import Spinner from '../../components/Spinner';
+import { showConfirm } from '../../utils/iosDialogs';
 import '../../styles/ForManager/categories.css';
 
 const Categories = () => {
@@ -59,8 +60,9 @@ const Categories = () => {
 
   const handleDelete = async (id) => {
     const category = categories.find((c) => c.id === id);
-    const confirmDelete = window.confirm(
-      `האם אתה בטוח שברצונך למחוק את הקטגוריה "${category?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`
+    const confirmDelete = await showConfirm(
+      `האם אתה בטוח שברצונך למחוק את הקטגוריה "${category?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`,
+      'מחק קטגוריה'
     );
     if (!confirmDelete) return;
     try {

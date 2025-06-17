@@ -7,6 +7,7 @@ import { faUserPen, faBan, faEye, faEyeSlash, faUser, faAt, faLock, faBriefcase 
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
+import { showAlert } from "../../utils/iosDialogs";
 
 const labelMap = {
   name: "שם",
@@ -82,7 +83,7 @@ const ManagerProfile = () => {
 const confirmEdit = async () => {
     const allFilled = Object.values(formData).every((value) => value.trim() !== "");
     if (!allFilled) {
-      alert("אנא מלא את כל השדות");
+      showAlert("אנא מלא את כל השדות");
       return;
     }
   
@@ -99,7 +100,7 @@ const confirmEdit = async () => {
           console.log(credentials)
           await reauthenticateWithCredential(user, credentials); // Reauthentication step
         } catch (error) {
-          alert("נכשל בהתחברות מחדש: " + error.message);
+          showAlert("נכשל בהתחברות מחדש: " + error.message);
           return; // Stop if reauthentication fails
         }
       }
