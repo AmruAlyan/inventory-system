@@ -31,13 +31,27 @@ const createThemeCSS = () => {
       --button-green: var(--button-green-light);
     }
     
-    
+    @media (prefers-color-scheme: dark) {
+      .ios-dialog-overlay {
+        --dialog-bg: var(--dialog-bg-dark);
+        --dialog-text: var(--dialog-text-dark);
+        --dialog-border: var(--dialog-border-dark);
+        --button-green: var(--button-green-dark);
+      }
+    }
     
     [data-theme="dark"] .ios-dialog-overlay {
       --dialog-bg: var(--dialog-bg-dark);
       --dialog-text: var(--dialog-text-dark);
       --dialog-border: var(--dialog-border-dark);
       --button-green: var(--button-green-dark);
+    }
+    
+    [data-theme="light"] .ios-dialog-overlay {
+      --dialog-bg: var(--dialog-bg-light);
+      --dialog-text: var(--dialog-text-light);
+      --dialog-border: var(--dialog-border-light);
+      --button-green: var(--button-green-light);
     }
     
     @keyframes iosOverlayFadeIn {

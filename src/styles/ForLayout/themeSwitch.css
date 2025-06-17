@@ -1,44 +1,110 @@
-  .checkbox {
-    opacity: 0;
-    display: none;
-  }
-  
-  .checkbox-label {
-    /* margin-left: 10px; */
-    background-color: var(--panel-bg);
-    box-shadow: 0 0 5px 1px var(--primary-text);
-    width: 55px;
-    height: 24px;
-    border-radius: 50px;
-    position: relative;
-    padding: 5px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    scale: 0.8;
-  }
-  
-  .fa-moon {color: #f1c40f;}
-  
-  .fa-sun {color: #f39c12;}
+  /* Modern Theme Switch - Firebase Style */
+.theme-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
 
-  .theme-icon {
-    width: 24px;
-    height: 24px;
+.theme-switch-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--primary-text);
+  min-width: 80px;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-switch-button:hover {
+  background-color: var(--bg-color);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.theme-switch-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-switch-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.theme-switch-label {
+  font-weight: 500;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+/* Icon colors based on theme mode */
+.theme-switch-button .fa-sun, .fa-moon {
+  color: #f39c12;
+}
+
+
+.theme-switch-button .fa-circle-half-stroke {
+  color: var(--primary);
+}
+
+/* Hover effects */
+.theme-switch-button:hover .theme-switch-icon {
+  transform: scale(1.1);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .theme-switch-button {
+  background-color: var(--panel-bg);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--primary-text);
+}
+
+[data-theme="dark"] .theme-switch-button:hover {
+  background-color: var(--bg-color);
+  border-color: var(--primary);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .theme-switch-button {
+    min-width: 70px;
+    padding: 6px 10px;
+    font-size: 13px;
   }
   
-  .checkbox-label .ball {
-    background-color: lightgray;
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    border-radius: 50%;
-    transition: transform 0.2s linear;
+  .theme-switch-icon {
+    width: 14px;
+    height: 14px;
   }
-  
-  .checkbox:checked + .checkbox-label .ball {
-    transform: translateX(31px);
-  }
+}
+
+/* Accessibility */
+.theme-switch-button:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.theme-switch-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Animation for smooth transitions */
+@keyframes themeChange {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.theme-switch-button:active {
+  animation: themeChange 0.2s ease;
+}
