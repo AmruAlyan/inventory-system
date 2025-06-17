@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -29,6 +29,8 @@ const Purchases = () => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [sortField, setSortField] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
 
 
   // Subscribe to current purchase
@@ -269,7 +271,49 @@ const handleSavePrice = async (itemId) => {
     if (fileInput) fileInput.value = '';
   };
 
-// Add the handleViewPurchaseDetails function
+  // Sorting functionality
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return faSort;
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  const sortedPurchaseHistory = [...purchaseHistory].sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortField) {
+      case 'date':
+        aValue = a.date && a.date.toDate ? a.date.toDate() : new Date(a.date);
+        bValue = b.date && b.date.toDate ? b.date.toDate() : new Date(b.date);
+        break;
+      case 'items':
+        aValue = a.items?.length || 0;
+        bValue = b.items?.length || 0;
+        break;
+      case 'amount':
+        aValue = a.totalAmount || 0;
+        bValue = b.totalAmount || 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Add the handleViewPurchaseDetails function
 const handleViewPurchaseDetails = (purchase) => {
   setSelectedPurchase(purchase);
 };
@@ -344,15 +388,15 @@ const handleSavePurchaseDate = async (purchaseId) => {
       )}
       <div className="page-header justify-content-between d-flex align-items-center mb-3">
         <h1>
-          <FontAwesomeIcon icon={faCartPlus} className="page-header-icon" />
-         קנייה חדשה
+          <FontAwesomeIcon icon={showHistory ? faHistory : faCartPlus} className="page-header-icon" />
+          {showHistory ? 'היסטוריית רכישות' : 'קנייה חדשה'}
         </h1>
         <button 
           className="btn btn-secondary"
           onClick={() => setShowHistory(!showHistory)}
         >
-          <FontAwesomeIcon icon={faHistory} style={{ marginLeft: '8px' }} />
-          {showHistory ? 'הצג רכישה נוכחית' : 'הצג היסטוריה'}
+          <FontAwesomeIcon icon={showHistory ? faCartPlus : faHistory} style={{ marginLeft: '8px' }} />
+          {showHistory ? ' קנייה נוכחית' : ' היסטוריה'}
         </button>
       </div>
 
@@ -369,15 +413,54 @@ const handleSavePurchaseDate = async (purchaseId) => {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>תאריך רכישה</th>
-                  <th>מספר פריטים</th>
-                  <th>סה"כ רכישה</th>
+                  <th 
+                    onClick={() => handleSort('date')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי תאריך"
+                  >
+                    תאריך רכישה <FontAwesomeIcon icon={getSortIcon('date')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('items')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי מספר פריטים"
+                  >
+                    מספר פריטים <FontAwesomeIcon icon={getSortIcon('items')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('amount')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי סכום"
+                  >
+                    סכום רכישה <FontAwesomeIcon icon={getSortIcon('amount')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
                   <th>קבלה</th>
                   <th>פעולות</th>
                 </tr>
               </thead>
               <tbody>
-                {purchaseHistory.map(purchase => (
+                {sortedPurchaseHistory.map(purchase => (
                   <tr key={purchase.id}>
                     <td>
                       {editingPurchaseId === purchase.id ? (
