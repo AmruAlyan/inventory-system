@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { showConfirm } from '../../utils/iosDialogs';
+import { showConfirm } from '../../utils/dialogs';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';

@@ -4,7 +4,7 @@ import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes } from '@fortaweso
 import { db } from '../../firebase/firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
-import { showConfirm } from '../../utils/iosDialogs';
+import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
 

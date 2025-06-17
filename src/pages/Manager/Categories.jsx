@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
 import { toast } from 'react-toastify';
 import Spinner from '../../components/Spinner';
-import { showConfirm } from '../../utils/iosDialogs';
+import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForManager/categories.css';
 
 const Categories = () => {

@@ -31,14 +31,7 @@ const createThemeCSS = () => {
       --button-green: var(--button-green-light);
     }
     
-    @media (prefers-color-scheme: dark) {
-      .ios-dialog-overlay {
-        --dialog-bg: var(--dialog-bg-dark);
-        --dialog-text: var(--dialog-text-dark);
-        --dialog-border: var(--dialog-border-dark);
-        --button-green: var(--button-green-dark);
-      }
-    }
+    
     
     [data-theme="dark"] .ios-dialog-overlay {
       --dialog-bg: var(--dialog-bg-dark);
@@ -52,7 +45,7 @@ const createThemeCSS = () => {
       to { opacity: 1; }
     }
     
-    @keyframes iosDialogSlideIn {
+    @keyframes dialogslideIn {
       from {
         opacity: 0;
         transform: scale(0.8) translateY(-50px);
@@ -137,7 +130,7 @@ const IOSAlertDialog = ({ title, message, onClose }) => {
           width: '90%',
           overflow: 'hidden',
           direction: 'rtl',
-          animation: 'iosDialogSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          animation: 'dialogslideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           position: 'relative'
         }}
         onClick={(e) => e.stopPropagation()}
@@ -271,7 +264,7 @@ const IOSConfirmDialog = ({ title, message, onConfirm, onCancel }) => {
           width: '90%',
           overflow: 'hidden',
           direction: 'rtl',
-          animation: 'iosDialogSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          animation: 'dialogslideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           position: 'relative'
         }}
         onClick={(e) => e.stopPropagation()}

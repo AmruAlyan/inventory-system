@@ -7,7 +7,7 @@ import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-s
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
-import { showAlert } from "../../utils/iosDialogs";
+import { showAlert } from "../../utils/dialogs";
 import { toast } from 'react-toastify';
 
 const labelMap = {

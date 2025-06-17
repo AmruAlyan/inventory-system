@@ -7,7 +7,7 @@ import { faUserPen, faBan, faEye, faEyeSlash, faUser, faAt, faLock, faBriefcase 
 import "../../styles/Profile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import { ROLES } from "../../constants/roles";
-import { showAlert } from "../../utils/iosDialogs";
+import { showAlert } from "../../utils/dialogs";
 
 const labelMap = {
   name: "שם",

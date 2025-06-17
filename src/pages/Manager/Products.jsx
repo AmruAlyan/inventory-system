@@ -8,7 +8,7 @@ import ProductModal from '../../components/Modals/ProductModal';
 import AddToListModal from '../../components/Modals/AddToListModal';
 import ProductCard from '../../components/ProductCard';
 import { toast } from 'react-toastify';
-import { showConfirm } from '../../utils/iosDialogs';
+import { showConfirm } from '../../utils/dialogs';
 // import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
