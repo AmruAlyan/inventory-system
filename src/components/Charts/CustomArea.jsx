@@ -26,7 +26,7 @@ const formatHebrewDate = (date) => {
   return `${day} ${hebrewMonths[month]}${yearDisplay}`;
 };
 
-const AreaChartFillByValue = ({ data = [] }) => {
+const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
   const [theme, setTheme] = useState('light');
   const [chartData, setChartData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -153,6 +153,48 @@ const AreaChartFillByValue = ({ data = [] }) => {
   };
 
   const formatTooltip = (value, name) => [`${value.toFixed(2)} ₪`, name === 'ערך' ? 'ערך' : name];
+
+  if (chartOnly) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={chartData}
+          margin={{ left: 25, right: 20, top: 10, bottom: 5 }}
+        >
+          <defs>
+            <linearGradient id={GRADIENT_ID} x1="0" y1="0" x2="0" y2="1">
+              <stop offset={gradientOffset} stopColor="#518664" stopOpacity={0.8}/>
+              <stop offset={gradientOffset} stopColor="#d32f2f" stopOpacity={0.8}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="5 5" stroke={getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim()}/>
+          <XAxis axisLine={{stroke: getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim(), strokeWidth: '2px'}} dataKey="date" />
+          <YAxis
+            axisLine={{stroke: getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim(), strokeWidth: '2px'}}
+            tickFormatter={(value) => {
+              const formattedValue = value < 0 ? `${Math.abs(value)}-` : value;
+              return `₪ ${formattedValue}`;
+            }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          {/* Single area, gradient split at zero */}
+          {chartData.length > 0 && (
+            <Area
+              type="monotone"
+              dataKey="ערך"
+              stroke="#000"
+              fill={`url(#${GRADIENT_ID})`}
+              strokeWidth={3}
+              dot={{ r: 5 }}
+              activeDot={{ r: 8 }}
+              isAnimationActive={false}
+            />
+          )}
+        </AreaChart>
+      </ResponsiveContainer>
+    );
+  }
 
   return (
     <div className="switchable-bar-chart" style={{ width: '100%', height: '100%', position: 'relative' }}>

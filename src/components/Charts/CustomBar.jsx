@@ -33,28 +33,18 @@ const CustomBar = ({ data = [] }) => {
     return () => observer.disconnect();
   }, []);
 
-  // Process data for chart display when it changes
   useEffect(() => {
     if (data && data.length > 0) {
-      // Format the data for the chart - take the most recent entries (up to 10)
-      // Make a copy of the data and sort it by date (oldest to newest) for the chart
       const sortedData = [...data]
         .sort((a, b) => new Date(a.date) - new Date(b.date))
         .slice(0, 10)
         .map(item => ({
-          date: item.formatted || new Intl.DateTimeFormat('he-IL', { 
-            month: 'long', 
-            day: 'numeric' 
-          }).format(item.date),
+          date: item.formatted || new Intl.DateTimeFormat('he-IL', { month: 'long', day: 'numeric' }).format(item.date),
           תקציב: item.amount,
-          rawDate: item.date // Store raw date for sorting
+          rawDate: item.date
         }));
-      
-      // We've removed the empty data point as per requirement
-        
       setChartData(sortedData);
     } else {
-      // When there's no data, show empty chart without placeholder data points
       setChartData([]);
     }
   }, [data]);
@@ -89,9 +79,8 @@ const CustomBar = ({ data = [] }) => {
         <Tooltip 
           contentStyle={tooltipStyle} 
           formatter={formatTooltip}
-        />
+        />        
         <Legend />
-        {/* <Bar dataKey="תקציב" fill="#8884d8" radius={[5, 5, 0, 0]} /> */}
         <Bar dataKey="תקציב" fill="#518664" radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
