@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
+import { showConfirm } from '../../utils/dialogs';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
@@ -186,51 +187,58 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   );
   // Handle delete item
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm('האם אתה בטוח שברצונך להסיר פריט זה מהרשימה?');
-    if (!confirmDelete) return;
-
-    try {
-      await deleteDoc(doc(db, 'sharedShoppingList', 'globalList', 'items', id));
-      toast.success('המוצר נמחק בהצלחה');
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      toast.error('שגיאה במחיקת המוצר');
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך להסיר פריט זה מהרשימה?',
+      'הסרת פריט'
+    );
+    
+    if (confirmed) {
+      try {
+        await deleteDoc(doc(db, 'sharedShoppingList', 'globalList', 'items', id));
+        toast.success('המוצר נמחק בהצלחה');
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        toast.error('שגיאה במחיקת המוצר');
+      }
     }
   };
 
   // Clear all items
   const handleClearAll = async () => {
-  if (shoppingList.length === 0) return;
-  
-  const confirmed = window.confirm('האם אתה בטוח שברצונך למחוק את כל המוצרים מהרשימה?');
-  if (!confirmed) return;
-
-  setClearing(true);
-  try {
-    const batch = writeBatch(db);
-    const itemsRef = collection(doc(db, 'sharedShoppingList', 'globalList'), 'items');
-    const snapshot = await getDocs(itemsRef);
+    if (shoppingList.length === 0) return;
     
-    // Only delete unpurchased items
-    snapshot.docs.forEach(doc => {
-      const item = doc.data();
-      if (!item.purchased) {
-        batch.delete(doc.ref);
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך למחוק את כל המוצרים מהרשימה?',
+      'ניקוי רשימה'
+    );
+    
+    if (confirmed) {
+      setClearing(true);
+      try {
+        const batch = writeBatch(db);
+        
+        // Add all items to the batch delete operation
+        shoppingList.forEach(item => {
+          const docRef = doc(db, 'sharedShoppingList', 'globalList', 'items', item.id);
+          batch.delete(docRef);
+        });
+        
+        // Commit the batch
+        await batch.commit();
+        
+        toast.success('רשימת הקניות נוקתה בהצלחה');
+      } catch (error) {
+        console.error('Error clearing shopping list:', error);
+        toast.error('שגיאה בניקוי רשימת הקניות');
+      } finally {
+        setClearing(false);
       }
-    });
+    }
+  };
 
-    await batch.commit();
-    toast.success('הרשימה נוקתה בהצלחה!');
-  } catch (error) {
-    console.error('Error clearing shopping list:', error);
-    toast.error('שגיאה בניקוי הרשימה');
-  } finally {
-    setClearing(false);
-  }
-};
-
-  // Check all items as purchased
+  // Mark all items as purchased
   const handleCheckAll = async () => {
+    // Find all unpurchased items
     const unpurchasedItems = shoppingList.filter(item => !item.purchased);
     
     if (unpurchasedItems.length === 0) {
@@ -238,54 +246,62 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
       return;
     }
     
-    const confirmed = window.confirm(`האם אתה בטוח שברצונך לסמן ${unpurchasedItems.length} פריטים כנרכשים?`);
-    if (!confirmed) return;
-
-    setCheckingAll(true);
-    try {
-      const batch = writeBatch(db);
-      
-      // Get reference to current purchase document
-      const currentPurchaseRef = doc(db, 'purchases', 'current');
-      const currentPurchaseDoc = await getDoc(currentPurchaseRef);
-      
-      let purchaseItems = [];
-      if (currentPurchaseDoc.exists()) {
-        purchaseItems = currentPurchaseDoc.data().items || [];
-      }
-
-      // Update each unpurchased item
-      for (const item of unpurchasedItems) {
-        const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', item.id);
+    const confirmed = await showConfirm(
+      `האם אתה בטוח שברצונך לסמן ${unpurchasedItems.length} פריטים כנרכשים?`,
+      'סימון פריטים כנרכשים'
+    );
+    
+    if (confirmed) {
+      setCheckingAll(true);
+      try {
+        const batch = writeBatch(db);
+        const currentTime = Date.now();        
+        // Get reference to current purchase document
+        const currentPurchaseRef = doc(db, 'purchases', 'current');
+        const currentPurchaseDoc = await getDoc(currentPurchaseRef);
         
-        // Mark as purchased
-        batch.update(itemRef, { 
-          purchased: true
+        let purchaseItems = [];
+        if (currentPurchaseDoc.exists()) {
+          purchaseItems = currentPurchaseDoc.data().items || [];
+        }
+        
+        // Process each unpurchased item
+        for (const item of unpurchasedItems) {
+          // Update shopping list item
+          const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', item.id);
+          batch.update(itemRef, { 
+            purchased: true,
+            purchaseDate: currentTime
+          });
+          
+          // Add to purchases tracking
+          purchaseItems.push({
+            id: item.id,
+            name: item.name,
+            category: item.category,
+            quantity: item.quantity,
+            price: item.price,
+            actualPrice: item.price, // Default to original price
+            checkedAt: currentTime
+          });
+        }
+        
+        // Update current purchase document
+        batch.set(currentPurchaseRef, { 
+          items: purchaseItems,
+          lastUpdated: currentTime
         });
-
-        // Add to purchase list
-        purchaseItems.push({
-          id: item.id,
-          name: item.name,
-          category: item.category,
-          categoryName: categories[item.category] || 'לא מוגדר',
-          quantity: item.quantity,
-          price: item.price,
-          actualPrice: item.price,
-          checkedAt: Date.now()
-        });
+        
+        // Commit all the changes
+        await batch.commit();
+        
+        toast.success('כל הפריטים סומנו כנרכשים בהצלחה');
+      } catch (error) {
+        console.error('Error marking all items as purchased:', error);
+        toast.error('שגיאה בסימון הפריטים כנרכשים');
+      } finally {
+        setCheckingAll(false);
       }
-
-      // Update the current purchase document
-      batch.set(currentPurchaseRef, { items: purchaseItems }, { merge: true });
-
-      await batch.commit();
-      toast.success(`${unpurchasedItems.length} פריטים סומנו כנרכשים בהצלחה!`);
-    } catch (error) {
-      console.error('Error checking all items:', error);
-      toast.error('שגיאה בסימון הפריטים כנרכשים');
-    } finally {
-      setCheckingAll(false);
     }
   };
 

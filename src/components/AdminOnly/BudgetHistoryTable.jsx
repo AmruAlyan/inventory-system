@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faFilter, faEraser } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
+import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
 
@@ -192,7 +193,11 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   };
 
   const handleDeleteAll = async () => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק את כל רשומות התקציב? פעולה זו אינה ניתנת לביטול.')) {
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך למחוק את כל רשומות התקציב? פעולה זו אינה ניתנת לביטול.',
+      'מחק הכל'
+    );
+    if (confirmed) {
       try {
         setIsLoading(true);
 
@@ -238,7 +243,11 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   };
 
   const handleDelete = async (id, amount, totalBudget) => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק רשומה זו?')) {
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך למחוק רשומה זו?',
+      'מחק'
+    );
+    if (confirmed) {
       try {
         setIsLoading(true);
 
@@ -492,8 +501,12 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                     <td className="inventory-actions">
                       {editingEntry === entry.id ? (
                         <>
-                          <button className="save-btn" onClick={saveEdit}>שמור</button>
-                          <button className="cancel-btn" onClick={() => setEditingEntry(null)}>בטל</button>
+                          <button className="save-btn" onClick={saveEdit}>
+                            <FontAwesomeIcon icon={faSave} style={{ color: 'white' }} />
+                          </button>
+                          <button className="cancel-btn" onClick={() => setEditingEntry(null)}>
+                            <FontAwesomeIcon icon={faTimes} style={{ color: 'white' }} />
+                          </button>
                         </>
                       ) : (
                         <>

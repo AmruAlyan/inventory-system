@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import './styles/theme.css'
@@ -6,8 +6,9 @@ import './index.css'
 import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+// Main App Component
+function MainApp() {
+  return (
     <>
       <App />
       <ToastContainer
@@ -25,6 +26,12 @@ createRoot(document.getElementById('root')).render(
         style={{ top: 70 }} // below header
       />
     </>
+  );
+}
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <MainApp />
   </StrictMode>,
 )
 

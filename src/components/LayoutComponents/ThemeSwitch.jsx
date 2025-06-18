@@ -1,39 +1,115 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
+import { faSun, faMoon, faCircleHalfStroke } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ForLayout/themeSwitch.css";
 import { useState, useEffect } from "react";
 
 const ThemeSwitch = () => {
-  const [theme, setTheme] = useState(() => {
-    // Check localStorage or default to light
-    return localStorage.getItem("theme") || "light";
+  const [themeMode, setThemeMode] = useState(() => {
+    // Check localStorage or default to auto
+    return localStorage.getItem("themeMode") || "auto";
   });
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  const [actualTheme, setActualTheme] = useState("light");
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  // Function to get system preference
+  const getSystemTheme = () => {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  // Function to determine actual theme based on mode
+  const determineActualTheme = (mode) => {
+    switch (mode) {
+      case 'light':
+        return 'light';
+      case 'dark':
+        return 'dark';
+      case 'auto':
+        return getSystemTheme();
+      default:
+        return 'light';
+    }
+  };
+
+  // Apply theme to document and update actual theme
+  useEffect(() => {
+    const newActualTheme = determineActualTheme(themeMode);
+    setActualTheme(newActualTheme);
+    document.documentElement.setAttribute("data-theme", newActualTheme);
+    localStorage.setItem("themeMode", themeMode);
+  }, [themeMode]);
+
+  // Listen for system theme changes when in auto mode
+  useEffect(() => {
+    if (themeMode === 'auto') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleSystemThemeChange = (e) => {
+        const newSystemTheme = e.matches ? 'dark' : 'light';
+        setActualTheme(newSystemTheme);
+        document.documentElement.setAttribute("data-theme", newSystemTheme);
+      };
+
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
+      
+      return () => {
+        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      };
+    }
+  }, [themeMode]);
+
+  const cycleTheme = () => {
+    setThemeMode((prev) => {
+      switch (prev) {
+        case 'light':
+          return 'auto';
+        case 'auto':
+          return 'dark';
+        case 'dark':
+          return 'light';
+        default:
+          return 'light';
+      }
+    });
+  };
+
+  const getThemeIcon = () => {
+    switch (themeMode) {
+      case 'light':
+        return faSun;
+      case 'dark':
+        return faMoon;
+      case 'auto':
+        return faCircleHalfStroke;
+      default:
+        return faSun;
+    }
+  };
+
+  const getThemeLabel = () => {
+    switch (themeMode) {
+      case 'light':
+        return 'בהיר';
+      case 'dark':
+        return 'כהה';
+      case 'auto':
+        return 'אוטומטי';
+      default:
+        return 'Light';
+    }
   };
 
   return (
-    <>
-        <input 
-            type="checkbox" 
-            className="checkbox" 
-            id="checkbox" 
-            checked={theme === 'dark'}
-            onChange={toggleTheme}
-        />
-        <label htmlFor="checkbox" className="checkbox-label">
-            <FontAwesomeIcon icon={faSun} className="theme-icon" id="sun" />
-            <FontAwesomeIcon icon={faMoon} className="theme-icon" id="moon" />
-            <span className="ball"></span>
-        </label>
-    </>
+    <div className="theme-switch-container">
+      <button 
+        className="theme-switch-button" 
+        onClick={cycleTheme}
+        title={`נוכחי: ${getThemeLabel()} (לחץ לשינוי)`}
+      >
+        <FontAwesomeIcon icon={getThemeIcon()} className="theme-switch-icon" />
+        <span className="theme-switch-label">{getThemeLabel()}</span>
+      </button>
+    </div>
   );
 }
 export default ThemeSwitch;

@@ -8,6 +8,7 @@ import ProductModal from '../../components/Modals/ProductModal';
 import AddToListModal from '../../components/Modals/AddToListModal';
 import ProductCard from '../../components/ProductCard';
 import { toast } from 'react-toastify';
+import { showConfirm } from '../../utils/dialogs';
 // import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
@@ -94,17 +95,21 @@ const Products = () => {
 
   const handleDelete = async (id) => {
     const product = products.find((p) => p.id === id);
-    const confirmDelete = window.confirm(
-      `האם אתה בטוח שברצונך למחוק את המוצר "${product?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`
+    
+    const confirmed = await showConfirm(
+      `האם אתה בטוח שברצונך למחוק את המוצר "${product?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`,
+      'מחיקת מוצר'
     );
-    if (!confirmDelete) return;
-    try {
-      await deleteDoc(doc(db, 'products', id));
-      setProducts(products.filter(p => p.id !== id));
-      toast.success('המוצר נמחק בהצלחה');
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      toast.error('שגיאה: לא ניתן למחוק את המוצר');
+    
+    if (confirmed) {
+      try {
+        await deleteDoc(doc(db, 'products', id));
+        setProducts(products.filter((p) => p.id !== id));
+        toast.success(`המוצר "${product?.name ?? ''}" נמחק בהצלחה`);
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        toast.error('שגיאה במחיקת המוצר');
+      }
     }
   };
 

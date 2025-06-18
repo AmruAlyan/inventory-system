@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -29,6 +29,9 @@ const Purchases = () => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [sortField, setSortField] = useState('date');
+  const [sortDirection, setSortDirection] = useState('desc');
+  const [dragActive, setDragActive] = useState(false);
 
 
   // Subscribe to current purchase
@@ -260,6 +263,53 @@ const handleSavePrice = async (itemId) => {
     if (fileInput) fileInput.value = '';
   };
 
+  // Drag and drop handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragIn = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setDragActive(true);
+    }
+  };
+
+  const handleDragOut = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      
+      // Validate file type (images and PDFs)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('ניתן להעלות רק תמונות (JPG, PNG, GIF) או קבצי PDF');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        toast.error('גודל הקובץ חייב להיות קטן מ-10MB');
+        return;
+      }
+      
+      setReceiptFile(file);
+      e.dataTransfer.clearData();
+    }
+  };
+
   // Close save modal and reset state
   const closeSaveModal = () => {
     setShowSaveModal(false);
@@ -269,7 +319,49 @@ const handleSavePrice = async (itemId) => {
     if (fileInput) fileInput.value = '';
   };
 
-// Add the handleViewPurchaseDetails function
+  // Sorting functionality
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return faSort;
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  const sortedPurchaseHistory = [...purchaseHistory].sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortField) {
+      case 'date':
+        aValue = a.date && a.date.toDate ? a.date.toDate() : new Date(a.date);
+        bValue = b.date && b.date.toDate ? b.date.toDate() : new Date(b.date);
+        break;
+      case 'items':
+        aValue = a.items?.length || 0;
+        bValue = b.items?.length || 0;
+        break;
+      case 'amount':
+        aValue = a.totalAmount || 0;
+        bValue = b.totalAmount || 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Add the handleViewPurchaseDetails function
 const handleViewPurchaseDetails = (purchase) => {
   setSelectedPurchase(purchase);
 };
@@ -333,6 +425,27 @@ const handleSavePurchaseDate = async (purchaseId) => {
     }
   }, [location.state, purchaseHistory]);
 
+  // Prevent default drag behaviors on window
+  useEffect(() => {
+    const preventDefaults = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const events = ['dragenter', 'dragover', 'dragleave', 'drop'];
+    events.forEach(eventName => {
+      document.addEventListener(eventName, preventDefaults, false);
+      document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    return () => {
+      events.forEach(eventName => {
+        document.removeEventListener(eventName, preventDefaults, false);
+        document.body.removeEventListener(eventName, preventDefaults, false);
+      });
+    };
+  }, []);
+
   return (
     <div className="inventory-container">      {selectedPurchase && (
         <PurchaseModal 
@@ -344,15 +457,15 @@ const handleSavePurchaseDate = async (purchaseId) => {
       )}
       <div className="page-header justify-content-between d-flex align-items-center mb-3">
         <h1>
-          <FontAwesomeIcon icon={faCartPlus} className="page-header-icon" />
-         קנייה חדשה
+          <FontAwesomeIcon icon={showHistory ? faHistory : faCartPlus} className="page-header-icon" />
+          {showHistory ? 'היסטוריית רכישות' : 'קנייה חדשה'}
         </h1>
         <button 
           className="btn btn-secondary"
           onClick={() => setShowHistory(!showHistory)}
         >
-          <FontAwesomeIcon icon={faHistory} style={{ marginLeft: '8px' }} />
-          {showHistory ? 'הצג רכישה נוכחית' : 'הצג היסטוריה'}
+          <FontAwesomeIcon icon={showHistory ? faCartPlus : faHistory} style={{ marginLeft: '8px' }} />
+          {showHistory ? ' קנייה נוכחית' : ' היסטוריה'}
         </button>
       </div>
 
@@ -369,15 +482,54 @@ const handleSavePurchaseDate = async (purchaseId) => {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>תאריך רכישה</th>
-                  <th>מספר פריטים</th>
-                  <th>סה"כ רכישה</th>
+                  <th 
+                    onClick={() => handleSort('date')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי תאריך"
+                  >
+                    תאריך רכישה <FontAwesomeIcon icon={getSortIcon('date')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('items')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי מספר פריטים"
+                  >
+                    מספר פריטים <FontAwesomeIcon icon={getSortIcon('items')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('amount')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease',
+                      position: 'relative'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי סכום"
+                  >
+                    סכום רכישה <FontAwesomeIcon icon={getSortIcon('amount')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
                   <th>קבלה</th>
                   <th>פעולות</th>
                 </tr>
               </thead>
               <tbody>
-                {purchaseHistory.map(purchase => (
+                {sortedPurchaseHistory.map(purchase => (
                   <tr key={purchase.id}>
                     <td>
                       {editingPurchaseId === purchase.id ? (
@@ -445,10 +597,20 @@ const handleSavePurchaseDate = async (purchaseId) => {
                     <td className='purchases-actions'>
                       {editingPurchaseId === purchase.id ? (
                         <>
-                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך">
+                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך"
+                            style={{
+                              color: 'white',
+                              border: '1px solid white',
+                              backgroundColor: 'transparent'
+                            }}>
                             <FontAwesomeIcon icon={faSave} />
                           </button>
-                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל">
+                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל"
+                            style={{
+                              color: 'white',
+                              border: '1px solid white',
+                              backgroundColor: 'transparent'
+                            }}>
                             <FontAwesomeIcon icon={faTimes} />
                           </button>
                         </>
@@ -637,7 +799,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
               <div style={{ 
                 marginBottom: '2rem', 
                 padding: '1.5rem', 
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                 borderRadius: '12px',
                 border: '1px solid var(--border-color)',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
@@ -649,7 +810,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ 
                     padding: '1rem', 
-                    backgroundColor: 'white', 
                     borderRadius: '8px',
                     border: '1px solid #dee2e6',
                     textAlign: 'center'
@@ -663,7 +823,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   </div>
                   <div style={{ 
                     padding: '1rem', 
-                    backgroundColor: 'white', 
                     borderRadius: '8px',
                     border: '1px solid #dee2e6',
                     textAlign: 'center'
@@ -688,7 +847,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <span style={{ 
                     fontSize: '0.8rem', 
                     color: 'var(--secondary-text)', 
-                    backgroundColor: '#e9ecef',
                     padding: '0.25rem 0.5rem',
                     borderRadius: '12px'
                   }}>
@@ -717,12 +875,15 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   {!receiptFile ? (
                     <div
                       onClick={() => document.getElementById('receipt-file-input').click()}
+                      onDragEnter={handleDragIn}
+                      onDragLeave={handleDragOut}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
                       style={{
                         width: '100%',
                         minHeight: '120px',
-                        border: '2px dashed #cbd5e0',
+                        border: `2px dashed ${dragActive ? 'var(--primary)' : '#cbd5e0'}`,
                         borderRadius: '12px',
-                        backgroundColor: '#f8f9fa',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         display: 'flex',
@@ -733,24 +894,41 @@ const handleSavePurchaseDate = async (purchaseId) => {
                         textAlign: 'center'
                       }}
                       onMouseOver={(e) => {
-                        e.target.style.borderColor = 'var(--primary)';
-                        e.target.style.backgroundColor = '#f0f8f0';
+                        if (!dragActive) {
+                          e.target.style.borderColor = 'var(--primary)';
+                        }
                       }}
                       onMouseOut={(e) => {
-                        e.target.style.borderColor = '#cbd5e0';
-                        e.target.style.backgroundColor = '#f8f9fa';
+                        if (!dragActive) {
+                          e.target.style.borderColor = '#cbd5e0';
+                        }
                       }}
                     >
                       <FontAwesomeIcon 
                         icon={faCloudUploadAlt} 
-                        style={{ fontSize: '2.5rem', color: 'var(--primary)', opacity: 0.7 }} 
+                        style={{ 
+                          fontSize: '2.5rem', 
+                          color: dragActive ? 'var(--primary)' : 'var(--primary)', 
+                          opacity: dragActive ? 1 : 0.7,
+                          transition: 'all 0.3s ease'
+                        }} 
                       />
                       <div>
-                        <div style={{ fontSize: '1rem', fontWeight: '500', color: 'var(--primary-text)', marginBottom: '0.25rem' }}>
-                          לחץ לבחירת קובץ קבלה
+                        <div style={{ 
+                          fontSize: '1rem', 
+                          fontWeight: '500', 
+                          color: dragActive ? 'var(--primary)' : 'var(--primary-text)', 
+                          marginBottom: '0.25rem',
+                          transition: 'color 0.3s ease'
+                        }}>
+                          {dragActive ? 'שחרר לכן להעלאה' : 'לחץ לבחירת קובץ קבלה'}
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--secondary-text)' }}>
-                          או גרור ושחרר כאן
+                        <div style={{ 
+                          fontSize: '0.85rem', 
+                          color: 'var(--secondary-text)',
+                          fontWeight: dragActive ? '500' : 'normal'
+                        }}>
+                          {dragActive ? 'קובץ מוכן להעלאה' : 'או גרור ושחרר כאן'}
                         </div>
                       </div>
                     </div>
@@ -853,7 +1031,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
             <div style={{ 
               padding: '1.5rem 2rem',
               borderTop: '1px solid var(--border-color)',
-              backgroundColor: '#f8f9fa',
               borderBottomLeftRadius: 'var(--border-radius-lg)',
               borderBottomRightRadius: 'var(--border-radius-lg)',
               display: 'flex', 
@@ -865,7 +1042,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   padding: '0.75rem 1.5rem',
                   border: '1px solid #dee2e6',
                   borderRadius: '8px',
-                  backgroundColor: 'white',
                   color: 'var(--secondary-text)',
                   cursor: 'pointer',
                   fontSize: '1rem',
@@ -876,11 +1052,9 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 onClick={closeSaveModal}
                 disabled={uploadingReceipt}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f8f9fa';
                   e.target.style.borderColor = '#adb5bd';
                 }}
                 onMouseOut={(e) => {
-                  e.target.style.backgroundColor = 'white';
                   e.target.style.borderColor = '#dee2e6';
                 }}
               >

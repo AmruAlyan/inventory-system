@@ -160,7 +160,7 @@
 }
 
 .cancel-btn {
-  background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
+  background: var(--danger) !important;
   color: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
