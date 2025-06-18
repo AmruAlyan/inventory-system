@@ -5,16 +5,18 @@ import { toast } from 'react-toastify';
 import { showConfirm } from '../../utils/dialogs';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { useData } from '../../context/DataContext';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
 
-const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([]);
+const ShoppingList = () => {
+  const { categories } = useData();
+  const [shoppingList, setShoppingList] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
-  const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -173,23 +175,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   }, []);
 
   // Load shopping list from localStorage  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        const categoriesMap = {};
-        querySnapshot.docs.forEach(doc => {
-          categoriesMap[doc.id] = doc.data().name;
-        });
-        setCategories(categoriesMap);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-  
+  // Remove local categories state and fetching, use context
   // Sort shopping list by category
   const sortedShoppingList = [...shoppingList].sort((a, b) => {
     const categoryA = categories[a.category] || 'לא מוגדר';

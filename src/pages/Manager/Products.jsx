@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,9 +13,10 @@ import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
 import Spinner from '../../components/Spinner';
+import { useData } from '../../context/DataContext';
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const { products, categories, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditWidget, setShowEditWidget] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -36,10 +37,8 @@ const Products = () => {
   const [debounceTimer, setDebounceTimer] = useState(null);
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [categories, setCategories] = useState({});
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState(() => {
     // Get saved view mode from localStorage, default to 'list'
     const saved = localStorage.getItem('productsViewMode');
@@ -61,38 +60,6 @@ const Products = () => {
     }
   }, [location.state]);
 
-  const fetchCategories = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'categories'));
-      const categoriesMap = {};
-      querySnapshot.docs.forEach(doc => {
-        categoriesMap[doc.id] = doc.data().name;
-      });
-      setCategories(categoriesMap);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  // Define fetchProducts in the component scope so it can be used as a callback
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, 'products'));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setProducts(data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-  }, []);
-
   const handleDelete = async (id) => {
     const product = products.find((p) => p.id === id);
     
@@ -104,7 +71,6 @@ const Products = () => {
     if (confirmed) {
       try {
         await deleteDoc(doc(db, 'products', id));
-        setProducts(products.filter((p) => p.id !== id));
         toast.success(`המוצר "${product?.name ?? ''}" נמחק בהצלחה`);
       } catch (error) {
         console.error('Error deleting product:', error);

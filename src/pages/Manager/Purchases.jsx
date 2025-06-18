@@ -13,11 +13,12 @@ import '../../styles/ForModals/savePurchaseModal.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
 import { useLocation } from 'react-router-dom';
+import { useData } from '../../context/DataContext';
 
 const Purchases = () => {
+  const { categories } = useData();
   const location = useLocation();
   const [currentPurchase, setCurrentPurchase] = useState({ items: [] });
-  const [categories, setCategories] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [editPrice, setEditPrice] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -75,25 +76,6 @@ const Purchases = () => {
       return () => unsubscribe();
     }
   }, [showHistory]);
-
-  // Add fetchCategories useEffect after the existing useEffects
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        const categoriesMap = {};
-        querySnapshot.docs.forEach(doc => {
-          categoriesMap[doc.id] = doc.data().name;
-        });
-        setCategories(categoriesMap);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        toast.error('שגיאה בטעינת הקטגוריות');
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   // --- Add cancel and save logic for price editing ---
 const handleEditPrice = (item) => {

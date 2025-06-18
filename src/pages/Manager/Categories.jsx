@@ -13,48 +13,49 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditWidget, setShowEditWidget] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);  const [showAddWidget, setShowAddWidget] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [showAddWidget, setShowAddWidget] = useState(false);
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [loading, setLoading] = useState(true);
+
   // Fetch categories and their product counts from Firestore
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      // First get all categories
-      const categorySnapshot = await getDocs(collection(db, 'categories'));
-      const categoriesData = categorySnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data(),
-        productCount: 0 // Initialize count
-      }));
-
-      // Then get all products to count them per category
-      const productsSnapshot = await getDocs(collection(db, 'products'));
-      const categoryCounts = {};
-      
-      // Count products per category
-      productsSnapshot.docs.forEach(doc => {
-        const product = doc.data();
-        if (product.category) {
-          categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
-        }
-      });
-
-      // Add counts to categories
-      const dataWithCounts = categoriesData.map(category => ({
-        ...category,
-        productCount: categoryCounts[category.id] || 0
-      }));
-
-      setCategories(dataWithCounts);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
   useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        // First get all categories
+        const categorySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesData = categorySnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data(),
+          productCount: 0 // Initialize count
+        }));
+
+        // Then get all products to count them per category
+        const productsSnapshot = await getDocs(collection(db, 'products'));
+        const categoryCounts = {};
+        productsSnapshot.docs.forEach(doc => {
+          const product = doc.data();
+          if (product.category) {
+            categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+          }
+        });
+
+        // Add counts to categories
+        const dataWithCounts = categoriesData.map(category => ({
+          ...category,
+          productCount: categoryCounts[category.id] || 0
+        }));
+        setCategories(dataWithCounts);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('שגיאה בטעינת קטגוריות');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCategories();
   }, []);
 
@@ -67,7 +68,6 @@ const Categories = () => {
     if (!confirmDelete) return;
     try {
       await deleteDoc(doc(db, 'categories', id));
-      setCategories(categories.filter(c => c.id !== id));
       toast.success('הקטגוריה נמחקה בהצלחה');
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -141,7 +141,6 @@ const Categories = () => {
                 onUpdate={() => {
                   setShowEditWidget(false);
                   setEditingCategory(null);
-                  fetchCategories();
                 }}
                 onCancel={() => {
                   setShowEditWidget(false);
@@ -152,7 +151,7 @@ const Categories = () => {
             </div>
           ) : (
             <div className='sticky-box'>
-              <CategoryWidget onCategoryAdded={fetchCategories} categoriesList={categories} />
+              <CategoryWidget categoriesList={categories} />
             </div>
           )}
         </div>

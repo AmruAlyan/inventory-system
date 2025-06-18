@@ -18,17 +18,16 @@ import {
   faSortDown
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { collection, getDocs, doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
 import ProductCard from '../../components/ProductCard';
+import { useData } from '../../context/DataContext';
 
 const ConsumedItems = () => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState({});
+  const { products, categories, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState('consumption'); // 'consumption' or 'stocktaking'
   
   // Update body attribute when mode changes
@@ -61,37 +60,6 @@ const ConsumedItems = () => {
     const saved = localStorage.getItem('consumedItemsViewMode');
     return saved || 'list';
   });
-
-  // Fetch products and categories
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Fetch categories
-        const categoriesSnapshot = await getDocs(collection(db, 'categories'));
-        const categoriesMap = {};
-        categoriesSnapshot.docs.forEach(doc => {
-          categoriesMap[doc.id] = doc.data().name;
-        });
-        setCategories(categoriesMap);
-
-        // Fetch products
-        const productsSnapshot = await getDocs(collection(db, 'products'));
-        const productsData = productsSnapshot.docs.map(doc => ({ 
-          id: doc.id, 
-          ...doc.data() 
-        }));
-        setProducts(productsData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('שגיאה בטעינת הנתונים');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const handleSort = (field) => {
     if (sortField === field) {

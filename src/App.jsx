@@ -18,55 +18,58 @@ import Purchases from "./pages/Manager/Purchases";
 import ManagerDash from "./pages/Manager/ManagerDash";
 import ConsumedItems from "./pages/Manager/ConsumedItems";
 import AdminDash from "./pages/Admin/AdminDash"; // assuming you have this
+import { DataProvider } from './context/DataContext';
 
 function App() {
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
+    <DataProvider>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute requireRole={[ROLES.ADMIN]}>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDash />} />
-          <Route path="budget" element={<BudgetPage />} />
-          <Route path="reports" element={<ReportsPage />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute requireRole={[ROLES.ADMIN]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDash />} />
+            <Route path="budget" element={<BudgetPage />} />
+            <Route path="reports" element={<ReportsPage />} />
 
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="shopping-list" element={<ShoppingList />} />
-          <Route path="new-purchase" element={<Purchases />} />
-          <Route path="consumed-items" element={<ConsumedItems />} />
-          <Route path="profile" element={<AdminProfile />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="shopping-list" element={<ShoppingList />} />
+            <Route path="new-purchase" element={<Purchases />} />
+            <Route path="consumed-items" element={<ConsumedItems />} />
+            <Route path="profile" element={<AdminProfile />} />
 
-        </Route>
+          </Route>
 
-        <Route
-          path="/manager-dashboard"
-          element={
-            <ProtectedRoute requireRole={[ROLES.MANAGER]}>
-              <ManagerLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ManagerDash />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="shopping-list" element={<ShoppingList />} />
-          <Route path="new-purchase" element={<Purchases />} />
-          <Route path="consumed-items" element={<ConsumedItems />} />
-          {/* <Route path="budget-expense" element={<BudgetExpenses />} /> */}
-          <Route path="profile" element={<ManagerProfile />} />
-        </Route>
-      </Routes>
-    </Router>
+          <Route
+            path="/manager-dashboard"
+            element={
+              <ProtectedRoute requireRole={[ROLES.MANAGER]}>
+                <ManagerLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<ManagerDash />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="shopping-list" element={<ShoppingList />} />
+            <Route path="new-purchase" element={<Purchases />} />
+            <Route path="consumed-items" element={<ConsumedItems />} />
+            {/* <Route path="budget-expense" element={<BudgetExpenses />} /> */}
+            <Route path="profile" element={<ManagerProfile />} />
+          </Route>
+        </Routes>
+      </Router>
+    </DataProvider>
   );
 }
 
