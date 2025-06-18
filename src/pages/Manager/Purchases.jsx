@@ -789,7 +789,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
               <div style={{ 
                 marginBottom: '2rem', 
                 padding: '1.5rem', 
-                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                 borderRadius: '12px',
                 border: '1px solid var(--border-color)',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
@@ -801,7 +800,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div style={{ 
                     padding: '1rem', 
-                    backgroundColor: 'white', 
                     borderRadius: '8px',
                     border: '1px solid #dee2e6',
                     textAlign: 'center'
@@ -815,7 +813,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   </div>
                   <div style={{ 
                     padding: '1rem', 
-                    backgroundColor: 'white', 
                     borderRadius: '8px',
                     border: '1px solid #dee2e6',
                     textAlign: 'center'
@@ -840,7 +837,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <span style={{ 
                     fontSize: '0.8rem', 
                     color: 'var(--secondary-text)', 
-                    backgroundColor: '#e9ecef',
                     padding: '0.25rem 0.5rem',
                     borderRadius: '12px'
                   }}>
@@ -878,7 +874,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                         minHeight: '120px',
                         border: `2px dashed ${dragActive ? 'var(--primary)' : '#cbd5e0'}`,
                         borderRadius: '12px',
-                        backgroundColor: dragActive ? '#e3f2fd' : '#f8f9fa',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         display: 'flex',
@@ -891,13 +886,11 @@ const handleSavePurchaseDate = async (purchaseId) => {
                       onMouseOver={(e) => {
                         if (!dragActive) {
                           e.target.style.borderColor = 'var(--primary)';
-                          e.target.style.backgroundColor = '#f0f8f0';
                         }
                       }}
                       onMouseOut={(e) => {
                         if (!dragActive) {
                           e.target.style.borderColor = '#cbd5e0';
-                          e.target.style.backgroundColor = '#f8f9fa';
                         }
                       }}
                     >
@@ -1028,7 +1021,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
             <div style={{ 
               padding: '1.5rem 2rem',
               borderTop: '1px solid var(--border-color)',
-              backgroundColor: '#f8f9fa',
               borderBottomLeftRadius: 'var(--border-radius-lg)',
               borderBottomRightRadius: 'var(--border-radius-lg)',
               display: 'flex', 
@@ -1040,7 +1032,6 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   padding: '0.75rem 1.5rem',
                   border: '1px solid #dee2e6',
                   borderRadius: '8px',
-                  backgroundColor: 'white',
                   color: 'var(--secondary-text)',
                   cursor: 'pointer',
                   fontSize: '1rem',
@@ -1051,11 +1042,9 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 onClick={closeSaveModal}
                 disabled={uploadingReceipt}
                 onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#f8f9fa';
                   e.target.style.borderColor = '#adb5bd';
                 }}
                 onMouseOut={(e) => {
-                  e.target.style.backgroundColor = 'white';
                   e.target.style.borderColor = '#dee2e6';
                 }}
               >
