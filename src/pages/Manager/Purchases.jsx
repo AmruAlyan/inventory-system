@@ -597,10 +597,20 @@ const handleSavePurchaseDate = async (purchaseId) => {
                     <td className='purchases-actions'>
                       {editingPurchaseId === purchase.id ? (
                         <>
-                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך">
+                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך"
+                            style={{
+                              color: 'white',
+                              border: '1px solid white',
+                              backgroundColor: 'transparent'
+                            }}>
                             <FontAwesomeIcon icon={faSave} />
                           </button>
-                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל">
+                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל"
+                            style={{
+                              color: 'white',
+                              border: '1px solid white',
+                              backgroundColor: 'transparent'
+                            }}>
                             <FontAwesomeIcon icon={faTimes} />
                           </button>
                         </>
