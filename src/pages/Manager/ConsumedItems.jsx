@@ -18,7 +18,7 @@ import {
   faSortDown
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { doc, updateDoc, addDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
@@ -26,7 +26,7 @@ import ProductCard from '../../components/ProductCard';
 import { useData } from '../../context/DataContext';
 
 const ConsumedItems = () => {
-  const { products, categories, loading } = useData();
+  const { products, categories, loading, setProducts } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [mode, setMode] = useState('consumption'); // 'consumption' or 'stocktaking'
   

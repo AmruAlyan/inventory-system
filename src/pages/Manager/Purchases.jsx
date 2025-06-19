@@ -187,6 +187,22 @@ const handleSavePrice = async (itemId) => {
       // Add to purchase history
       await addDoc(collection(db, 'purchases/history/items'), purchaseData);
 
+      // Update product quantities (increase stock for purchased items)
+      for (const item of currentPurchase.items) {
+        const productRef = doc(db, 'products', item.id);
+        const productDoc = await getDoc(productRef);
+        
+        if (productDoc.exists()) {
+          const currentQuantity = productDoc.data().quantity || 0;
+          const newQuantity = currentQuantity + item.quantity;
+          
+          batch.update(productRef, {
+            quantity: newQuantity,
+            lastModified: Timestamp.fromDate(new Date())
+          });
+        }
+      }
+
       // Clear current purchase
       batch.update(doc(db, 'purchases', 'current'), { items: [] });
 

@@ -30,12 +30,7 @@ const AddToListModal = ({ product, onClose, onAdd }) => {
       return;
     }
     
-    // Check if requested quantity exceeds available stock
-    if (finalQuantity > product.quantity) {
-      alert(`לא ניתן להוסיף ${finalQuantity} יחידות. יש במלאי רק ${product.quantity} יחידות מהמוצר "${product.name}"`);
-      return;
-    }
-    
+    // No stock restriction - we're purchasing to increase inventory
     onAdd(product, finalQuantity);
     onClose();
   };
@@ -59,19 +54,18 @@ const AddToListModal = ({ product, onClose, onAdd }) => {
                 <label>כמות:</label>
                 {!useCustom ? (
                   <select value={quantity} onChange={handleQuantityChange}>
-                    {[...Array(Math.min(10, product.quantity))].map((_, i) => (
+                    {[...Array(10)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>{i + 1}</option>
                     ))}
-                    {product.quantity > 10 && <option value="other">כמות אחרת</option>}
+                    <option value="other">כמות אחרת</option>
                   </select>
                 ) : (
                   <input
                     type="number"
                     min="1"
-                    max={product.quantity}
                     value={customQuantity}
                     onChange={handleCustomQuantityChange}
-                    placeholder={`הזן כמות (מקסימום ${product.quantity})`}
+                    placeholder="הזן כמות"
                   />
                 )}
               </div>
