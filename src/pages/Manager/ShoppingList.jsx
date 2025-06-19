@@ -5,16 +5,18 @@ import { toast } from 'react-toastify';
 import { showConfirm } from '../../utils/dialogs';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { useData } from '../../context/DataContext';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
 
-const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([]);
+const ShoppingList = () => {
+  const { categories } = useData();
+  const [shoppingList, setShoppingList] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState(1);
   const [useCustomQuantity, setUseCustomQuantity] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
-  const [categories, setCategories] = useState({});
   const [budget, setBudget] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -56,80 +58,97 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   }, []);
 
   const handlePurchaseChange = async (id) => {
+    // Find the item in current state
+    const item = shoppingList.find(item => item.id === id);
+    if (!item) {
+      toast.error('פריט לא נמצא ברשימה');
+      return;
+    }
+
+    const originalPurchased = item.purchased;
+    const newPurchased = !originalPurchased;
+
+    // Optimistic update - immediately update local state
+    setShoppingList(prevList => 
+      prevList.map(listItem => 
+        listItem.id === id 
+          ? { ...listItem, purchased: newPurchased }
+          : listItem
+      )
+    );
+
     try {
       const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', id);
-      const itemDoc = await getDoc(itemRef);
       
-      if (itemDoc.exists()) {
-        const newPurchased = !itemDoc.data().purchased;
-        
-        // Get the item from current shopping list state
-        const item = shoppingList.find(item => item.id === id);
-        if (!item) {
-          throw new Error('Item not found in shopping list');
-        }
+      // Update item purchase status in Firestore
+      await updateDoc(itemRef, { 
+        purchased: newPurchased,
+      });
 
-        // Update item purchase status in shopping list
-        await updateDoc(itemRef, { 
-          purchased: newPurchased,
-        });
+      // Get reference to current purchase document
+      const currentPurchaseRef = doc(db, 'purchases', 'current');
+      const currentPurchaseDoc = await getDoc(currentPurchaseRef);
+      
+      if (newPurchased) {
+        // If item is being checked (purchased)
+        const purchaseData = {
+          items: []
+        };
 
-        // Get reference to current purchase document
-        const currentPurchaseRef = doc(db, 'purchases', 'current');
-        const currentPurchaseDoc = await getDoc(currentPurchaseRef);
-        
-        if (newPurchased) {
-          // If item is being checked (purchased)
-          const purchaseData = {
-            items: []
-          };
-
-          if (currentPurchaseDoc.exists()) {
-            // Add new item to existing items array
-            const existingItems = currentPurchaseDoc.data().items || [];
-            purchaseData.items = [
-              ...existingItems,
-              {
-                id: item.id,
-                name: item.name,
-                category: item.category,
-                quantity: item.quantity,
-                price: item.price,
-                actualPrice: item.price, // Default to original price
-                checkedAt: Date.now()
-              }
-            ];
-          } else {
-            // Create new items array with first item
-            purchaseData.items = [{
+        if (currentPurchaseDoc.exists()) {
+          // Add new item to existing items array
+          const existingItems = currentPurchaseDoc.data().items || [];
+          purchaseData.items = [
+            ...existingItems,
+            {
               id: item.id,
               name: item.name,
               category: item.category,
-              categoryName: categories[item.category] || 'לא מוגדר',
               quantity: item.quantity,
               price: item.price,
-              actualPrice: item.price,
+              actualPrice: item.price, // Default to original price
               checkedAt: Date.now()
-            }];
-          }
-
-          // Set or update the current purchase document
-          await setDoc(currentPurchaseRef, purchaseData, { merge: true });
-
+            }
+          ];
         } else {
-          // If item is being unchecked (removed from purchase)
-          if (currentPurchaseDoc.exists()) {
-            const existingItems = currentPurchaseDoc.data().items || [];
-            await updateDoc(currentPurchaseRef, {
-              items: existingItems.filter(item => item.id !== id)
-            });
-          }
+          // Create new items array with first item
+          purchaseData.items = [{
+            id: item.id,
+            name: item.name,
+            category: item.category,
+            categoryName: categories[item.category] || 'לא מוגדר',
+            quantity: item.quantity,
+            price: item.price,
+            actualPrice: item.price,
+            checkedAt: Date.now()
+          }];
         }
 
-        toast.success(newPurchased ? 'המוצר סומן כנרכש' : 'המוצר סומן כלא נרכש');
+        // Set or update the current purchase document
+        await setDoc(currentPurchaseRef, purchaseData, { merge: true });
+
+      } else {
+        // If item is being unchecked (removed from purchase)
+        if (currentPurchaseDoc.exists()) {
+          const existingItems = currentPurchaseDoc.data().items || [];
+          await updateDoc(currentPurchaseRef, {
+            items: existingItems.filter(item => item.id !== id)
+          });
+        }
       }
+
     } catch (error) {
       console.error('Error updating purchase status:', error);
+      
+      // Revert optimistic update on error
+      setShoppingList(prevList => 
+        prevList.map(listItem => 
+          listItem.id === id 
+            ? { ...listItem, purchased: originalPurchased }
+            : listItem
+        )
+      );
+      
       toast.error('שגיאה בעדכון סטטוס הרכישה');
     }
   };
@@ -156,23 +175,7 @@ const ShoppingList = () => {  const [shoppingList, setShoppingList] = useState([
   }, []);
 
   // Load shopping list from localStorage  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'categories'));
-        const categoriesMap = {};
-        querySnapshot.docs.forEach(doc => {
-          categoriesMap[doc.id] = doc.data().name;
-        });
-        setCategories(categoriesMap);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-  
+  // Remove local categories state and fetching, use context
   // Sort shopping list by category
   const sortedShoppingList = [...shoppingList].sort((a, b) => {
     const categoryA = categories[a.category] || 'לא מוגדר';

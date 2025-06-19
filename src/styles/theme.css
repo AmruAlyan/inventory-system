@@ -48,6 +48,9 @@
   --shadow-color: rgba(0, 0, 0, 0.1);
   --shadow-color-hover: rgba(0, 0, 0, 0.15);
   
+  /* Custom Colors */
+  --custom-color: whitesmoke;
+  
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -66,6 +69,7 @@
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
 }
+
 
 /* Dark Theme */
 [data-theme="dark"] {
@@ -99,6 +103,9 @@
   --accent: #FFD54F;
   --accent-light: #FFE082;
   --accent-dark: #FFC107;
+  
+  /* Custom Colors */
+  --custom-color: #FFC107;
 }
 
 /* Global Styles */

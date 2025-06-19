@@ -217,7 +217,6 @@
 .inventory-actions button:first-child {
   color: var(--success);
   border-color: var(--success);
-  background-color: rgba(40, 167, 69, 0.1);
 }
 
 .inventory-actions button:first-child:hover {
@@ -244,7 +243,6 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .inventory-actions button:nth-child(2) {
   color: var(--secondary);
   border-color: var(--secondary);
-  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .inventory-actions button:nth-child(2):hover {
@@ -257,7 +255,6 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .inventory-actions button:last-child {
   color: var(--danger);
   border-color: var(--danger);
-  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .inventory-actions button:last-child:hover {

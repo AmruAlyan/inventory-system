@@ -8,7 +8,6 @@ const ProductCard = ({
   onAddToList, 
   onEdit, 
   onDelete,
-  onAddToCart,
   hidePrice = false,
   mode = 'default', // 'default' or 'consumed-items'
   consumedItemsMode = 'consumption', // 'consumption' or 'stocktaking'
@@ -110,10 +109,9 @@ const ProductCard = ({
           ) : (
             <>
               <button 
-                onClick={() => onAddToList ? onAddToList(product.id) : onAddToCart && onAddToCart(product.id)} 
-                title={product.quantity <= 0 ? "המוצר אזל מהמלאי" : "הוסף לסל"}
-                disabled={product.quantity <= 0}
-                className={`action-btn add-btn ${product.quantity <= 0 ? 'disabled' : ''}`}
+                onClick={(e) => onAddToList(product.id, e)} 
+                title="הוסף לרשימת קניות"
+                className="action-btn add-btn"
               >
                 <FontAwesomeIcon icon={faCartPlus} />
               </button>

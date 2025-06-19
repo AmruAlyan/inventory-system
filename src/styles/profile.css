@@ -79,7 +79,7 @@
 
 .edit-text {
     display: inline;
-    color: var(--primary-text);
+    color: whitesmoke;
     font-size: 16px;
     margin-right: 16px;
     margin-left: 20px;
@@ -87,7 +87,7 @@
 
 /* Icon Styling */
 .profile-icon {
-    color: var(--icon-highlight);
+    color: whitesmoke;
     width: 24px; 
     height: 24px;
     margin-right: 20px;

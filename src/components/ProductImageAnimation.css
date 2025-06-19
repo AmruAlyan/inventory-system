@@ -1,0 +1,113 @@
+/* Product Image Animation Styles */
+.product-image-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.animated-product-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 2px solid #4CAF50;
+  animation: flyToCart 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  z-index: 9999;
+}
+
+.no-image-placeholder {
+  font-size: 24px;
+  color: #6c757d;
+}
+
+@keyframes flyToCart {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  
+  50% {
+    transform: translate(
+      calc(-50% + var(--end-x) / 2), 
+      calc(-50% + var(--end-y) / 2 - 50px)
+    ) scale(0.8);
+    opacity: 0.9;
+  }
+  
+  80% {
+    transform: translate(
+      calc(-50% + var(--end-x)), 
+      calc(-50% + var(--end-y))
+    ) scale(0.6);
+    opacity: 0.8;
+  }
+  
+  100% {
+    transform: translate(
+      calc(-50% + var(--end-x)), 
+      calc(-50% + var(--end-y))
+    ) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Cart bounce animation for the shopping cart icon */
+@keyframes cartBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Add class to shopping cart icon when animation completes */
+.cart-receiving {
+  animation: cartBounce 0.6s ease-in-out;
+}
+
+/* Success pulse animation */
+@keyframes successPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+.success-pulse {
+  animation: successPulse 0.6s ease-out;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .animated-product-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .no-image-placeholder {
+    font-size: 20px;
+  }
+}

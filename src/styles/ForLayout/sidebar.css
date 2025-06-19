@@ -94,9 +94,9 @@
 }
 
 .sidebar-button-active {
-  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #66bb6a 100%);
   color: white;
-  border-color: var(--primary);
+  border-color: #BFFFC7;
   box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
   transform: translateY(-1px);
   position: relative;
@@ -298,4 +298,38 @@
   background: rgba(0,0,0,0.08);
   margin: 16px 0;
   border-radius: 2px;
+}
+
+/* Shopping cart bounce animation */
+.cart-receiving {
+  animation: cartBounce 0.6s ease-in-out;
+}
+
+@keyframes cartBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Success pulse effect for the icon container */
+.sidebar-icon-container.success-pulse {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
 }

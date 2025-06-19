@@ -49,7 +49,11 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef }) => {
                                 style={undefined}
                             >
                                 <div className="sidebar-icon-container">
-                                    <FontAwesomeIcon icon={item.icon} className="sidebar-icon" />
+                                    <FontAwesomeIcon 
+                                        icon={item.icon} 
+                                        className="sidebar-icon" 
+                                        data-testid={item.id === 'shopping-list' ? 'shopping-cart-icon' : undefined}
+                                    />
                                     {item.count && item.count > 0 && (
                                         <span className="sidebar-badge">{item.count}</span>
                                     )}

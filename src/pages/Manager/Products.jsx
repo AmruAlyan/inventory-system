@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,9 +13,11 @@ import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
 import Spinner from '../../components/Spinner';
+import { useData } from '../../context/DataContext';
+import ProductImageAnimation from '../../components/ProductImageAnimation';
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const { products, categories, loading } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditWidget, setShowEditWidget] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -36,10 +38,8 @@ const Products = () => {
   const [debounceTimer, setDebounceTimer] = useState(null);
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [categories, setCategories] = useState({});
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState(() => {
     // Get saved view mode from localStorage, default to 'list'
     const saved = localStorage.getItem('productsViewMode');
@@ -61,38 +61,6 @@ const Products = () => {
     }
   }, [location.state]);
 
-  const fetchCategories = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'categories'));
-      const categoriesMap = {};
-      querySnapshot.docs.forEach(doc => {
-        categoriesMap[doc.id] = doc.data().name;
-      });
-      setCategories(categoriesMap);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  // Define fetchProducts in the component scope so it can be used as a callback
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, 'products'));
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setProducts(data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-  }, []);
-
   const handleDelete = async (id) => {
     const product = products.find((p) => p.id === id);
     
@@ -104,7 +72,6 @@ const Products = () => {
     if (confirmed) {
       try {
         await deleteDoc(doc(db, 'products', id));
-        setProducts(products.filter((p) => p.id !== id));
         toast.success(`המוצר "${product?.name ?? ''}" נמחק בהצלחה`);
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -241,12 +208,57 @@ const Products = () => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  const handleAddToList = (id) => {
+  const handleAddToList = (id, sourceElement = null) => {
     const product = products.find((p) => p.id === id);
     setSelectedProduct(product);
+    setModalSourceElement(sourceElement);
     setShowAddToListModal(true);
   };
-  const addProductToShoppingList = async (product, quantity) => {
+
+  // Handle animation trigger
+  const triggerAddToCartAnimation = (productElement, product) => {
+    if (!productElement) return;
+    
+    // Find the actual image element within the source element
+    let imageElement = productElement.querySelector('.product-image');
+    let sourceRect;
+    
+    if (imageElement) {
+      // Use the actual image element position for card view
+      sourceRect = imageElement.getBoundingClientRect();
+    } else {
+      // For table view or when no image is found, use the center of the element
+      sourceRect = productElement.getBoundingClientRect();
+    }
+    
+    const centerX = sourceRect.left + sourceRect.width / 2;
+    const centerY = sourceRect.top + sourceRect.height / 2;
+    
+    const newAnimation = {
+      startX: centerX,
+      startY: centerY,
+      imageUrl: product.imageUrl,
+      productName: product.name
+    };
+    
+    setAnimationQueue(prev => [...prev, newAnimation]);
+    
+    // Add bounce effect to cart icon
+    setTimeout(() => {
+      const cartIcon = document.querySelector('[data-testid="shopping-cart-icon"]');
+      if (cartIcon) {
+        cartIcon.classList.add('cart-receiving');
+        setTimeout(() => {
+          cartIcon.classList.remove('cart-receiving');
+        }, 600);
+      }
+    }, 1400); // Slightly before animation completes
+  };
+
+  const handleAnimationComplete = () => {
+    setAnimationQueue(prev => prev.slice(1));
+  };
+  const addProductToShoppingList = async (product, quantity, triggerAnimation = false, sourceElement = null) => {
     try {
       const itemRef = doc(db, 'sharedShoppingList', 'globalList', 'items', product.id);
       const itemDoc = await getDoc(itemRef);
@@ -266,6 +278,11 @@ const Products = () => {
         });
       }
       
+      // Trigger animation if requested
+      if (triggerAnimation && sourceElement) {
+        triggerAddToCartAnimation(sourceElement, product);
+      }
+      
       toast.success('המוצר נוסף לרשימת הקניות בהצלחה!');
     } catch (error) {
       console.error('Error adding product to shopping list:', error);
@@ -274,11 +291,15 @@ const Products = () => {
   };
 
   const [showAddWidget, setShowAddWidget] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  
+  // Animation system state
+  const [animationQueue, setAnimationQueue] = useState([]);
+  const [modalSourceElement, setModalSourceElement] = useState(null);
 
   const handleAddProduct = () => {
     setShowAddWidget(true);
   };
-  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const handleFilter = () => {
     setShowFilterModal(true);
@@ -447,7 +468,7 @@ const Products = () => {
       {showAddWidget && (
         <ProductModal 
           onClose={() => setShowAddWidget(false)} 
-          onSave={fetchProducts} 
+          onSave={() => {}} 
           existingProductNames={products.map(p => p.name)}
         />
       )}
@@ -459,7 +480,6 @@ const Products = () => {
           onSave={() => {
             setShowEditWidget(false);
             setEditingProduct(null);
-            fetchProducts();
           }}
           existingProductNames={products.filter(p => p.id !== (editingProduct?.id)).map(p => p.name)}
         />
@@ -467,8 +487,15 @@ const Products = () => {
       {showAddToListModal && selectedProduct && (
         <AddToListModal
           product={selectedProduct}
-          onClose={() => setShowAddToListModal(false)}
-          onAdd={addProductToShoppingList}
+          onClose={() => {
+            setShowAddToListModal(false);
+            setModalSourceElement(null);
+          }}
+          onAdd={(product, quantity) => {
+            addProductToShoppingList(product, quantity, modalSourceElement ? true : false, modalSourceElement);
+            setShowAddToListModal(false);
+            setModalSourceElement(null);
+          }}
         />
       )}
       {loading ? (
@@ -528,14 +555,11 @@ const Products = () => {
                 </td>
                 <td className='inventory-actions'>
                   <button 
-                    onClick={() => handleAddToList(product.id)} 
-                    title={product.quantity <= 0 ? "המוצר אזל מהמלאי" : "הוסף לסל"}
-                    disabled={product.quantity <= 0}
-                    style={product.quantity <= 0 ? { 
-                      opacity: 0.5, 
-                      cursor: 'not-allowed',
-                      color: '#ccc'
-                    } : {}}
+                    onClick={(e) => {
+                      const tableRow = e.target.closest('tr');
+                      handleAddToList(product.id, tableRow);
+                    }} 
+                    title="הוסף לרשימת קניות"
                   >
                     <FontAwesomeIcon icon={faCartPlus} />
                   </button>
@@ -558,7 +582,10 @@ const Products = () => {
                 key={product.id}
                 product={product}
                 categoryName={categories[product.category] || 'לא מוגדר'}
-                onAddToList={handleAddToList}
+                onAddToList={(productId, event) => {
+                  const card = event?.target.closest('.product-card');
+                  handleAddToList(productId, card);
+                }}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -615,6 +642,12 @@ const Products = () => {
             </div>
           </div>
       )}
+      
+      {/* Product Image Animation */}
+      <ProductImageAnimation 
+        animationQueue={animationQueue}
+        onAnimationComplete={handleAnimationComplete}
+      />
     </div>
   );
 };
