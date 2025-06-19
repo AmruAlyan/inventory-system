@@ -47,14 +47,15 @@ const ProfileWidget = ({ isProfileOpen, toggleProfile, nav2profile, username, to
       </div>
       {/* <NavLink to={"/profile"} className='profile-button'> */}
         <button className='profile-button' onClick={nav2profile}>
-          <FontAwesomeIcon icon={faEye} className="widget-icon" />
           <span className="profile-text">הצג פרופיל</span>
+          <FontAwesomeIcon icon={faEye} className="widget-icon" />
+          
         </button>
       {/* </NavLink> */}
       {/* <NavLink to={"/login"}> */}
         <button className='profile-button' onClick={handleLogout}>
-          <FontAwesomeIcon icon={faRightFromBracket} className="widget-icon" />
           <span className="profile-text">התנתק</span>
+          <FontAwesomeIcon icon={faRightFromBracket} className="widget-icon" />
         </button>
       {/* </NavLink> */}
     </div>

@@ -94,9 +94,9 @@
 }
 
 .sidebar-button-active {
-  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #66bb6a 100%);
   color: white;
-  border-color: var(--primary);
+  border-color: #BFFFC7;
   box-shadow: 0 4px 16px rgba(81, 134, 100, 0.3);
   transform: translateY(-1px);
   position: relative;
