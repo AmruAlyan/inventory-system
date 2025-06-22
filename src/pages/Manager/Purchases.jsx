@@ -12,12 +12,13 @@ import '../../styles/ForModals/productModal.css';
 import '../../styles/ForModals/savePurchaseModal.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 
 const Purchases = () => {
   const { categories } = useData();
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentPurchase, setCurrentPurchase] = useState({ items: [] });
   const [editingId, setEditingId] = useState(null);
   const [editPrice, setEditPrice] = useState('');
@@ -403,25 +404,43 @@ const handleSavePurchaseDate = async (purchaseId) => {
     toast.error('שגיאה בעדכון תאריך הרכישה');
   }
 };
-
   useEffect(() => {
     // If navigated with showHistory or showPurchaseModal, open history and modal
     if (location.state && (location.state.showPurchaseModal || location.state.showHistory)) {
       setShowHistory(true);
       if (location.state.showPurchaseModal && location.state.purchaseId) {
         // Wait for purchaseHistory to load, then open modal
-        const interval = setInterval(() => {
+        let interval;
+        const openModal = () => {
           const found = purchaseHistory.find(p => p.id === location.state.purchaseId);
           if (found) {
             setSelectedPurchase(found);
             clearInterval(interval);
+            // Clear the navigation state to prevent modal from reopening
+            navigate('.', { replace: true, state: null });
           }
-        }, 100);
-        // Clean up interval if component unmounts
-        return () => clearInterval(interval);
+        };
+        
+        // Check immediately if purchaseHistory is already loaded
+        if (purchaseHistory.length > 0) {
+          openModal();
+        } else {
+          // Wait for purchaseHistory to load
+          interval = setInterval(openModal, 100);
+        }
+        
+        // Clean up interval if component unmounts or dependencies change
+        return () => {
+          if (interval) {
+            clearInterval(interval);
+          }
+        };
+      } else if (location.state.showHistory) {
+        // If only showing history, clear the navigation state
+        navigate('.', { replace: true, state: null });
       }
     }
-  }, [location.state, purchaseHistory]);
+  }, [location.state, purchaseHistory, navigate]);
 
   // Prevent default drag behaviors on window
   useEffect(() => {
@@ -445,7 +464,8 @@ const handleSavePurchaseDate = async (purchaseId) => {
   }, []);
 
   return (
-    <div className="inventory-container">      {selectedPurchase && (
+    <div className="inventory-container">      
+    {selectedPurchase && (
         <PurchaseModal 
           purchase={selectedPurchase}
           categories={categories}

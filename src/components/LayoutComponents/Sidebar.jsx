@@ -5,7 +5,7 @@ import useIsMobile from "../../hooks/useIsMobile";
 import { NavLink } from "react-router-dom";
 import ThemeSwitch from "./ThemeSwitch";
 
-const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef }) => {
+const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef, isAdmin }) => {
     const sidebarRef = useRef(null);
     const isMobile = useIsMobile();
 
@@ -30,42 +30,101 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef }) => {
     return (
         <div ref={sidebarRef} className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
             <div className="sidebar-content">
-                {items.map((item, index) => {
-                    if (item.type === 'divider') {
-                        return <div key={item.key || `divider-${index}`} className="sidebar-divider" style={{ margin: '16px 0' }} />;
-                    }
-                    return (
+                {isAdmin ? (
+                  <>
+                    <div className="sidebar-buttons-container">
+                      {items.slice(0, 3).map((item, index) => (
                         <NavLink
+                          key={index}
+                          to={item.path}
+                          end={item.exact}
+                          className={({ isActive }) =>
+                            `sidebar-button${isActive ? ' sidebar-button-active' : ''}`
+                          }
+                        >
+                          <button
+                            key={index}
+                            className={isExpanded ? "sidebar-button-inner" : undefined}
+                          >
+                            <div className="sidebar-icon-container">
+                              <FontAwesomeIcon 
+                                icon={item.icon} 
+                                className="sidebar-icon" 
+                                data-testid={item.id === 'shopping-list' ? 'shopping-cart-icon' : undefined}
+                              />
+                              {item.count && item.count > 0 && (
+                                <span className="sidebar-badge">{item.count}</span>
+                              )}
+                            </div>
+                            <span className="sidebar-text">{item.text}</span>
+                          </button>
+                        </NavLink>
+                      ))}
+                    </div>
+                    <div className="sidebar-buttons-container">
+                      {items.slice(3).map((item, index) => (
+                        <NavLink
+                          key={index + 3}
+                          to={item.path}
+                          end={item.exact}
+                          className={({ isActive }) =>
+                            `sidebar-button${isActive ? ' sidebar-button-active' : ''}`
+                          }
+                        >
+                          <button
+                            key={index + 3}
+                            className={isExpanded ? "sidebar-button-inner" : undefined}
+                          >
+                            <div className="sidebar-icon-container">
+                              <FontAwesomeIcon 
+                                icon={item.icon} 
+                                className="sidebar-icon" 
+                                data-testid={item.id === 'shopping-list' ? 'shopping-cart-icon' : undefined}
+                              />
+                              {item.count && item.count > 0 && (
+                                <span className="sidebar-badge">{item.count}</span>
+                              )}
+                            </div>
+                            <span className="sidebar-text">{item.text}</span>
+                          </button>
+                        </NavLink>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                    <div className="sidebar-buttons-container">
+                        {items.map((item, index) => (
+                          <NavLink
                             key={index}
                             to={item.path}
                             end={item.exact}
                             className={({ isActive }) =>
-                                `sidebar-button${isActive ? ' sidebar-button-active' : ''}`
+                              `sidebar-button${isActive ? ' sidebar-button-active' : ''}`
                             }
-                        >
+                          >
                             <button
-                                key={index}
-                                className={isExpanded ? "sidebar-button-inner" : undefined}
-                                style={undefined}
+                              key={index}
+                              className={isExpanded ? "sidebar-button-inner" : undefined}
                             >
-                                <div className="sidebar-icon-container">
-                                    <FontAwesomeIcon 
-                                        icon={item.icon} 
-                                        className="sidebar-icon" 
-                                        data-testid={item.id === 'shopping-list' ? 'shopping-cart-icon' : undefined}
-                                    />
-                                    {item.count && item.count > 0 && (
-                                        <span className="sidebar-badge">{item.count}</span>
-                                    )}
-                                </div>
-                                <span className="sidebar-text">{item.text}</span>
+                              <div className="sidebar-icon-container">
+                                <FontAwesomeIcon 
+                                  icon={item.icon} 
+                                  className="sidebar-icon" 
+                                  data-testid={item.id === 'shopping-list' ? 'shopping-cart-icon' : undefined}
+                                />
+                                {item.count && item.count > 0 && (
+                                  <span className="sidebar-badge">{item.count}</span>
+                                )}
+                              </div>
+                              <span className="sidebar-text">{item.text}</span>
                             </button>
-                        </NavLink>
-                    );
-                })}
-            </div>
-            <div className="sidebar-footer">
-                <ThemeSwitch />
+                          </NavLink>
+                        ))}
+                    </div>
+                )}
+                <div className="sidebar-buttons-container">
+                    <ThemeSwitch sidebarOpen={isExpanded} />
+                </div>
             </div>
         </div>
     );

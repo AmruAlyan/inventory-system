@@ -102,13 +102,10 @@ const AdminLayout = () => {
 
         <Sidebar
           isExpanded={isExpanded}
-          items={[
-            ...sidebarIcons.slice(0, 3),
-            { type: 'divider', key: 'admin-manager-divider' },
-            ...sidebarIcons.slice(3)
-          ]}
+          items={sidebarIcons}
           toggleSidebar={toggleSidebar}
           toggleSidebarRef={sidebarRef}
+          isAdmin={true}
         />
 
         <ContentArea />

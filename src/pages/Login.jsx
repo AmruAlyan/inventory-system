@@ -10,6 +10,7 @@ import { faUser, faKey, faExclamationTriangle } from '@fortawesome/free-solid-sv
 import { useNavigate } from "react-router-dom";
 import ThemeSwitch from "../components/LayoutComponents/ThemeSwitch";
 import { ROLES } from "../constants/roles.js";
+import Logo from "../assets/pics/Logo-colored.png";
 
 function Login() {
   // Input values
@@ -161,16 +162,21 @@ function Login() {
             </form>
           </div>
         </div>
-        <div className="bottom-panel">
-          <ThemeSwitch />
-        </div>
+        {/* <div className="bottom-panel">
+          <ThemeSwitch sidebarOpen={true} />
+        </div> */}
       </div>
 
       {/* Title & Image */}
       <div className="left-panel">
         <div className="title-box">
-          <h1>מערכת ניהול מלאי</h1>
-          <h2>ותיקי מטה יהודה</h2>
+          <div className="logo-container">
+            <img src={Logo} alt="Logo" className="logo" />
+          </div>
+          <div className="title-box-text">
+            <h1>מערכת ניהול מלאי</h1>
+            <h2>ותיקי מטה יהודה</h2>
+          </div>
         </div>
         <div className="illustration">
           <img src={image} alt="מחסן" />

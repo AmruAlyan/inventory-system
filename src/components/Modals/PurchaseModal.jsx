@@ -143,7 +143,16 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
           <div className="purchase-details">
             {/* ...existing header content... */}
             <div className="purchase-header">
-              <p><strong>תאריך רכישה:</strong> {new Date(purchase.date).toLocaleDateString('he-IL')}</p>
+              <p><strong>תאריך רכישה:</strong> {(() => {
+                if (!purchase.date) return '—';
+                // Firebase Timestamp: {seconds, nanoseconds}
+                if (typeof purchase.date === 'object' && purchase.date.seconds) {
+                  return new Date(purchase.date.seconds * 1000).toLocaleDateString('he-IL');
+                }
+                // ISO string or number
+                const d = new Date(purchase.date);
+                return isNaN(d) ? '—' : d.toLocaleDateString('he-IL');
+              })()}</p>
               <p><strong>סה"כ רכישה:</strong> {purchase.totalAmount.toFixed(2)} ₪</p>
               <p><strong>תקציב לפני:</strong> {purchase.budgetBefore.toFixed(2)} ₪</p>
               <p><strong>תקציב אחרי:</strong> {purchase.budgetAfter.toFixed(2)} ₪</p>
@@ -197,7 +206,14 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
                 <div className="receipt-info mt-2">
                   <small>שם קובץ: {purchase.receiptName}</small>
                   <br />
-                  <small>הועלה בתאריך: {new Date(purchase.uploadedAt).toLocaleDateString('he-IL')}</small>
+                  <small>הועלה בתאריך: {(() => {
+                    if (!purchase.uploadedAt) return '—';
+                    if (typeof purchase.uploadedAt === 'object' && purchase.uploadedAt.seconds) {
+                      return new Date(purchase.uploadedAt.seconds * 1000).toLocaleDateString('he-IL');
+                    }
+                    const d = new Date(purchase.uploadedAt);
+                    return isNaN(d) ? '—' : d.toLocaleDateString('he-IL');
+                  })()}</small>
                 </div>
               )}
             </div>

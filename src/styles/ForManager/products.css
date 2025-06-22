@@ -25,7 +25,7 @@
 
 .inventory-container {
   padding: var(--spacing-xl);
-  padding-top: calc(60px + var(--spacing-xl));
+  /* padding-top: calc(60px + var(--spacing-xl)); */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 1400px;
   margin: 0 auto;
@@ -40,11 +40,12 @@
 
 .searchBar {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-lg);
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+  /* gap: var(--spacing-md); */
+  flex-wrap: nowrap;
 }
 
 .searchBar input[type="search"] {
@@ -57,6 +58,14 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   background-color: var(--panel-bg);
   color: var(--primary-text);
+}
+
+.searchBar-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
 }
 
 .searchBar input[type="search"]:focus {
@@ -467,41 +476,40 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 /* View Toggle Styles */
 .view-toggle {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: var(--spacing-md);
-  background-color: var(--panel-bg);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  border: 2px solid var(--border-color);
-}
-
-.view-toggle-label {
-  font-weight: 600;
-  color: var(--primary-text);
-  font-size: 0.9rem;
-}
-
-.view-toggle-buttons {
-  display: flex;
-  gap: var(--spacing-xs);
+  justify-content: center;
+  gap: 0;
+  /* padding: var(--spacing-sm); */
 }
 
 .view-toggle-btn {
-  padding: var(--spacing-xs) var(--spacing-md);
-  border: 2px solid var(--border-color);
-  background-color: var(--bg-color);
-  color: var(--secondary-text);
-  border-radius: var(--border-radius-md);
+  /* padding: var(--spacing-xs) var(--spacing-md); */
+  /* border: 2px solid var(--border-color); */
+  background-color: var(--primary);
+  color: white;
+  /* border-radius: var(--border-radius-md); */
   cursor: pointer;
   transition: all var(--transition-fast);
-  font-size: 0.9rem;
-  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  /* gap: var(--spacing-xs); */
 }
 
-.view-toggle-btn:hover {
+.view-toggle-btn.right {
+  border-radius: 0 10px 10px 0;
+  border-left: Solid 0.5px var(--border-color);
+}
+
+.view-toggle-btn.left {
+  border-radius: 10px 0 0 10px;
+  border-right: Solid 0.5px var(--border-color);
+}
+
+/* .view-toggle-btn:hover {
   border-color: var(--primary);
 }
 
@@ -509,6 +517,14 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
   background-color: var(--primary);
   border-color: var(--primary);
   color: white;
+} */
+
+.view-icon {
+  width: 20px;
+  height: 20px;
+  fill: white;
+  transition: transform var(--transition-fast);
+  rotate: 180deg;
 }
 
 /* Product Cards Grid */
@@ -777,16 +793,18 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 .sort-controls {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  background-color: var(--panel-bg);
-  padding: var(--spacing-sm);
+  /* gap: var(--spacing-sm); */
+  background-color: var(--primary);
+  padding: 0 var(--spacing-sm) 0 0;
   border-radius: var(--border-radius-md);
   border: 2px solid var(--border-color);
 }
 
 .sort-label {
   font-weight: 600;
-  color: var(--primary-text);
+  /* color: var(--primary-text); */
+  color: white;
+  padding-left: 8px;
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -825,14 +843,15 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
 }
 
 .sort-direction-btn:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* background-color: var(--primary-dark); */
+  color: black;
+  /* transform: translateY(-1px); */
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); */
 }
 
 /* Responsive sort controls */
@@ -898,16 +917,32 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 
 @media (max-width: 576px) {
   .searchBar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-items: center !important;
+    /* gap: var(--spacing-sm); */
+
   }
   
   .searchBar input[type="search"] {
+    width: 100% !important;
+  }
+
+  .searchBar-buttons {
     width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
   }
   
   .searchBar button {
-    width: 100%;
+    /* width: 100%; */
+    width: fit-content !important;
+    padding: 12px 14px !important;
+  }
+
+  .view-toggle {
+    width: fit-content;
   }
 }
 

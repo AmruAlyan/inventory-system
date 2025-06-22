@@ -451,16 +451,16 @@ th {
 }
 
 /* Responsive Container */
-.container {
+/* .container {
   width: 100%;
   padding-right: var(--spacing-md);
   padding-left: var(--spacing-md);
   margin-right: auto;
   margin-left: auto;
-}
+} */
 
 /* Media Queries */
-@media (min-width: 576px) {
+/* @media (min-width: 576px) {
   .container {
     max-width: 540px;
   }
@@ -482,7 +482,7 @@ th {
   .container {
     max-width: 1140px;
   }
-}
+} */
 
 /* Add responsive font sizing */
 html {

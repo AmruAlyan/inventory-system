@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
-import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells } from '@fortawesome/free-solid-svg-icons';
+import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells, faBorderAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ProductModal from '../../components/Modals/ProductModal';
 import AddToListModal from '../../components/Modals/AddToListModal';
@@ -423,39 +423,68 @@ const Products = () => {
           name="search4product"
           placeholder="חיפוש לפי שם מוצר או קטיגוריה..."
           value={searchTerm}
-          onChange={handleSearchChange}
-        />
-        <div className="view-toggle">
-          <span className="view-toggle-label">תצוגה:</span>
-          <div className="view-toggle-buttons">
+          onChange={handleSearchChange}        />
+        <div className="searchBar-buttons">
+          {viewMode === 'cards' && (
+            <div className="sort-controls">
+              <span className="sort-label">מיון: </span>
+              <select 
+                value={sortField || ''} 
+                onChange={(e) => {
+                  const field = e.target.value;
+                  if (field) {
+                    handleSort(field);
+                  } else {
+                    setSortField(null);
+                    setSortDirection('asc');
+                  }
+                }}
+                className="sort-select"
+              >
+                <option value="">ללא מיון</option>
+                <option value="name">שם מוצר</option>
+                <option value="category">קטגוריה</option>
+                <option value="price">מחיר</option>
+                <option value="quantity">כמות במלאי</option>
+              </select>
+              <label
+                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                className="sort-direction-btn"
+                title={sortDirection === 'asc' ? 'מיון עולה' : 'מיון יורד'}
+              >
+                <FontAwesomeIcon icon={sortDirection === 'asc' ? faSortUp : faSortDown} />
+              </label>
+            </div>
+          )}
+          <div className="view-toggle">
             <button
-              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+            title='תצוגת רשימה'
+              className={`view-toggle-btn right ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => {
                 setViewMode('list');
                 localStorage.setItem('productsViewMode', 'list');
               }}
             >
-              <FontAwesomeIcon icon={faList} />
-              רשימה
+              <FontAwesomeIcon icon={faList} className="view-icon"/>
             </button>
             <button
-              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+            title='תצוגת כרטיסים'
+              className={`view-toggle-btn left ${viewMode === 'cards' ? 'active' : ''}`}
               onClick={() => {
                 setViewMode('cards');
                 localStorage.setItem('productsViewMode', 'cards');
               }}
             >
-              <FontAwesomeIcon icon={faTableCells} />
-              כרטיסים
+              <FontAwesomeIcon icon={faBorderAll} className="view-icon"/>
             </button>
           </div>
+          <button onClick={handleFilter}>
+            <FontAwesomeIcon icon={faFilter} /> סינון
+          </button>
+          <button onClick={handleAddProduct}>
+            <FontAwesomeIcon icon={faPlus} /> הוסף מוצר
+          </button>
         </div>
-        <button onClick={handleFilter}>
-          <FontAwesomeIcon icon={faFilter} /> סינון
-        </button>
-        <button onClick={handleAddProduct}>
-          <FontAwesomeIcon icon={faPlus} /> הוסף מוצר
-        </button>
       </div>      
       {showFilterModal && (
         <FilterModal

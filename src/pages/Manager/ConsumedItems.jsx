@@ -13,6 +13,8 @@ import {
   faPenToSquare,
   faList,
   faTableCells,
+  faBorderAll,
+  faFilter,
   faSort,
   faSortUp,
   faSortDown
@@ -24,11 +26,14 @@ import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
 import ProductCard from '../../components/ProductCard';
 import { useData } from '../../context/DataContext';
+import FilterModal from '../../components/Modals/FilterModal';
 
 const ConsumedItems = () => {
   const { products, categories, loading, setProducts } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [mode, setMode] = useState('consumption'); // 'consumption' or 'stocktaking'
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({ categories: [], stockStatus: '' });
   
   // Update body attribute when mode changes
   useEffect(() => {
@@ -39,6 +44,7 @@ const ConsumedItems = () => {
       document.body.removeAttribute('data-mode');
     };
   }, [mode]);
+
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState('');
   const [processingIds, setProcessingIds] = useState(new Set());
@@ -106,12 +112,47 @@ const ConsumedItems = () => {
     });
   };
 
-  // Filter and sort products based on search term
+  // Handle applying filters
+  const handleApplyFilters = (filters) => {
+    setActiveFilters(filters);
+    setShowFilterModal(false);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  // Enhanced filter function to include category and stock status filters
   const filterProducts = (products) => {
     return products.filter(product => {
+      // Search term filter
       const categoryName = categories[product.category] || '';
-      return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
              categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Category filter
+      const matchesCategory = activeFilters.categories.length === 0 || 
+                             activeFilters.categories.includes(product.category);
+
+      // Stock status filter
+      let matchesStockStatus = true;
+      if (activeFilters.stockStatus) {
+        switch (activeFilters.stockStatus) {
+          case 'inStock':
+            matchesStockStatus = product.quantity > 10;
+            break;
+          case 'lowStock':
+            matchesStockStatus = product.quantity > 0 && product.quantity <= 10;
+            break;
+          case 'outOfStock':
+            matchesStockStatus = product.quantity <= 0;
+            break;
+          case 'outOfStockOrLow':
+            matchesStockStatus = product.quantity <= 10;
+            break;
+          default:
+            matchesStockStatus = true;
+        }
+      }
+
+      return matchesSearch && matchesCategory && matchesStockStatus;
     });
   };
 
@@ -313,6 +354,11 @@ const ConsumedItems = () => {
     setEditingValue('');
   };
 
+  // Handle filter action
+  const handleFilter = () => {
+    setShowFilterModal(true);
+  };
+
   // Handle actions for cards view
   const handleCardAction = (product) => {
     if (mode === 'consumption') {
@@ -440,35 +486,10 @@ const ConsumedItems = () => {
           />
         </div>
         
-        <div className="view-toggle">
-          <span className="view-toggle-label">תצוגה:</span>
-          <div className="view-toggle-buttons">
-            <button
-              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => {
-                setViewMode('list');
-                localStorage.setItem('consumedItemsViewMode', 'list');
-              }}
-            >
-              <FontAwesomeIcon icon={faList} />
-              רשימה
-            </button>
-            <button
-              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
-              onClick={() => {
-                setViewMode('cards');
-                localStorage.setItem('consumedItemsViewMode', 'cards');
-              }}
-            >
-              <FontAwesomeIcon icon={faTableCells} />
-              כרטיסים
-            </button>
-          </div>
-        </div>
 
         {viewMode === 'cards' && (
           <div className="sort-controls">
-            <span className="sort-label">מיון:</span>
+            <span className="sort-label">מיון: </span>
             <select 
               value={sortField || ''} 
               onChange={(e) => {
@@ -488,7 +509,7 @@ const ConsumedItems = () => {
               <option value="quantity">כמות במלאי</option>
               <option value="lastModified">תאריך עדכון אחרון</option>
             </select>
-            {sortField && (
+            {/* {sortField && ( */}
               <button
                 onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                 className="sort-direction-btn"
@@ -496,50 +517,96 @@ const ConsumedItems = () => {
               >
                 <FontAwesomeIcon icon={sortDirection === 'asc' ? faSortUp : faSortDown} />
               </button>
-            )}
+            {/* )} */}
           </div>
         )}
+
+        <div className="view-toggle">
+          <button
+          title='תצוגת רשימה'
+            className={`view-toggle-btn right ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => {
+              setViewMode('list');
+              localStorage.setItem('consumedItemsViewMode', 'list');
+            }}
+          >
+            <FontAwesomeIcon icon={faList} className="view-icon"/>
+          </button>
+          <button
+          title='תצוגת כרטיסים'
+            className={`view-toggle-btn left ${viewMode === 'cards' ? 'active' : ''}`}
+            onClick={() => {
+              setViewMode('cards');
+              localStorage.setItem('consumedItemsViewMode', 'cards');
+            }}
+          >
+            <FontAwesomeIcon icon={faBorderAll} className="view-icon"/>
+          </button>
+        </div>
+
+        <button onClick={handleFilter}>
+          <FontAwesomeIcon icon={faFilter} /> סינון
+        </button>
         
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.5rem', 
-          padding: '0.5rem 1rem', 
-          background: 'var(--panel-bg)', 
-          borderRadius: '8px', 
-          border: `2px solid ${mode === 'consumption' ? 'var(--warning)' : 'var(--success)'}`,
-          transition: 'border-color 0.3s ease'
-        }}>
-          <span style={{ 
-            fontWeight: mode === 'consumption' ? 'bold' : 'normal', 
-            color: mode === 'consumption' ? 'var(--warning)' : 'var(--secondary-text)',
-            transition: 'color 0.3s ease'
+        {/* Mode Toggle */}
+        <div 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            padding: '0.5rem 1rem', 
+            background: 'var(--panel-bg)', 
+            borderRadius: '8px', 
+            border: `2px solid ${mode === 'consumption' ? 'var(--warning)' : 'var(--success)'}`,
+            transition: 'border-color 0.3s ease',
+            height: '25px'
           }}>
+          <span 
+            onClick={mode != 'consumption' ? toggleMode : undefined}
+            style={{ 
+              fontWeight: 'bold', 
+              color: mode === 'consumption' ? 'var(--warning)' : 'var(--secondary-text)',
+              transition: 'color 0.3s ease',
+              cursor: 'pointer'
+            }}>
             צריכה
           </span>
-          <button
+          <FontAwesomeIcon 
+            icon={faToggleOff} 
             onClick={toggleMode}
             style={{ 
-              background: 'none', 
+              background: 'transparent', 
               border: 'none', 
               cursor: 'pointer', 
               fontSize: '1.5rem', 
               color: mode === 'consumption' ? 'var(--warning)' : 'var(--success)',
-              transition: 'color 0.3s ease'
+              transition: 'color 0.3s ease',
+              rotate: mode === 'consumption' ? '180deg' : '0deg'
             }}
-            title={mode === 'consumption' ? 'עבור למצב ספירת מלאי' : 'עבור למצב צריכה'}
-          >
-            <FontAwesomeIcon icon={mode === 'consumption' ? faToggleOn : faToggleOff} />
-          </button>
-          <span style={{ 
-            fontWeight: mode === 'stocktaking' ? 'bold' : 'normal', 
-            color: mode === 'stocktaking' ? 'var(--success)' : 'var(--secondary-text)',
-            transition: 'color 0.3s ease'
-          }}>
+            title={mode === 'consumption' ? 'עבור למצב ספירת מלאי' : 'עבור למצב צריכה'}              
+          />
+          <span 
+            onClick={mode === 'consumption' ? toggleMode : undefined}
+            style={{ 
+              fontWeight: 'bold',
+              color: mode === 'stocktaking' ? 'var(--success)' : 'var(--secondary-text)',
+              transition: 'color 0.3s ease',
+              cursor: 'pointer'
+            }}>
             ספירת מלאי
           </span>
         </div>
       </div>
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <FilterModal
+          onClose={() => setShowFilterModal(false)}
+          onApplyFilters={handleApplyFilters}
+          initialFilters={activeFilters}
+          categories={Object.entries(categories).map(([id, name]) => ({ id, name }))}
+        />
+      )}
 
       {/* Mode Description */}
       <div style={{ 
@@ -553,11 +620,11 @@ const ConsumedItems = () => {
       }}>
         {mode === 'consumption' ? (
           <p style={{ margin: 0, color: 'var(--warning)' }}>
-            <strong>מצב צריכה:</strong> הזן את הכמות שנצרכה מהמוצר. הכמות תופחת מהמלאי הקיים.
+            <strong>מצב צריכה:</strong> הזן את הכמות שנצרכה מהמוצר, הכמות תופחת מהמלאי הקיים.
           </p>
         ) : (
           <p style={{ margin: 0, color: 'var(--success)' }}>
-            <strong>מצב ספירת מלאי:</strong> הזן את הכמות הנוכחית במלאי. המלאי יעודכן לכמות שהזנת.
+            <strong>מצב ספירת מלאי:</strong> הזן את הכמות הנוכחית במלאי, המלאי יעודכן לכמות שהזנת.
           </p>
         )}
       </div>
@@ -569,7 +636,9 @@ const ConsumedItems = () => {
         <div className="empty-list">
           <p>לא נמצאו מוצרים</p>
           <p className="empty-list-subtext">
-            {searchTerm ? 'נסה לשנות את מונחי החיפוש' : 'הוסף מוצרים חדשים כדי להתחיל'}
+            {searchTerm || activeFilters.categories.length > 0 || activeFilters.stockStatus ? 
+              'נסה לשנות את הסינון או מונחי החיפוש' : 
+              'הוסף מוצרים חדשים כדי להתחיל'}
           </p>
         </div>
       ) : viewMode === 'list' ? (

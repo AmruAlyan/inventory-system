@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: "Arial", sans-serif;
-  background-color: var(--bg-color);
+  /* background-color: var(--primary); */
   color: var(--primary-text);
   direction: rtl;
 }
@@ -12,8 +12,11 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
+  background-color: #518664;
+  margin: 0;
 }
 
 .right-panel {
@@ -34,17 +37,44 @@ body {
   text-align: center;
 }
 
+/* .logo-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+} */
+
+.logo {
+  width: 100px;
+  height: 100px;
+  /* margin-bottom: 20px; */
+}
+
 .title-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
   background-color: var(--panel-bg);
-  padding: 20px;
+  padding: 20px 0;
   border-radius: 10px;
   margin-bottom: 20px;
-  width: 80%;
+  width: 100%;
   box-shadow: 0px 0px 10px 1px var(--primary-text);
 }
 
-.title-box h1,
-.title-box h2 {
+.title-box-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 5px 0;
+}
+
+.title-box-text h1,
+.title-box-text h2 {
   margin: 5px 0;
 }
 
@@ -154,7 +184,16 @@ i {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+}
 
+.bottom-panel .sidebar-button {
+  width: fit-content;
+}
+
+/* Theme switch in login context should show text */
+.bottom-panel .sidebar-text {
+  display: inline !important;
 }
 
 /* Responsive layout */
@@ -165,22 +204,31 @@ i {
     justify-content: start;
   }
 
+  .left-panel {
+    width: 100%;
+    margin: 15px 0;
+  }
+
   .title-box {
     order: 1;
     width: 100%;
-    font-size: 90%;
+    /* font-size: 90%; */
   }
 
-  .left-panel {
-    margin: 15px 30px;
+  .logo {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .illustration {
+    order: 3;
+    width: 100%;
+    /* text-align: center; */
   }
 
-  .top-panel {
-    width: 500px;
-    max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0;
+  .illustration img {
+    max-width: 300px;
+    margin: 0 auto;
   }
 
   .right-panel {
@@ -192,14 +240,13 @@ i {
     margin-top: 0;
   }
 
-  .illustration {
-    order: 3;
-    width: 100%;
-    text-align: center;
+  .top-panel {
+    width: 500px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
   }
 
-  .illustration img {
-    max-width: 300px;
-    margin: 0 auto;
-  }
+
 }
