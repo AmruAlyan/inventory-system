@@ -61,7 +61,7 @@ The application provides real-time visibility into inventory levels, purchase hi
 
 ### 1. Clone the Repository
 ```bash
-git clone [repository-url]
+git clone https://github.com/AmruAlyan/inventory-system.git
 cd inventory-system
 ```
 
@@ -132,10 +132,6 @@ The application will be available at `http://localhost:5173`
 - Generate comprehensive inventory and budget reports
 - Export reports for printing or sharing
 
-## 📸 Screenshots
-
-*[Screenshots will be added here - placeholder for application interface images]*
-
 ## 📁 Folder Structure
 
 ```
@@ -159,4 +155,15 @@ src/
 ├── utils/               # Utility functions and helpers
 └── assets/              # Static assets (images, icons)
 ```
+
+## 📸 Screenshots
+
+### Login Page:
+![image](https://github.com/user-attachments/assets/99a3fc64-5982-4d4c-ae9c-b94da59b5f73)
+
+### Admin Dashboard:
+![image](https://github.com/user-attachments/assets/196a1360-d25c-4725-aac1-7832433ca6c8)
+
+### Manager Dashboard:
+![image](https://github.com/user-attachments/assets/53e8958b-588d-4168-a62e-c08de67a0d30)
 
