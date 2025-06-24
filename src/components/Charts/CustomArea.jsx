@@ -91,7 +91,7 @@ const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
     } 
     // Apply count filtering
     else if (filterType === 'count') {
-      result = result.slice(0, dataCount);
+      result = result.slice(-dataCount);
     }
     
     setFilteredData(result);

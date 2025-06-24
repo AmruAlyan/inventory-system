@@ -113,7 +113,7 @@ const ManagerDash = () => {
             budgetAfter: data.budgetAfter
           });
         });
-        setRecentPurchases(purchases.slice(0, 5));
+        setRecentPurchases(purchases.slice(0, 10));
 
         // Fetch budget history for the area chart
         const budgetHistoryQuery = query(
@@ -182,7 +182,7 @@ const ManagerDash = () => {
             budgetAfter: data.budgetAfter
           });
         });
-        setRecentPurchases(purchases.slice(0, 5));
+        setRecentPurchases(purchases.slice(0, 10));
         setLoading(false);
       },
       (error) => {
@@ -208,6 +208,16 @@ const ManagerDash = () => {
           categories: [],
           stockStatus: 'outOfStockOrLow'
         }
+      }
+    });
+  };
+
+  const handlePurchaseItemClick = (purchaseId) => {
+    // Navigate to purchases history page and pass the purchase id to trigger modal
+    navigate('/admin-dashboard/new-purchase', {
+      state: {
+        showPurchaseModal: true,
+        purchaseId: purchaseId
       }
     });
   };
@@ -303,11 +313,14 @@ const ManagerDash = () => {
                       <li key={purchase.id} className="dashboard-purchase-item">
                         <span className="dashboard-purchase-date">
                           {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
-                        </span>
-                        <span className="dashboard-purchase-amount">
+                        </span>                        <span className="dashboard-purchase-amount">
                           {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
                         </span>
-                        <span className="dashboard-purchase-items">
+                        <span 
+                          className="dashboard-purchase-items clickable"
+                          onClick={() => handlePurchaseItemClick(purchase.id)}
+                          style={{ cursor: 'pointer', color: 'var(--primary)', textDecoration: 'underline' }}
+                        >
                           {purchase.items.length} פריטים
                         </span>
                       </li>

@@ -4,7 +4,7 @@ import { faSun, faMoon, faCircleHalfStroke } from "@fortawesome/free-solid-svg-i
 import "../../styles/ForLayout/themeSwitch.css";
 import { useState, useEffect } from "react";
 
-const ThemeSwitch = () => {
+const ThemeSwitch = ({ sidebarOpen = true }) => {
   const [themeMode, setThemeMode] = useState(() => {
     // Check localStorage or default to auto
     return localStorage.getItem("themeMode") || "auto";
@@ -100,14 +100,12 @@ const ThemeSwitch = () => {
   };
 
   return (
-    <div className="theme-switch-container">
-      <button 
-        className="theme-switch-button" 
-        onClick={cycleTheme}
-        title={`נוכחי: ${getThemeLabel()} (לחץ לשינוי)`}
-      >
-        <FontAwesomeIcon icon={getThemeIcon()} className="theme-switch-icon" />
-        <span className="theme-switch-label">{getThemeLabel()}</span>
+    <div className="sidebar-button" onClick={cycleTheme} title={`נוכחי: ${getThemeLabel()} (לחץ לשינוי)`}>
+      <button className={sidebarOpen ? "sidebar-button-inner" : undefined}>
+        <FontAwesomeIcon icon={getThemeIcon()} className="sidebar-icon theme-icon" />
+        {sidebarOpen && (
+          <span className="sidebar-text">{getThemeLabel()}</span>
+        )}
       </button>
     </div>
   );

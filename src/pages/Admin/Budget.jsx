@@ -261,8 +261,6 @@ const Budget = () => {
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="budget-content-row">
               <div className="update-budget">
                 <h3>הגדלת התקציב</h3>
                 <div className="update-budget-form">
@@ -314,6 +312,8 @@ const Budget = () => {
                   </button>
                 </div>
               </div>
+            </div>
+            <div className="budget-content-row">
               <div className="budget-chart">
                 <SwitchableBarChart
                   budgetData={budgetHistory}

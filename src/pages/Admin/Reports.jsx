@@ -13,7 +13,7 @@ import Spinner from "../../components/Spinner";
 import { BudgetReport, PurchaseReport, CombinedReport } from "../../components/Reports";
 import { printReport, exportToPDF } from "../../utils/reportExport";
 import { toast } from "react-toastify";
-import logo from "../../assets/pics/nursing-home_2.svg";
+import logo from "../../assets/pics/Logo-green.svg";
 
 import "../../styles/ForManager/products.css";
 import "../../styles/ForAdmin/reports.css";
