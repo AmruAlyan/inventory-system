@@ -1,10 +1,10 @@
 # Inventory Management System (IMS)
 
-**עמותת ותיקי מטה יהודה - Nursing Home Association**
+**עמותת ותיקי מטה יהודה - Elderly Care Nonprofit Organization**
 
 ## 📋 Overview
 
-The Inventory Management System (IMS) is a comprehensive web application developed specifically for עמותת ותיקי מטה יהודה, a nursing home association. This system streamlines the management of essential supplies including food items and cleaning materials, ensuring efficient inventory tracking, budget monitoring, and comprehensive reporting for better operational management.
+The Inventory Management System (IMS) is a comprehensive web application developed specifically for עמותת ותיקי מטה יהודה, an Elderly Care Nonprofit Organization. This system streamlines the management of essential supplies including food items and cleaning materials, ensuring efficient inventory tracking, budget monitoring, and comprehensive reporting for better operational management.
 
 The application provides real-time visibility into inventory levels, purchase history, and budget utilization, helping the nursing home maintain optimal stock levels while staying within budget constraints.
 
