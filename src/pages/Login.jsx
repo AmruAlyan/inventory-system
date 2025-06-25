@@ -162,9 +162,9 @@ function Login() {
             </form>
           </div>
         </div>
-        {/* <div className="bottom-panel">
+        <div className="bottom-panel">
           <ThemeSwitch sidebarOpen={true} />
-        </div> */}
+        </div>
       </div>
 
       {/* Title & Image */}
@@ -175,7 +175,7 @@ function Login() {
           </div>
           <div className="title-box-text">
             <h1>מערכת ניהול מלאי</h1>
-            <h2>ותיקי מטה יהודה</h2>
+            <h3> עמותת ותיקי מטה יהודה </h3>
           </div>
         </div>
         <div className="illustration">

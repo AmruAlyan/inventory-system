@@ -164,14 +164,6 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
           </div>          
           {/* Printable Report */}
           <div className="printable-report" id="printable-report">
-            {/* Professional Print Header - Only visible during print */}
-            <div className="print-header" style={{ display: 'none' }}>
-              <h1>מערכת ניהול מלאי</h1>
-              <div className="company-info">
-                <p>דוח מקיף - מחלקת רכש וניהול משאבים</p>
-                <p>מוכן על ידי: מערכת ניהול מלאי אוטומטית</p>
-              </div>
-            </div>
               {/* Association Header */}            
             <div className="association-header">
               <div className="association-info">
