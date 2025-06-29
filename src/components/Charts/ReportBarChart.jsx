@@ -71,14 +71,14 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
           <Tooltip 
             formatter={(value, name, props) => {
               // Color match for tooltip
-              if (name === 'תקציב כולל') return [`${value} ₪`, name, { color: '#82ca9d' }];
+              if (name === 'תקציב נוכחי') return [`${value} ₪`, name, { color: '#82ca9d' }];
               if (name === 'סכום עדכון') return [`${value} ₪`, name, { color: '#8884d8' }];
               return [`${value} ₪`, name];
             }}
             contentStyle={{ backgroundColor: 'var(--panel-bg)', color: 'var(--primary-text)', borderRadius: '4px', transform: 'scale(0.8)' }}
           />
           <Legend />
-          <Bar dataKey="totalBudget" name="תקציב כולל" fill="#82ca9d" legendType="rect" />
+          <Bar dataKey="totalBudget" name="תקציב נוכחי" fill="#82ca9d" legendType="rect" />
           <Bar dataKey="updateAmount" name="סכום עדכון" fill="#8884d8" legendType="rect" />
         </BarChart>
       </ResponsiveContainer>

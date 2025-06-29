@@ -73,10 +73,10 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
         setPurchaseData(purchaseHistory);
       }      // Generate report summary
       setReportGenerated(true);
-      toast.success('הדוח נוצר בהצלחה');
+      toast.success('הדו״ח נוצר בהצלחה');
     } catch (error) {
       console.error('Error generating report:', error);
-      toast.error('שגיאה ביצירת הדוח');
+      toast.error('שגיאה ביצירת הדו״ח');
     } finally {
       setLoading(false);
     }
@@ -95,25 +95,25 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
       <div className="page-header">
         <h1>
           <FontAwesomeIcon icon={faFileLines} className="page-header-icon" />
-          דוחות
+          דו״חות
         </h1>
       </div>
 
       {/* Report Configuration */}
       <div className="report-config">
         <div className="config-section">
-          <h3>הגדרות דוח</h3>
+          <h3>הגדרות דו״ח</h3>
           <div className="config-form">
             <div className="form-group">
-              <label>סוג דוח:</label>              
+              <label>סוג דו״ח:</label>              
               <select 
                 value={selectedReportType} 
                 onChange={(e) => setSelectedReportType(e.target.value)}
                 className="form-control"
               >
-                <option value="budget">דוח תקציב</option>
-                <option value="purchase">דוח רכישות</option>
-                <option value="combined">דוח משולב</option>
+                <option value="budget">דו״ח תקציב</option>
+                <option value="purchase">דו״ח רכישות</option>
+                <option value="combined">דו״ח משולב</option>
               </select>
             </div>
             <div className="form-group">
@@ -140,21 +140,21 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
               className="btn btn-primary generate-btn"
             >
               {loading ? <FontAwesomeIcon icon={faFilter} spin /> : <FontAwesomeIcon icon={faChartLine} />}
-              {loading ? 'מייצר דוח...' : 'צור דוח'}
+              {loading ? 'מייצר דו״ח...' : 'צור דו״ח'}
             </button>
           </div>
         </div>
       </div>
 
       {/* Report Display */}
-      {loading && <Spinner text="מייצר דוח..." />}
+      {loading && <Spinner text="מייצר דו״ח..." />}
       
       {reportGenerated && !loading && (
         <div className="report-content" id="report-content">
           {/* Report Header */}
           <div className="report-header no-print">
             <div className="report-actions">
-              <button onClick={printReport} className="btn" title="הדפס דוח">
+              <button onClick={printReport} className="btn" title="הדפס דו״ח">
                 <FontAwesomeIcon icon={faPrint} />
               </button>
               <button onClick={exportToPDF} className="btn btn-secondary" title="ייצא ל-PDF">
@@ -177,9 +177,9 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
 
             <div className="report-title">
               <h2>
-                {reportType === 'budget' && 'דוח תקציב'}
-                {reportType === 'purchase' && 'דוח רכישות'}
-                {reportType === 'combined' && 'דוח משולב - תקציב ורכישות'}
+                {reportType === 'budget' && 'דו״ח תקציב'}
+                {reportType === 'purchase' && 'דו״ח רכישות'}
+                {reportType === 'combined' && 'דו״ח משולב - תקציב ורכישות'}
               </h2>
               <p className="report-period">
                 תקופה: {formatDate(new Date(dateRange.startDate))} - {formatDate(new Date(dateRange.endDate))}

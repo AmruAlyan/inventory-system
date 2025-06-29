@@ -248,7 +248,7 @@ export const printReport = () => {
       @page {
         margin: 15mm;
         @top-center {
-          content: "דוח מערכת ניהול מלאי";
+          content: "דו״ח מערכת ניהול מלאי";
         }
         @bottom-center {
           content: "עמוד " counter(page) " מתוך " counter(pages);
@@ -314,7 +314,6 @@ export const exportToPDF = async () => {
   }
 
   try {
-    toast.info('מתחיל להפיק PDF...');
     
     // Create a loading overlay to prevent user interaction
     const loadingOverlay = document.createElement('div');
@@ -597,7 +596,7 @@ export const exportToPDF = async () => {
     
     // Generate filename with timestamp
     const timestamp = new Date().toLocaleDateString('he-IL').replace(/\//g, '-');
-    const filename = `דוח-מערכת-ניהול-מלאי-${timestamp}.pdf`;
+    const filename = `דו״ח-מערכת-ניהול-מלאי-${timestamp}.pdf`;
     
     // Save the PDF
     pdf.save(filename);
