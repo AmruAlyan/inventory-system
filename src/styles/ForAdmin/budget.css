@@ -301,70 +301,22 @@ input[type="number"]::-webkit-inner-spin-button {
     opacity: 0.7;
 }
 
-/* Improve form responsiveness */
-/* @media (max-width: 1200px) {
-    .main-content {
-        flex-direction: column;
-    }
-    
-    .budget-content {
-        width: 100%;
-    }
-    
-    .budget-chart {
-        width: 100%;
-        height: 300px;
-        margin-top: 20px;
-    }
-    
-    .current-budget, .latest-update, .update-budget {
-        width: calc(50% - 10px);
-    }
-} */
-
-@media (max-width: 900px) {
-  .budget-content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-  .current-budget, .latest-update, .update-budget {
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 0;
-    padding: 20px 10px 16px 10px;
-  }
-}
-
 @media (max-width: 768px) {
-    .current-budget, .latest-update, .update-budget {
+    .budget-content-row {
+        /* flex-direction: column; */
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .cards-holder {
+        /* flex-direction: column; */
+        align-items: center;
         width: 100%;
     }
-}
 
-@media (max-width: 600px) {
-  .budget-content {
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .current-budget, .latest-update, .update-budget {
-    padding: 14px 4vw 12px 4vw;
-    font-size: 0.98rem;
-  }
-  .current-budget h3, .latest-update h3, .update-budget h3 {
-    font-size: 1rem;
-    margin-bottom: 12px;
-  }
-  .current-budget-value, .latest-update-value {
-    font-size: 1.3rem;
-    gap: 4px;
-  }
-  .update-budget .form input {
-    padding: 10px 8px;
-    font-size: 0.98rem;
-  }
-  .update-button {
-    padding: 8px 0;
-    font-size: 1rem;
-  }
+    .current-budget, .latest-update, .update-budget {
+        width: 100%;
+        padding: 0.75rem;
+    }
 }

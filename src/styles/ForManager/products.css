@@ -870,7 +870,7 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 @media (max-width: 768px) {
   .inventory-container {
     padding: var(--spacing-md);
-    padding-top: calc(60px + var(--spacing-md));
+    padding-top: 60px;
   }
 
   .pagination {

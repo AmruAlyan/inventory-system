@@ -7,6 +7,7 @@ import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
 import CustomArea from "../../components/Charts/CustomArea";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
+import Top3Categories from "../../components/Top3cat";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
@@ -17,7 +18,7 @@ import '../../styles/ForAdmin/switchableBarChart.css';
 
 const LOW_STOCK_THRESHOLD = 10;
 
-const ManagerDash = () => {
+const AdminDash = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(0);
   const [lastBalance, setLastBalance] = useState(0);
@@ -256,14 +257,14 @@ const ManagerDash = () => {
         </div>
         <div className="dashboard-card">
           <h3 className="dashboard-card-title">
-            <p>יתרה אחרונה</p>
+            <p>הכנסה אחרונה</p>
             <button onClick={handleBudgetCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{lastBalance.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>
         </div>
         <div className="dashboard-card">
           <h3 className="dashboard-card-title">
-            <p>רכישה אחרונה</p>
+            <p>הוצאה אחרונה</p>
             <button onClick={handleLastPurchaseCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">
@@ -292,9 +293,11 @@ const ManagerDash = () => {
       {/* Main chart area: two rows, two columns */}
       <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
-          <div className="dashboard-chart-wrapper pie-chart-wrapper">
+          
+          {/* <div className="dashboard-chart-wrapper pie-chart-wrapper">
             <CustomPie products={products} userRole="admin" />
-          </div>
+          </div> */}
+          <Top3Categories />
           <div className="dashboard-chart-wrapper area-chart-wrapper">
             <CustomArea data={areaData} />
           </div>
@@ -304,7 +307,7 @@ const ManagerDash = () => {
             <div className="dashboard-purchases">
               <h2 className="dashboard-purchases-title">
                 <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
-                רכישות אחרונות
+                הוצאות אחרונות
               </h2>
               <div className="dashboard-purchases-list">
                 {recentPurchases.length > 0 ? (
@@ -339,11 +342,16 @@ const ManagerDash = () => {
             />
           </div>
         </div>
+        
+        {/* Third row: Top 3 Categories */}
+        {/* <div className="dashboard-main-row">
+            <Top3Categories />
+        </div> */}
       </div>
     </div>
   );
 };
 
-export default ManagerDash;
+export default AdminDash;
 
 

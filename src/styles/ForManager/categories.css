@@ -293,14 +293,33 @@
 @media (max-width: 768px) {
   .inventory-container {
     padding: var(--spacing-md);
-    padding-top: calc(60px + var(--spacing-md));
+    /* padding-top: 60px; */
+  }
+
+  .cat {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .catL {
+    width: 100%;
+    position: static;
+    padding-top: 0;
+  }
+
+  .catR {
+    width: 100%;
   }
   
   .inventory-table {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     overflow-x: auto;
     white-space: nowrap;
-    border-radius: 0;
+    border-radius: 10px;
   }
   
   .inventory-table th,

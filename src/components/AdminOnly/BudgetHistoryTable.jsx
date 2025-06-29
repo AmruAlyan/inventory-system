@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes, faSortUp, faSortDown, faSort } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
 import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
@@ -21,6 +21,8 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     const saved = localStorage.getItem('budgetItemsPerPage');
     return saved ? parseInt(saved) : 8;
   });
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Format currency with ₪ on the right
   const formatCurrency = (amount) => {
@@ -72,6 +74,14 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     applyFilter(filter);
     setCurrentPage(1); // Reset to first page on filter change
   }, [filter, history]);
+
+  // Apply sorting when sort criteria changes
+  useEffect(() => {
+    if (filteredHistory.length > 0) {
+      const sortedData = applySorting(filteredHistory);
+      setFilteredHistory(sortedData);
+    }
+  }, [sortBy, sortOrder]);
 
   const fetchBudgetHistory = async () => {
     try {
@@ -168,7 +178,60 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
         filteredData = [...history];
     }
 
+    // Apply sorting
+    filteredData = applySorting(filteredData);
+
     setFilteredHistory(filteredData);
+  };
+
+  // Handle column sorting
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      // Toggle sort order if same column
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column and default to descending
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
+
+  // Apply sorting to data
+  const applySorting = (data) => {
+    return [...data].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = toDateObj(a.date).getTime();
+          bValue = toDateObj(b.date).getTime();
+          break;
+        case 'amount':
+          aValue = a.amount;
+          bValue = b.amount;
+          break;
+        case 'totalBudget':
+          aValue = a.totalBudget;
+          bValue = b.totalBudget;
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+  };
+
+  // Get sort icon for column headers
+  const getSortIcon = (column) => {
+    if (sortBy !== column) {
+      return faSort;
+    }
+    return sortOrder === 'asc' ? faSortUp : faSortDown;
   };
 
   // Pagination logic
@@ -420,7 +483,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   return (
     <div className="budget-history-container">
       <div className="bht-header page-header">
-        <h2 className="history-title">היסטוריית תקציבים</h2>
+        <h2 className="history-title">היסטוריית הכנסות</h2>
         <div className="history-controls searchBar" style={{ marginBottom: 0 }}>
           <div className="filter-container">
             <FontAwesomeIcon icon={faFilter} className="filter-icon" />
@@ -441,7 +504,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
             <div className="delete-all-container">
               <button className="delete-all-btn" onClick={handleDeleteAll}>
                 <FontAwesomeIcon icon={faEraser} />
-                <span>אפס את כל התקציבים</span>
+                <span>אפס את כל ההכנסות</span>
               </button>
             </div>
           )}
@@ -464,9 +527,41 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>תאריך</th>
-                  <th style={{ direction: 'ltr', textAlign: 'center' }}>סכום</th>
-                  <th style={{ direction: 'ltr', textAlign: 'center' }}>סה״כ תקציב</th>
+                  <th 
+                    className="sortable-header" 
+                    onClick={() => handleSort('date')}
+                    title="לחץ לסידור לפי תאריך"
+                  >
+                    תאריך
+                    <FontAwesomeIcon 
+                      icon={getSortIcon('date')} 
+                      className={`sort-icon ${sortBy === 'date' ? 'active' : ''}`}
+                    />
+                  </th>
+                  <th 
+                    className="sortable-header" 
+                    style={{ textAlign: 'center' }}
+                    onClick={() => handleSort('amount')}
+                    title="לחץ לסידור לפי סכום"
+                  >
+                    סכום
+                    <FontAwesomeIcon 
+                      icon={getSortIcon('amount')} 
+                      className={`sort-icon ${sortBy === 'amount' ? 'active' : ''}`}
+                    />
+                  </th>
+                  <th 
+                    className="sortable-header" 
+                    style={{ textAlign: 'center' }}
+                    onClick={() => handleSort('totalBudget')}
+                    title="לחץ לסידור לפי סה״כ תקציב"
+                  >
+                    סה״כ תקציב
+                    <FontAwesomeIcon 
+                      icon={getSortIcon('totalBudget')} 
+                      className={`sort-icon ${sortBy === 'totalBudget' ? 'active' : ''}`}
+                    />
+                  </th>
                   <th>פעולות</th>
                 </tr>
               </thead>
