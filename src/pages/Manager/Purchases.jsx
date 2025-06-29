@@ -6,10 +6,10 @@ import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, up
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
-import '../../styles/ForModals/PurchaseModal.css';
-import '../../styles/ForModals/overlay.css';
-import '../../styles/ForModals/productModal.css';
-import '../../styles/ForModals/savePurchaseModal.css';
+// import '../../styles/ForModals/PurchaseModal.css';
+// import '../../styles/ForModals/overlay.css';
+// import '../../styles/ForModals/productModal.css';
+// import '../../styles/ForModals/savePurchaseModal.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -34,6 +34,14 @@ const Purchases = () => {
   const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [dragActive, setDragActive] = useState(false);
+  
+  // Pagination state for purchase history
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    // Get saved value from localStorage, default to 10
+    const saved = localStorage.getItem('purchaseHistoryItemsPerPage');
+    return saved ? parseInt(saved) : 10;
+  });
 
 
   // Subscribe to current purchase
@@ -360,6 +368,24 @@ const handleSavePrice = async (itemId) => {
     }
   });
 
+  // Pagination calculations for purchase history
+  const totalPages = Math.ceil(sortedPurchaseHistory.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPurchases = sortedPurchaseHistory.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Pagination handlers
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleItemsPerPageChange = (event) => {
+    const newValue = parseInt(event.target.value);
+    setItemsPerPage(newValue);
+    localStorage.setItem('purchaseHistoryItemsPerPage', newValue.toString());
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
   // Add the handleViewPurchaseDetails function
 const handleViewPurchaseDetails = (purchase) => {
   setSelectedPurchase(purchase);
@@ -441,6 +467,20 @@ const handleSavePurchaseDate = async (purchaseId) => {
       }
     }
   }, [location.state, purchaseHistory, navigate]);
+
+  // Reset pagination when switching to history view or when history changes
+  useEffect(() => {
+    if (showHistory) {
+      setCurrentPage(1);
+    }
+  }, [showHistory, purchaseHistory.length]);
+
+  // Adjust current page if it exceeds total pages after data changes
+  useEffect(() => {
+    if (showHistory && totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [showHistory, totalPages, currentPage]);
 
   // Prevent default drag behaviors on window
   useEffect(() => {
@@ -547,7 +587,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 </tr>
               </thead>
               <tbody>
-                {sortedPurchaseHistory.map(purchase => (
+                {currentPurchases.map(purchase => (
                   <tr key={purchase.id}>
                     <td>
                       {editingPurchaseId === purchase.id ? (
@@ -656,9 +696,56 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 ))}
               </tbody>
             </table>
-            <div className="purchase-summary card">
-              <h3>סה"כ רכישות: {purchaseHistory.reduce((sum, p) => sum + p.totalAmount, 0).toFixed(2)} ₪</h3>
-            </div>
+            
+            {/* Pagination controls for purchase history */}
+            {purchaseHistory.length > 0 && (
+              <div className="pagination">
+                <div className="pagination-controls">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="pagination-button"
+                  >
+                    הקודם
+                  </button>
+                  <span className="pagination-info">
+                    עמוד {currentPage} מתוך {totalPages}
+                  </span>
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="pagination-button"
+                  >
+                    הבא
+                  </button>
+                </div>
+                <div className="items-per-page">
+                  <label style={{ color: 'white' }}>
+                    שורות בעמוד:
+                  </label>
+                  <select 
+                    value={itemsPerPage} 
+                    onChange={handleItemsPerPageChange}
+                    className="items-per-page-select"
+                  >
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            
+            {/* <div className="purchase-summary card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <h3>סה"כ רכישות: {purchaseHistory.reduce((sum, p) => sum + p.totalAmount, 0).toFixed(2)} ₪</h3>
+                <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)' }}>
+                  מציג {currentPurchases.length} מתוך {purchaseHistory.length} רכישות
+                </div>
+              </div>
+            </div> */}
           </>
         )
       ) : (

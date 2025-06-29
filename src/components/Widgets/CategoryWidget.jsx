@@ -106,6 +106,7 @@ export default function CategoryWidget({
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder='תיאור הקטגוריה (אופציונלי)'
           />
         </div>
         {editingCategory ? (

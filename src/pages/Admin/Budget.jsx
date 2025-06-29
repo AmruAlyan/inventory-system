@@ -251,7 +251,7 @@ const Budget = () => {
                   </div>
                 </div>
                 <div className="latest-update">
-                  <h3>עדכון אחרון</h3>
+                  <h3>הכנסה אחרונה</h3>
                   <div className="latest-update-value">
                     <FontAwesomeIcon icon={faShekelSign} className="shekel-icon" />
                     {formData.latest.amount.toFixed(2)}

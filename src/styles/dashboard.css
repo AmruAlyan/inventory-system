@@ -170,27 +170,6 @@
     min-width: 300px;
 }
 
-@media (max-width: 1200px) {
-    .pie-chart-wrapper,
-    .switchable-chart-wrapper,
-    .purchases-chart-wrapper,
-    .area-chart-wrapper {
-        flex: 0 0 100%;
-    }
-    
-    .dashboard-level-2 {
-        flex-direction: column;
-    }
-    
-    .purchases-chart-wrapper {
-        order: 1;
-    }
-    
-    .area-chart-wrapper {
-        order: 2;
-    }
-}
-
 .dashboard-chart-empty {
     text-align: center;
     padding: 2rem;
@@ -274,3 +253,32 @@
     min-width: 60px;
     color: var(--secondary-text);
 }
+
+@media (max-width: 768px) {
+  .dashboard-main-row {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* .dashboard-cards {
+    flex-direction: column;
+    align-items: center;
+  } */
+
+    .dashboard-card {
+        width: 100%;
+        min-width: 36%;
+        max-width: 300px;
+        padding: 0.5rem;
+    }
+
+    .dashboard-chart-wrapper {
+        min-height: 300px;
+        /* flex: 1; */
+        min-width: 100%;
+        padding: 10px;
+    }
+} 
+
+

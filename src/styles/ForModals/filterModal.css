@@ -38,7 +38,7 @@
   color: var(--primary-text);
 }
 
-.categories-list {
+.categories-list.scrollable-content{
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -51,17 +51,17 @@
   scrollbar-color: var(--success) transparent;
 }
 
-.categories-list::-webkit-scrollbar {
+.categories-list.scrollable-content::-webkit-scrollbar {
   width: 8px;
   background: transparent;
 }
 
-.categories-list::-webkit-scrollbar-thumb {
+.categories-list.scrollable-content::-webkit-scrollbar-thumb {
   background: var(--success);
   border-radius: 8px;
 }
 
-.categories-list::-webkit-scrollbar-track {
+.categories-list.scrollable-content::-webkit-scrollbar-track {
   background: transparent;
 }
 

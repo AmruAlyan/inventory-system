@@ -136,13 +136,13 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
             className={`chart-tab ${activeChart === 'budget' ? 'active' : ''}`} 
             onClick={() => handleChartChange('budget')}
           >
-            תקציבים אחרונים
+            הכנסות אחרונות
           </button>
           <button 
             className={`chart-tab ${activeChart === 'purchases' ? 'active' : ''}`} 
             onClick={() => handleChartChange('purchases')}
           >
-            רכישות אחרונות
+            הוצאות אחרונות
           </button>
         </div>
         <div className="filter-type-toggle">
@@ -174,7 +174,7 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
                 <option value={15}>15</option>
                 <option value={20}>20</option>
               </select>
-              {activeChart === 'budget' ? ' תקציבים אחרונים' : ' רכישות אחרונות'}
+              {activeChart === 'budget' ? ' ההכנסות אחרונות' : ' הוצאות אחרונות'}
             </label>
           </div>
         ) : (
@@ -207,14 +207,14 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
       
       <div className="chart-title">
         {activeChart === 'budget' 
-          ? 'תקציבים אחרונים שהוגדרו ע״י המנכ״ל' 
-          : 'סכומי רכישה אחרונים'}
+          ? 'הכנסות אחרונות שהוגדרו ע״י המנכ״ל' 
+          : 'סכומי הוצאה אחרונים'}
       </div>
       
       <ResponsiveContainer width={'100%'} height={300}> 
         <BarChart
           data={filteredData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          // margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 

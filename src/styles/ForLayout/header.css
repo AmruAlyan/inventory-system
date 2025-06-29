@@ -59,9 +59,9 @@
   display: none;
 }
 
-@media (min-width: 768px) {
-  .logo-text {
-    display: block;
+@media (max-width: 768px) {
+  .logo-text-white {
+    display: none;
   }
 }
 

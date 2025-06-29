@@ -101,7 +101,7 @@ const FilterModal = ({ onClose, onApplyFilters, initialFilters, categories }) =>
 
           <div className="filter-section">
             <h3>קטגוריות</h3>
-            <div className="categories-list">
+            <div className="categories-list scrollable-content">
               {categories.map(category => (
                 <label key={category.id} className="category-checkbox">
                   <input

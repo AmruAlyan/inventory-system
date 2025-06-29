@@ -11,8 +11,16 @@ import '../../styles/imageUpload.css';
 
 export async function addProduct(productData) {
   try {
+    // Clean the product data to remove undefined values
+    const cleanedData = {};
+    Object.keys(productData).forEach(key => {
+      if (productData[key] !== undefined) {
+        cleanedData[key] = productData[key];
+      }
+    });
+    
     const productsCollectionRef = collection(db, 'products');
-    const docRef = await addDoc(productsCollectionRef, productData);
+    const docRef = await addDoc(productsCollectionRef, cleanedData);
     console.log("Product successfully added with ID: ", docRef.id);
     return docRef.id;
   } catch (e) {
@@ -23,8 +31,16 @@ export async function addProduct(productData) {
 
 export async function updateProduct(productId, productData) {
   try {
+    // Clean the product data to remove undefined values
+    const cleanedData = {};
+    Object.keys(productData).forEach(key => {
+      if (productData[key] !== undefined) {
+        cleanedData[key] = productData[key];
+      }
+    });
+    
     const productDocRef = doc(db, 'products', productId);
-    await updateDoc(productDocRef, productData);
+    await updateDoc(productDocRef, cleanedData);
     console.log('Product successfully updated:', productId);
   } catch (e) {
     console.error('Error updating product:', e);
@@ -38,7 +54,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
     category: product ? product.category : '',
     quantity: product ? product.quantity : '',
     price: product ? product.price : '',
-    imageUrl: product ? product.imageUrl : null,
+    imageUrl: product && product.imageUrl ? product.imageUrl : null, // Ensure null instead of undefined
   });
   const [status, setStatus] = useState('');
   const [categories, setCategories] = useState([]);
@@ -53,6 +69,16 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
         const querySnapshot = await getDocs(collection(db, 'categories'));
         const categoriesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setCategories(categoriesData);
+        
+        // Check if the current product's category still exists
+        if (product && product.category) {
+          const categoryExists = categoriesData.some(cat => cat.id === product.category);
+          if (!categoryExists) {
+            // If the category doesn't exist, reset it to empty
+            setForm(prev => ({ ...prev, category: '' }));
+            toast.warning('הקטגוריה המקורית של המוצר נמחקה. אנא בחר קטגוריה חדשה.');
+          }
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
         toast.error('שגיאה: לא ניתן לטעון קטגוריות');
@@ -60,7 +86,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
     };
 
     fetchCategories();
-  }, []);
+  }, [product]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -101,6 +127,14 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       return;
     }
 
+    // Check if the selected category exists (not deleted)
+    const categoryExists = categories.some(cat => cat.id === form.category);
+    if (!categoryExists) {
+      setStatus('Selected category is invalid.');
+      toast.error('שגיאה: הקטגוריה שנבחרה אינה תקפה. אנא בחר קטגוריה אחרת.');
+      return;
+    }
+
     // Duplicate name check (case-insensitive, trimmed)
     const isDuplicate = existingProductNames.some(
       (name) => name.trim().toLowerCase() === form.name.trim().toLowerCase()
@@ -116,7 +150,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       category: form.category,
       quantity: parseInt(form.quantity),
       price: parseFloat(form.price),
-      imageUrl: form.imageUrl,
+      imageUrl: form.imageUrl || null, // Ensure imageUrl is never undefined
     };
 
     try {
@@ -142,7 +176,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
         await addProduct(productData);
         setStatus('Product added successfully!');
         toast.success('המוצר נוסף בהצלחה');
-        setForm({ name: '', category: '', quantity: '', price: '', imageUrl: null });
+        setForm({ name: '', category: '', quantity: '', price: '', imageUrl: null }); // Ensure null instead of undefined
         if (onSave) onSave();
         onClose(); // Close modal after successful addition
       }
@@ -150,6 +184,11 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       setStatus(mode === 'edit' ? 'Failed to update product.' : 'Failed to add product.');
       toast.error(mode === 'edit' ? 'שגיאה: עדכון המוצר נכשל' : 'שגיאה: הוספת המוצר נכשלה');
     }
+  };
+
+  // Helper function to check if current category is deleted
+  const isCategoryDeleted = () => {
+    return product && product.category && !categories.some(cat => cat.id === product.category);
   };
 
   return (
@@ -164,12 +203,33 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
                 <input type="text" name="name" value={form.name} onChange={handleChange} />
               </div>
               <div className='Product-form-group'>
-                <label>קטיגוריה:</label>          <select name="category" value={form.category} onChange={handleChange}>
+                <label>קטיגוריה:</label>          
+                <select 
+                  name="category" 
+                  value={form.category} 
+                  onChange={handleChange}
+                  style={{
+                    borderColor: isCategoryDeleted() && form.category === product?.category ? '#dc3545' : undefined,
+                    borderWidth: isCategoryDeleted() && form.category === product?.category ? '2px' : undefined
+                  }}
+                >
                   <option value="">בחר קטיגוריה...</option>
+                  {/* Show deleted category option if the product has an invalid category */}
+                  {isCategoryDeleted() && (
+                    <option value={product.category} style={{ color: '#dc3545', fontStyle: 'italic' }}>
+                      (קטגוריה שנמחקה) - {product.category}
+                    </option>
+                  )}
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
+                {/* Show warning if category is deleted */}
+                {isCategoryDeleted() && form.category === product.category && (
+                  <small style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                    ⚠️ הקטגוריה נמחקה. אנא בחר קטגוריה חדשה.
+                  </small>
+                )}
               </div>
               <div className='Product-form-group'>
                 <label>כמות:</label>

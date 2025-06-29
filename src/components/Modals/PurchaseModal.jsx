@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faShoppingCart, faCloudUploadAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faShoppingCart, faCloudUploadAlt, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import '../../styles/ForModals/productModal.css';
 import '../../styles/ForModals/PurchaseModal.css';
@@ -70,12 +70,13 @@ const DragDropUpload = ({ onFileDrop }) => {
       onDrop={handleDrop}
       onClick={handleClick}
       style={{
-        border: '2px dashed #007bff',
+        border: '2px dashed var(--primary)',
         borderRadius: '8px',
         padding: '20px',
         textAlign: 'center',
         cursor: 'pointer',
-        backgroundColor: dragActive ? '#e3f2fd' : '#f8f9fa',
+        // backgroundColor: dragActive ? '#e3f2fd' : '#f8f9fa',
+        backgroundColor: 'transparent',
         transition: 'all 0.3s ease',
         minHeight: '100px',
         display: 'flex',
@@ -115,7 +116,60 @@ const DragDropUpload = ({ onFileDrop }) => {
 };
 
 const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
+  const [sortField, setSortField] = React.useState('name');
+  const [sortDirection, setSortDirection] = React.useState('asc');
+
   if (!purchase) return null;
+
+  // Sorting functionality
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return faSort;
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  const sortedItems = [...purchase.items].sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortField) {
+      case 'name':
+        aValue = a.name?.toLowerCase() || '';
+        bValue = b.name?.toLowerCase() || '';
+        break;
+      case 'category':
+        aValue = (a.categoryName || categories[a.category] || 'לא מוגדר').toLowerCase();
+        bValue = (b.categoryName || categories[b.category] || 'לא מוגדר').toLowerCase();
+        break;
+      case 'quantity':
+        aValue = a.quantity || 0;
+        bValue = b.quantity || 0;
+        break;
+      case 'price':
+        aValue = a.price || 0;
+        bValue = b.price || 0;
+        break;
+      case 'total':
+        aValue = (a.price * a.quantity) || 0;
+        bValue = (b.price * b.quantity) || 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -160,18 +214,88 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
 
             <div className="table-container">
               {/* ...existing table content... */}
-                <table className="inventory-table mt-3">
+                <table className="inventory-table">
                     <thead>
                         <tr>
-                            <th>שם מוצר</th>
-                            <th>קטגוריה</th>
-                            <th>כמות</th>
-                            <th>מחיר</th>
-                            <th>סה"כ</th>
+                            <th 
+                              onClick={() => handleSort('name')} 
+                              data-active={sortField === 'name'}
+                              style={{ 
+                                cursor: 'pointer', 
+                                userSelect: 'none',
+                                transition: 'background-color 0.2s ease',
+                                position: 'relative'
+                              }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              title="לחץ למיון לפי שם מוצר"
+                            >
+                              שם מוצר <FontAwesomeIcon icon={getSortIcon('name')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                            </th>
+                            <th 
+                              onClick={() => handleSort('category')} 
+                              data-active={sortField === 'category'}
+                              style={{ 
+                                cursor: 'pointer', 
+                                userSelect: 'none',
+                                transition: 'background-color 0.2s ease',
+                                position: 'relative'
+                              }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              title="לחץ למיון לפי קטגוריה"
+                            >
+                              קטגוריה <FontAwesomeIcon icon={getSortIcon('category')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                            </th>
+                            <th 
+                              onClick={() => handleSort('quantity')} 
+                              data-active={sortField === 'quantity'}
+                              style={{ 
+                                cursor: 'pointer', 
+                                userSelect: 'none',
+                                transition: 'background-color 0.2s ease',
+                                position: 'relative'
+                              }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              title="לחץ למיון לפי כמות"
+                            >
+                              כמות <FontAwesomeIcon icon={getSortIcon('quantity')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                            </th>
+                            <th 
+                              onClick={() => handleSort('price')} 
+                              data-active={sortField === 'price'}
+                              style={{ 
+                                cursor: 'pointer', 
+                                userSelect: 'none',
+                                transition: 'background-color 0.2s ease',
+                                position: 'relative'
+                              }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              title="לחץ למיון לפי מחיר"
+                            >
+                              מחיר <FontAwesomeIcon icon={getSortIcon('price')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                            </th>
+                            <th 
+                              onClick={() => handleSort('total')} 
+                              data-active={sortField === 'total'}
+                              style={{ 
+                                cursor: 'pointer', 
+                                userSelect: 'none',
+                                transition: 'background-color 0.2s ease',
+                                position: 'relative'
+                              }}
+                              onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              title="לחץ למיון לפי סה&quot;כ"
+                            >
+                              סה"כ <FontAwesomeIcon icon={getSortIcon('total')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {purchase.items.map(item => (
+                        {sortedItems.map(item => (
                         <tr key={item.id}>
                             <td>{item.name}</td>
                             <td>{item.categoryName || categories[item.category] || 'לא מוגדר'}</td>
