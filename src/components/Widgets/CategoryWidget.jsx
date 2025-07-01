@@ -13,22 +13,20 @@ function generateIdFromName(name) {
     .replace(/[^\w_]+/g, '');
 }
 
-async function addCategory(categoryName, description) {
+async function addCategory(categoryName) {
   const categoriesRef = collection(db, 'categories');
 
   const docRef = await addDoc(categoriesRef, {
-    name: categoryName,
-    description: description || ''
+    name: categoryName
   });
 
   return docRef.id;
 }
 
-async function updateCategory(categoryId, categoryName, description) {
+async function updateCategory(categoryId, categoryName) {
   const categoryDoc = doc(db, 'categories', categoryId);
   await updateDoc(categoryDoc, {
-    name: categoryName,
-    description: description || ''
+    name: categoryName
   });
 }
 
@@ -40,16 +38,13 @@ export default function CategoryWidget({
   categoriesList = [] // <-- Add this prop
 }) {
   const [categoryName, setCategoryName] = useState('');
-  const [description, setDescription] = useState('');
 
   // Fill fields if editing
   useEffect(() => {
     if (editingCategory) {
       setCategoryName(editingCategory.name || '');
-      setDescription(editingCategory.description || '');
     } else {
       setCategoryName('');
-      setDescription('');
     }
   }, [editingCategory]);
 
@@ -72,14 +67,13 @@ export default function CategoryWidget({
 
     try {
       if (editingCategory) {
-        await updateCategory(editingCategory.id, categoryName, description);
+        await updateCategory(editingCategory.id, categoryName);
         toast.success('הקטגוריה עודכנה בהצלחה!');
         if (onUpdate) onUpdate();
       } else {
-        await addCategory(categoryName, description);
+        await addCategory(categoryName);
         toast.success('קטגוריה נוספה בהצלחה!');
         setCategoryName('');
-        setDescription('');
         if (onCategoryAdded) onCategoryAdded();
       }
     } catch (err) {
@@ -90,7 +84,6 @@ export default function CategoryWidget({
 
   return (
     <div className='category-widget'>
-      <h2>{editingCategory ? 'עריכת קטגוריה' : 'הוספת קטגוריה חדשה'}</h2>
       <form onSubmit={handleSubmit} className='category-form'>
         <div className='category-form-group'>
           <label>שם קטגוריה:</label>
@@ -98,15 +91,6 @@ export default function CategoryWidget({
             type="text"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
-          />
-        </div>
-        <div className='category-form-group'>
-          <label>תיאור:</label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder='תיאור הקטגוריה (אופציונלי)'
           />
         </div>
         {editingCategory ? (
@@ -118,7 +102,6 @@ export default function CategoryWidget({
           <button type="submit" className='category-button-add'>הוסף קטגוריה</button>
         )}
       </form>
-      {/* {status && <p>{status}</p>} */}
     </div>
   );
 }
