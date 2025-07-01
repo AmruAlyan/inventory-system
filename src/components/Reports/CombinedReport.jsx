@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShekelSign, faReceipt, faChartLine } from "@fortawesome/free-solid-svg-icons";
+import { faShekelSign, faReceipt, faChartLine, faSort, faSortUp, faSortDown } from "@fortawesome/free-solid-svg-icons";
 import CustomArea from "../Charts/CustomArea";
 
 const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }) => {
+  // Sorting state for both tables
+  const [budgetSort, setBudgetSort] = useState({ field: null, direction: 'asc' });
+  const [purchaseSort, setPurchaseSort] = useState({ field: null, direction: 'asc' });
+
   if ((!budgetData || budgetData.length === 0) && (!purchaseData || purchaseData.length === 0)) {
     return (
       <div className="no-data">
@@ -39,6 +43,89 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
   const combinedChartData = [...areaBudgetData, ...areaPurchaseData]
     .sort((a, b) => new Date(a.date) - new Date(b.date)) || [];
 
+  // Sorting functions
+  const handleBudgetSort = (field) => {
+    const direction = budgetSort.field === field && budgetSort.direction === 'asc' ? 'desc' : 'asc';
+    setBudgetSort({ field, direction });
+  };
+
+  const handlePurchaseSort = (field) => {
+    const direction = purchaseSort.field === field && purchaseSort.direction === 'asc' ? 'desc' : 'asc';
+    setPurchaseSort({ field, direction });
+  };
+
+  const getSortIcon = (field, currentSort) => {
+    if (currentSort.field !== field) return faSort;
+    return currentSort.direction === 'asc' ? faSortUp : faSortDown;
+  };
+
+  // Sorted data
+  const sortedBudgetData = useMemo(() => {
+    if (!budgetData || !budgetSort.field) return budgetData;
+    
+    return [...budgetData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (budgetSort.field) {
+        case 'date':
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case 'amount':
+          aValue = a.amount || 0;
+          bValue = b.amount || 0;
+          break;
+        case 'totalBudget':
+          aValue = a.totalBudget || 0;
+          bValue = b.totalBudget || 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return budgetSort.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return budgetSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [budgetData, budgetSort]);
+
+  const sortedPurchaseData = useMemo(() => {
+    if (!purchaseData || !purchaseSort.field) return purchaseData;
+    
+    return [...purchaseData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (purchaseSort.field) {
+        case 'date':
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case 'itemsCount':
+          aValue = a.items?.length || 0;
+          bValue = b.items?.length || 0;
+          break;
+        case 'totalAmount':
+          aValue = a.totalAmount || 0;
+          bValue = b.totalAmount || 0;
+          break;
+        case 'budgetBefore':
+          aValue = a.budgetBefore || 0;
+          bValue = b.budgetBefore || 0;
+          break;
+        case 'budgetAfter':
+          aValue = a.budgetAfter || 0;
+          bValue = b.budgetAfter || 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return purchaseSort.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return purchaseSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [purchaseData, purchaseSort]);
+
 
   return (
     <div className="combined-report">
@@ -49,7 +136,7 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
           <div className="summary-card budget-summary">
             <h4><FontAwesomeIcon icon={faShekelSign} /> תקציב</h4>
             <p>עדכוני תקציב: {budgetSummary.totalUpdates}</p>
-            <p>סה"כ הוספות: {formatCurrency(budgetSummary.totalAdded)}</p>
+            <p>סה"כ הפקדות: {formatCurrency(budgetSummary.totalAdded)}</p>
             <p>תקציב נוכחי: {formatCurrency(budgetSummary.finalBudget)}</p>
           </div>
           <div className="summary-card purchase-summary">
@@ -79,13 +166,19 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
             <table className="report-table">
               <thead>
                 <tr>
-                  <th>תאריך</th>
-                  <th>סכום עדכון</th>
-                  <th>תקציב אחרי עדכון</th>
+                  <th className="sortable-header" onClick={() => handleBudgetSort('date')}>
+                    תאריך <FontAwesomeIcon icon={getSortIcon('date', budgetSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handleBudgetSort('amount')}>
+                    הפקדה נוכחית <FontAwesomeIcon icon={getSortIcon('amount', budgetSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handleBudgetSort('totalBudget')}>
+                    תקציב אחרי עדכון <FontAwesomeIcon icon={getSortIcon('totalBudget', budgetSort)} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {budgetData.map((item, index) => (
+                {sortedBudgetData.map((item, index) => (
                   <tr key={index}>
                     <td>{formatDate(item.date)}</td>
                     <td>{formatCurrency(item.amount || 0)}</td>
@@ -106,15 +199,25 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
             <table className="report-table">
               <thead>
                 <tr>
-                  <th>תאריך</th>
-                  <th>מספר פריטים</th>
-                  <th>סה"כ רכישה</th>
-                  <th>תקציב לפני</th>
-                  <th>תקציב אחרי</th>
+                  <th className="sortable-header" onClick={() => handlePurchaseSort('date')}>
+                    תאריך <FontAwesomeIcon icon={getSortIcon('date', purchaseSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handlePurchaseSort('itemsCount')}>
+                    מספר פריטים <FontAwesomeIcon icon={getSortIcon('itemsCount', purchaseSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handlePurchaseSort('totalAmount')}>
+                    סה"כ רכישה <FontAwesomeIcon icon={getSortIcon('totalAmount', purchaseSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handlePurchaseSort('budgetBefore')}>
+                    תקציב לפני <FontAwesomeIcon icon={getSortIcon('budgetBefore', purchaseSort)} />
+                  </th>
+                  <th className="sortable-header" onClick={() => handlePurchaseSort('budgetAfter')}>
+                    תקציב אחרי <FontAwesomeIcon icon={getSortIcon('budgetAfter', purchaseSort)} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {purchaseData.map((item, index) => (
+                {sortedPurchaseData.map((item, index) => (
                   <tr key={index}>
                     <td>{formatDate(item.date)}</td>
                     <td>{item.items?.length || 0}</td>

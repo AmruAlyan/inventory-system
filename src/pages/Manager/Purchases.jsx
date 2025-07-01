@@ -1125,7 +1125,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 }}>
                   <span>📏 מקסימום 10MB</span>
                   <span>•</span>
-                  <span>📷 JPG, PNG, GIF</span>
+                  <span>📷 JPG, PNG </span>
                   <span>•</span>
                   <span>📄 PDF</span>
                 </div>

@@ -748,3 +748,34 @@
     margin-top: 1rem;
   }
 }
+
+/* Sortable Table Headers */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: all 0.2s ease;
+  padding: 12px 8px;
+}
+
+.sortable-header:hover {
+  background-color: var(--hover-color);
+  color: var(--primary-color);
+}
+
+.sortable-header svg {
+  margin-left: 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  font-size: 0.8em;
+}
+
+.sortable-header:hover svg {
+  opacity: 1;
+}
+
+.sortable-header svg[data-icon="sort-up"],
+.sortable-header svg[data-icon="sort-down"] {
+  opacity: 1;
+  color: var(--primary-color);
+}
