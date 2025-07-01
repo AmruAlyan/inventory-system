@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
-import { faTableCellsLarge, faEdit, faTrashAlt, faPlus, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import { faTableCellsLarge, faEdit, faTrashAlt, faPlus, faSort, faSortUp, faSortDown, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
+import Modal from '../../components/Modals/Modal';
 import { toast } from 'react-toastify';
 import Spinner from '../../components/Spinner';
 import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForManager/categories.css';
+import '../../styles/ForModals/categoryModal.css';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -81,6 +83,83 @@ const Categories = () => {
     setShowEditWidget(true);
   };
 
+  const handleCategoryAdded = () => {
+    setShowAddWidget(false);
+    // Refresh categories list
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const categorySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesData = categorySnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data(),
+          productCount: 0
+        }));
+
+        const productsSnapshot = await getDocs(collection(db, 'products'));
+        const categoryCounts = {};
+        productsSnapshot.docs.forEach(doc => {
+          const product = doc.data();
+          if (product.category) {
+            categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+          }
+        });
+
+        const dataWithCounts = categoriesData.map(category => ({
+          ...category,
+          productCount: categoryCounts[category.id] || 0
+        }));
+        setCategories(dataWithCounts);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('שגיאה בטעינת קטגוריות');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  };
+
+  const handleCategoryUpdated = () => {
+    setShowEditWidget(false);
+    setEditingCategory(null);
+    // Refresh categories list
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const categorySnapshot = await getDocs(collection(db, 'categories'));
+        const categoriesData = categorySnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data(),
+          productCount: 0
+        }));
+
+        const productsSnapshot = await getDocs(collection(db, 'products'));
+        const categoryCounts = {};
+        productsSnapshot.docs.forEach(doc => {
+          const product = doc.data();
+          if (product.category) {
+            categoryCounts[product.category] = (categoryCounts[product.category] || 0) + 1;
+          }
+        });
+
+        const dataWithCounts = categoriesData.map(category => ({
+          ...category,
+          productCount: categoryCounts[category.id] || 0
+        }));
+        setCategories(dataWithCounts);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('שגיאה בטעינת קטגוריות');
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  };
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
@@ -130,85 +209,177 @@ const Categories = () => {
           <FontAwesomeIcon icon={faTableCellsLarge} className="page-header-icon" />
           קטגוריות
         </h1>
-        {/* ...existing header actions... */}
       </div>
-      <div className='cat'>
-        <div className='catL'>
-          {showEditWidget ? (
-            <div className='sticky-box'>
-              <CategoryWidget
-                editingCategory={editingCategory}   
-                onUpdate={() => {
-                  setShowEditWidget(false);
-                  setEditingCategory(null);
-                }}
-                onCancel={() => {
-                  setShowEditWidget(false);
-                  setEditingCategory(null);
-                }}
-                categoriesList={categories}
+      
+      <div className='categories-layout'>
+        
+        <div className="categories-main">
+          <div className="categories-controls">
+            <div className="search-section">
+              <input
+                type="search"
+                name="search4category"
+                placeholder="חיפוש קטגוריות..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="search-input"
               />
             </div>
-          ) : (
-            <div className='sticky-box'>
-              <CategoryWidget categoriesList={categories} />
+            
+            <div className="controls-right">
+              
+              
+              <div className="sort-section">
+                <label>מיון לפי:</label>
+                <select 
+                  onChange={(e) => {
+                    const [field, direction] = e.target.value.split('-');
+                    setSortField(field);
+                    setSortDirection(direction);
+                  }}
+                  value={sortField ? `${sortField}-${sortDirection}` : ''}
+                  className="sort-select"
+                >
+                  <option value="">ללא מיון</option>
+                  <option value="name-asc">שם (א-ת)</option>
+                  <option value="name-desc">שם (ת-א)</option>
+                  <option value="productCount-desc">כמות מוצרים (הרבה למעט)</option>
+                  <option value="productCount-asc">כמות מוצרים (מעט להרבה)</option>
+                </select>
+              </div>
+              <button 
+                onClick={() => setShowAddWidget(true)}
+                className="add-category-btn"
+                title="הוסף קטגוריה חדשה"
+              >
+                <FontAwesomeIcon icon={faPlus} />
+                הוסף קטגוריה
+              </button>
+            </div>
+          </div>
+          
+          {filteredCategories.length > 0 && (
+            <div className="categories-summary" style={{ marginBottom: '25px' }}>
+              <div className="summary-stats">
+                <div className="summary-item">
+                  <span className="summary-number">{filteredCategories.length}</span>
+                  <span className="summary-label">קטגוריות</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-number">
+                    {filteredCategories.reduce((sum, cat) => sum + cat.productCount, 0)}
+                  </span>
+                  <span className="summary-label">סה"כ מוצרים</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-number">
+                    {Math.round(filteredCategories.reduce((sum, cat) => sum + cat.productCount, 0) / filteredCategories.length * 10) / 10}
+                  </span>
+                  <span className="summary-label">ממוצע מוצרים</span>
+                </div>
+              </div>
             </div>
           )}
-        </div>
-        <div className="catR">
-          <div className="searchBar">
-            <input
-              type="search"
-              name="search4category"
-              placeholder="חיפוש..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
-          <div>
+          
+          <div className="categories-content">
             {loading ? (
-              <Spinner />
+              <div className="loading-container">
+                <Spinner />
+              </div>
             ) : filteredCategories.length === 0 ? (
-              <div className="empty-list">
-                <p>אין קטגוריות להצגה</p>
-                <p className="empty-list-subtext">הוסף קטגוריות חדשות כדי להתחיל</p>
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <FontAwesomeIcon icon={faTableCellsLarge} />
+                </div>
+                <h3>אין קטגוריות להצגה</h3>
+                <p>הוסף קטגוריות חדשות כדי להתחיל לארגן את המוצרים שלך</p>
               </div>
             ) : (
-              <table className="inventory-table">              
-                <thead>
-                  <tr>
-                    <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
-                      שם קטיגוריה
-                      <FontAwesomeIcon icon={getSortIcon('name')} className="sort-icon" />
-                    </th>
-                    <th onClick={() => handleSort('productCount')} style={{ cursor: 'pointer' }}>
-                      כמות מוצרים
-                      <FontAwesomeIcon icon={getSortIcon('productCount')} className="sort-icon" />
-                    </th>
-                    <th>פעולות</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCategories.map((category) => (
-                    <tr key={category.id}>
-                      <td>{category.name}</td>
-                      <td>{category.productCount}</td>
-                      <td className='inventory-actions'>
-                        <button onClick={() => handleEdit(category.id)} title="עדכן">
+              <div className="categories-grid">
+                {filteredCategories.map((category) => (
+                  <div key={category.id} className="category-card">
+                    <div className="card-header">
+                      <h3 className="category-name-icon">{category.name}</h3>
+                      <div className="card-actions">
+                        <button 
+                          onClick={() => handleEdit(category.id)} 
+                          title="ערוך קטגוריה"
+                          className="action-btn edit-btn"
+                        >
                           <FontAwesomeIcon icon={faEdit} />
                         </button>
-                        <button onClick={() => handleDelete(category.id)} title="מחק">
+                        <button 
+                          onClick={() => handleDelete(category.id)} 
+                          title="מחק קטגוריה"
+                          className="action-btn delete-btn"
+                        >
                           <FontAwesomeIcon icon={faTrashAlt} />
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                    
+                    <div className="card-body">
+                      <div className="category-stats">
+                        <div className="stat-item">
+                          <span className="stat-number">{category.productCount}</span>
+                          <span className="stat-label">מוצרים</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Add Category Modal */}
+      {showAddWidget && (
+        <Modal onClose={() => setShowAddWidget(false)}>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>הוסף קטגוריה חדשה</h2>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowAddWidget(false)}
+                title="סגור"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            <CategoryWidget
+              onCategoryAdded={handleCategoryAdded}
+              onCancel={() => setShowAddWidget(false)}
+              categoriesList={categories}
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Category Modal */}
+      {showEditWidget && editingCategory && (
+        <Modal onClose={() => { setShowEditWidget(false); setEditingCategory(null); }}>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>ערוך קטגוריה</h2>
+              <button 
+                className="modal-close-btn"
+                onClick={() => { setShowEditWidget(false); setEditingCategory(null); }}
+                title="סגור"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            <CategoryWidget
+              editingCategory={editingCategory}
+              onUpdate={handleCategoryUpdated}
+              onCancel={() => { setShowEditWidget(false); setEditingCategory(null); }}
+              categoriesList={categories}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
