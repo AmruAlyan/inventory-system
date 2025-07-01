@@ -74,9 +74,9 @@
 }
 
 .history-table-wrapper {
-  overflow-x: auto;
+  /* overflow-x: auto; */
   max-height: 400px;
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 
 .history-table {
@@ -239,6 +239,10 @@
   color: var(--primary-text);
   outline: none;
   direction: rtl;
+}
+
+.inventory-table input {
+  text-align: center;
 }
 
 /* Styling for date input with dd/mm/yyyy format */

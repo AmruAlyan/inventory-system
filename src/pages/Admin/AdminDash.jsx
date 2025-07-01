@@ -250,7 +250,7 @@ const AdminDash = () => {
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <h3 className="dashboard-card-title">
-            <p>תקציב</p>
+            <p>התקציב הנוכחי</p>
             <button onClick={handleBudgetCardClick}><FontAwesomeIcon icon={faArrowLeftLong} className="dashboard-card-title-icon"/></button>
           </h3>
           <h2 className="dashboard-card-value">{budget.toFixed(2)} <FontAwesomeIcon icon={faShekel} className="dashboard-icon" /></h2>

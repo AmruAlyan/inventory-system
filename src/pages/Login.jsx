@@ -6,7 +6,7 @@ import { db } from "../firebase/firebase"; // Firebase Firestore instance
 import "../styles/login.css";
 import image from "../assets/pics/login-2.png";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faKey, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faKey, faExclamationTriangle, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from "react-router-dom";
 import ThemeSwitch from "../components/LayoutComponents/ThemeSwitch";
 import { ROLES } from "../constants/roles.js";
@@ -16,6 +16,7 @@ function Login() {
   // Input values
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Validation states - initialize as empty (no errors shown initially)
   const [emailError, setEmailError] = useState("");
@@ -139,7 +140,7 @@ function Login() {
               <div className="input-group">
                 <FontAwesomeIcon icon={faKey} className="icon" />
                 <input 
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   placeholder="סיסמה" 
                   value={password}
                   onChange={(e) => {
@@ -147,8 +148,16 @@ function Login() {
                     // Clear password error when user starts typing again
                     if (passwordError) setPasswordError("");
                   }}
-                  className={passwordError ? 'input-error' : ''}
+                  className={`password-input ${passwordError ? 'input-error' : ''}`}
                 />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
+                >
+                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                </button>
               </div>
               {passwordError && (
                 <div className="validation-error">

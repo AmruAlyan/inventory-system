@@ -137,7 +137,7 @@ const Top3Categories = () => {
       <div className="top3-header">
         <FontAwesomeIcon icon={faArrowTrendUp} className="header-icon" />
         <h3>3 הקטגוריות המובילות</h3>
-        <p style={{ padding: '0', margin: '0' }}>(לפי הוצאות)</p>
+        <p style={{ padding: '0', margin: '0' }}>(לפי קניות)</p>
       </div>
 
       <div className="top3list">

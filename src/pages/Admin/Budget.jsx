@@ -9,6 +9,8 @@ import Spinner from "../../components/Spinner";
 import { db } from "../../firebase/firebase";
 import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, addDoc } from "firebase/firestore";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
+// import ExampleTableUsage from '../../components/ExampleTableUsage';
+import SortableTable from "../../components/SortableTable.jsx";
 
 const Budget = () => {
   const [formData, setFormData] = useState({
@@ -27,192 +29,206 @@ const Budget = () => {
     const fetchBudgetData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
+        // Fetch budget data
         const budgetDocRef = doc(db, "budgets", "current");
         const budgetSnapshot = await getDoc(budgetDocRef);
-        const historyQuery = query(
-          collection(db, "budgets", "history", "entries"),
-          orderBy("date", "desc")
-        );
-        const historySnapshot = await getDocs(historyQuery);
-        const historyData = [];
-        historySnapshot.forEach(doc => {
-          const data = doc.data();
-          historyData.push({
-            id: doc.id,
-            amount: data.amount,
-            date: data.date && data.date.toDate ? data.date.toDate() : new Date(),
-            formatted: data.date && data.date.toDate ? new Intl.DateTimeFormat('he-IL', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }).format(data.date.toDate()) : ''
+        
+        // Fetch budget history - handle empty collection gracefully
+        let historyData = [];
+        try {
+          const historyQuery = query(
+            collection(db, "budgets", "history", "entries"),
+            orderBy("date", "desc")
+          );
+          const historySnapshot = await getDocs(historyQuery);
+          
+          historySnapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+            historyData.push({
+              id: doc.id,
+              amount: data.amount || 0,
+              date: date,
+              formatted: new Intl.DateTimeFormat('he-IL', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              }).format(date)
+            });
           });
-        });
-        historyData.sort((a, b) => b.date - a.date);
+          
+          // Sort history by date (newest first)
+          historyData.sort((a, b) => b.date - a.date);
+        } catch (historyError) {
+          console.warn("Budget history collection may not exist yet:", historyError);
+          // Continue with empty history - this is normal for new installations
+        }
+        
         setBudgetHistory(historyData);
-        // Fetch purchases for the chart
-        const purchasesQuery = query(
-          collection(db, 'purchases/history/items'),
-          orderBy('date', 'desc')
-        );
-        const purchasesSnapshot = await getDocs(purchasesQuery);
-        const purchasesData = [];
-        purchasesSnapshot.forEach(doc => {
-          const data = doc.data();
-          purchasesData.push({
-            id: doc.id,
-            totalAmount: data.totalAmount || 0,
-            date: data.date && data.date.toDate ? data.date.toDate() : new Date(),
-            formatted: data.date && data.date.toDate ? new Intl.DateTimeFormat('he-IL', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }).format(data.date.toDate()) : ''
+        
+        // Fetch purchases for the chart - handle empty collection gracefully
+        let purchasesData = [];
+        try {
+          const purchasesQuery = query(
+            collection(db, 'purchases/history/items'),
+            orderBy('date', 'desc')
+          );
+          const purchasesSnapshot = await getDocs(purchasesQuery);
+          
+          purchasesSnapshot.forEach(doc => {
+            const data = doc.data();
+            const date = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+            purchasesData.push({
+              id: doc.id,
+              totalAmount: data.totalAmount || 0,
+              date: date,
+              formatted: new Intl.DateTimeFormat('he-IL', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              }).format(date)
+            });
           });
-        });
-        purchasesData.sort((a, b) => b.date - a.date);
+          
+          purchasesData.sort((a, b) => b.date - a.date);
+        } catch (purchaseError) {
+          console.warn("Purchase history collection may not exist yet:", purchaseError);
+          // Continue with empty purchases - this is normal for new installations
+        }
+        
         setPurchaseChartData(purchasesData);
-        if (budgetSnapshot.exists()) {
-          const data = budgetSnapshot.data();
-          if (data && data.latestUpdate && data.latestUpdate.date && data.latestUpdate.date.toDate) {
-            setFormData({
-              current: data.totalBudget || 0,
-              latest: {
-                amount: data.latestUpdate.amount || 0,
-                date: data.latestUpdate.date.toDate().toISOString().split("T")[0]
-              },
-              updates: { amount: "", date: "" }
-            });
-          } else {
-            setFormData({
-              current: 0,
-              latest: {
-                amount: 0,
-                date: new Date(Date.now()).toISOString().split("T")[0]
-              },
-              updates: { amount: "", date: "" }
-            });
-            if (!budgetSnapshot.exists()) {
-              await setDoc(budgetDocRef, {
-                totalBudget: 0,
-                latestUpdate: {
-                  amount: 0,
-                  date: Timestamp.fromDate(new Date())
-                }
-              });
-            }
-          }
-        } else {
-          const now = Date.now();
-          setFormData({
-            current: 0,
-            latest: {
-              amount: 0,
-              date: new Date(now).toISOString().split("T")[0]
-            },
-            updates: { amount: "", date: "" }
-          });
-          await setDoc(budgetDocRef, {
-            totalBudget: 0,
-            latestUpdate: {
-              amount: 0,
-              date: Timestamp.fromDate(new Date())
-            }
-          });
+        
+        // Set form data based on budget document and history
+        const currentBudget = budgetSnapshot.exists() ? (budgetSnapshot.data().totalBudget || 0) : 0;
+        
+        // Get latest update info from history entries (first entry is most recent due to sorting)
+        let latestAmount = 0;
+        let latestDate = new Date().toISOString().split("T")[0];
+        
+        if (historyData.length > 0) {
+          const latestEntry = historyData[0]; // First entry is most recent
+          latestAmount = latestEntry.amount || 0;
+          latestDate = latestEntry.date.toISOString().split("T")[0];
+        }
+        
+        setFormData({
+          current: currentBudget,
+          latest: {
+            amount: latestAmount,
+            date: latestDate
+          },
+          updates: { amount: "", date: "" }
+        });
+        
+        // Initialize budget document if it doesn't exist
+        if (!budgetSnapshot.exists()) {
+          const initialData = {
+            totalBudget: 0
+          };
+          await setDoc(budgetDocRef, initialData);
         }
       } catch (err) {
-        setError("אירעה שגיאה בטעינת נתוני התקציב");
+        console.error("Error fetching budget data:", err);
+        setError("אירעה שגיאה בטעינת נתוני התקציב: " + err.message);
       } finally {
         setIsLoading(false);
       }
     };
+    
     fetchBudgetData();
   }, [refreshData]);
 
   const handleUpdate = async () => {
     const updateAmount = parseFloat(formData.updates.amount);
     const updateDate = formData.updates.date;
-    if (!isNaN(updateAmount) && updateDate) {
-      try {
-        setIsLoading(true);
-        const newTotalBudget = formData.current + updateAmount;
-        const entryDate = Timestamp.fromDate(new Date(updateDate));
-        const budgetDocRef = doc(db, "budgets", "current");
-        await setDoc(budgetDocRef, {
-          totalBudget: newTotalBudget,
-          latestUpdate: {
-            amount: updateAmount,
-            date: entryDate
-          }
-        }, { merge: true });
-        const historyRef = collection(db, "budgets", "history", "entries");
-        await addDoc(historyRef, {
-          amount: updateAmount,
-          totalBudget: newTotalBudget,
-          date: entryDate
-        });
-        setFormData(prev => ({
-          current: newTotalBudget,
-          latest: { amount: updateAmount, date: updateDate },
-          updates: { amount: "", date: "" },
-        }));
-        setBudgetHistory(prev =>
-          [...prev, {
-            id: new Date().getTime().toString(),
-            amount: updateAmount,
-            date: new Date(updateDate),
-            formatted: new Intl.DateTimeFormat('he-IL', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }).format(new Date(updateDate))
-          }].sort((a, b) => b.date - a.date)
-        );
-        setTableRefreshTrigger(prev => prev + 1);
-      } catch (err) {
-        setError("אירעה שגיאה בעדכון התקציב");
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setError("אנא מלא את כל השדות הנדרשים");
+    
+    // Validation
+    if (isNaN(updateAmount) || updateAmount <= 0) {
+      setError("אנא הכנס סכום חיובי תקין");
       setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    if (!updateDate) {
+      setError("אנא בחר תאריך");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const newTotalBudget = formData.current + updateAmount;
+      const entryDate = Timestamp.fromDate(new Date(updateDate));
+      
+      // Update current budget document (remove latestUpdate as we get it from history)
+      const budgetDocRef = doc(db, "budgets", "current");
+      await setDoc(budgetDocRef, {
+        totalBudget: newTotalBudget
+      }, { merge: true });
+      
+      // Add to history
+      const historyRef = collection(db, "budgets", "history", "entries");
+      await addDoc(historyRef, {
+        amount: updateAmount,
+        totalBudget: newTotalBudget,
+        date: entryDate
+      });
+      
+      // Update local state immediately
+      setFormData(prev => ({
+        current: newTotalBudget,
+        latest: { 
+          amount: updateAmount, 
+          date: updateDate 
+        },
+        updates: { amount: "", date: "" },
+      }));
+      
+      // Add new entry to history state
+      const newHistoryEntry = {
+        id: new Date().getTime().toString(),
+        amount: updateAmount,
+        date: new Date(updateDate),
+        formatted: new Intl.DateTimeFormat('he-IL', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }).format(new Date(updateDate))
+      };
+      
+      setBudgetHistory(prev => [newHistoryEntry, ...prev]);
+      
+      // Trigger table refresh
+      setTableRefreshTrigger(prev => prev + 1);
+      
+    } catch (err) {
+      console.error("Error updating budget:", err);
+      setError("אירעה שגיאה בעדכון התקציב: " + err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleBudgetHistoryChange = async () => {
     try {
-      const budgetDocRef = doc(db, "budgets", "current");
-      const budgetSnapshot = await getDoc(budgetDocRef);
-      if (budgetSnapshot.exists()) {
-        const data = budgetSnapshot.data();
-        let latestAmount = 0;
-        let latestDate = Date.now();
-        if (data && data.latestUpdate) {
-          latestAmount = data.latestUpdate.amount || 0;
-          if (typeof data.latestUpdate.date === 'number' && !isNaN(data.latestUpdate.date)) {
-            latestDate = data.latestUpdate.date;
-          }
-        }
-        setFormData(prev => ({
-          current: data.totalBudget || 0,
-          latest: {
-            amount: latestAmount,
-            date: new Date(latestDate).toISOString().split("T")[0]
-          },
-          updates: { amount: "", date: "" }
-        }));
-      } else {
-        setFormData(prev => ({
-          current: 0,
-          latest: { amount: 0, date: new Date(Date.now()).toISOString().split("T")[0] },
-          updates: { amount: "", date: "" }
-        }));
+      setError(null);
+      
+      // Only refresh if not already loading to prevent multiple simultaneous calls
+      if (isLoading) {
+        console.log("Already loading, skipping refresh");
+        return;
       }
-      setBudgetHistory([]);
+      
+      // Trigger data refresh to refetch everything including history
       setRefreshData(prev => !prev);
+      
     } catch (error) {
-      setError("אירעה שגיאה בעדכון נתוני התקציב");
+      console.error("Error refreshing budget data:", error);
+      setError("אירעה שגיאה בעדכון נתוני התקציב: " + error.message);
     }
   };
 
@@ -269,12 +285,15 @@ const Budget = () => {
                     <input
                       id="budget-amount"
                       type="number"
-                      step={0.10}
+                      step="0.01"
+                      min="0.01"
                       required
+                      placeholder="הכנס סכום"
                       value={formData.updates.amount}
                       onChange={(e) => {
                         const value = e.target.value;
-                        if (parseFloat(value) >= 0 || value === "") {
+                        // Allow empty string or positive numbers
+                        if (value === "" || (parseFloat(value) > 0 && !isNaN(parseFloat(value)))) {
                           setFormData({
                             ...formData,
                             updates: { ...formData.updates, amount: value },
@@ -291,6 +310,7 @@ const Budget = () => {
                       required
                       value={formData.updates.date}
                       className="date-input"
+                      max={new Date().toISOString().split("T")[0]} // Prevent future dates
                       onChange={(e) => {
                         const inputDate = e.target.value;
                         setFormData({
@@ -304,11 +324,11 @@ const Budget = () => {
                     type="button"
                     className="update-button"
                     onClick={handleUpdate}
-                    disabled={isLoading}
+                    disabled={isLoading || !formData.updates.amount || !formData.updates.date}
                   >
                     {isLoading ? (
                       <FontAwesomeIcon icon={faSpinner} spin />
-                    ) : "עדכן"}
+                    ) : "עדכן תקציב"}
                   </button>
                 </div>
               </div>
@@ -327,6 +347,7 @@ const Budget = () => {
                 refreshTrigger={tableRefreshTrigger}
               />
             </div>
+            
           </div>
         </>
       )}

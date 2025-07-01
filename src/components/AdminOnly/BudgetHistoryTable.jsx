@@ -7,7 +7,6 @@ import Spinner from '../Spinner';
 import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
-
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
@@ -19,7 +18,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(() => {
     const saved = localStorage.getItem('budgetItemsPerPage');
-    return saved ? parseInt(saved) : 8;
+    return saved ? parseInt(saved) : 10;
   });
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -105,21 +104,28 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       setFilteredHistory(historyData);
       setError(null);
 
-      // Check if there are no entries - in case the Firestore is not completely synced yet
+      // Only initialize budget document if it doesn't exist, but don't trigger refresh
       if (historyData.length === 0) {
-        const currentBudgetRef = doc(db, 'budgets', 'current');
-        await setDoc(currentBudgetRef, {
-          totalBudget: 0,
-          latestUpdate: {
-            amount: 0,
-            date: Timestamp.fromDate(new Date())
+        try {
+          const currentBudgetRef = doc(db, 'budgets', 'current');
+          const currentBudgetSnap = await getDoc(currentBudgetRef);
+          
+          // Only create the document if it doesn't exist
+          if (!currentBudgetSnap.exists()) {
+            await setDoc(currentBudgetRef, {
+              totalBudget: 0,
+              latestUpdate: {
+                amount: 0,
+                date: Timestamp.fromDate(new Date())
+              }
+            });
           }
-        }, { merge: true });
-
-        // Notify parent component that there are no entries
-        if (onBudgetChange) {
-          onBudgetChange();
+        } catch (initError) {
+          console.warn("Could not initialize budget document:", initError);
         }
+        
+        // Don't call onBudgetChange() here as it causes infinite refresh loop
+        // The empty state is handled properly by the parent component
       }
     } catch (err) {
       console.error("Error fetching budget history:", err);
@@ -249,9 +255,10 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
 
   const handleEdit = (entry) => {
     setEditingEntry(entry.id);
+    const dateObj = toDateObj(entry.date); // Use the helper function to properly convert the date
     setEditForm({
       amount: entry.amount,
-      date: new Date(entry.date).toISOString().split('T')[0]
+      date: dateObj.toISOString().split('T')[0]
     });
   };
 
@@ -500,14 +507,14 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
             </select>
           </div>
 
-          {history.length > 0 && (
+          {/* {history.length > 0 && (
             <div className="delete-all-container">
               <button className="delete-all-btn" onClick={handleDeleteAll}>
                 <FontAwesomeIcon icon={faEraser} />
                 <span>אפס את כל ההכנסות</span>
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -608,9 +615,9 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                           <button className="edit-btn" onClick={() => handleEdit(entry)}>
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
-                          <button className="delete-btn" onClick={() => handleDelete(entry.id, entry.amount, entry.totalBudget)}>
+                          {/* <button className="delete-btn" onClick={() => handleDelete(entry.id, entry.amount, entry.totalBudget)}>
                             <FontAwesomeIcon icon={faTrash} />
-                          </button>
+                          </button> */}
                         </>
                       )}
                     </td>
@@ -619,7 +626,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
               </tbody>
             </table>
           </div>
-          {filteredHistory.length > itemsPerPage && (
+          {filteredHistory.length > 0 && (
             <div className="pagination">
               <div className="pagination-controls">
                 <button 
@@ -647,10 +654,10 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                   onChange={handleItemsPerPageChange}
                   className="items-per-page-select"
                 >
-                  <option value="4">4</option>
-                  <option value="8">8</option>
-                  <option value="16">16</option>
-                  <option value="32">32</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
                 </select>
               </div>
             </div>

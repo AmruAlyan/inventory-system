@@ -26,7 +26,7 @@ import '../styles/layout.css'
 const sidebarIcons = [
   { icon: faHouse, text: 'לוח ראשי', id: 'dashboard', path: "/admin-dashboard", exact: true },
   { icon: faShekel, text: 'תקציב', id: 'budget', path: "/admin-dashboard/budget" },
-  { icon: faFileLines, text: 'דוחות', id: 'reports', path: "/admin-dashboard/reports" },
+  { icon: faFileLines, text: 'דו״חות', id: 'reports', path: "/admin-dashboard/reports" },
   { icon: faTableCellsLarge, text: 'קטיגוריות', id: 'categories', path: "/admin-dashboard/categories" },
   { icon: faBoxesStacked, text: 'מוצרים', id: 'products', path: "/admin-dashboard/products" },
   { icon: faCartShopping, text: 'רשימת קניות', id: 'shopping-list', path: "/admin-dashboard/shopping-list" },

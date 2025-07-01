@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShekelSign, faChartLine } from "@fortawesome/free-solid-svg-icons";
+import { faShekelSign, faChartLine, faSort, faSortUp, faSortDown } from "@fortawesome/free-solid-svg-icons";
 import ReportBarChart from "../Charts/ReportBarChart";
 
 const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
+  const [sortConfig, setSortConfig] = useState({ field: null, direction: 'asc' });
+
   if (!budgetData || budgetData.length === 0) {
     return (
       <div className="no-data">
@@ -23,6 +25,47 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
     name: formatDate(item.date),
   }));
 
+  // Sorting functions
+  const handleSort = (field) => {
+    const direction = sortConfig.field === field && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    setSortConfig({ field, direction });
+  };
+
+  const getSortIcon = (field) => {
+    if (sortConfig.field !== field) return faSort;
+    return sortConfig.direction === 'asc' ? faSortUp : faSortDown;
+  };
+
+  // Sorted data
+  const sortedBudgetData = useMemo(() => {
+    if (!sortConfig.field) return budgetData;
+    
+    return [...budgetData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortConfig.field) {
+        case 'date':
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case 'amount':
+          aValue = a.amount || 0;
+          bValue = b.amount || 0;
+          break;
+        case 'totalBudget':
+          aValue = a.totalBudget || 0;
+          bValue = b.totalBudget || 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [budgetData, sortConfig]);
+
   return (
     <div className="budget-report">
       {/* Budget Summary Card */}
@@ -32,7 +75,7 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
           <div className="summary-card budget-summary">
             <h4><FontAwesomeIcon icon={faShekelSign} /> תקציב</h4>
             <p>עדכוני תקציב: {totalUpdates}</p>
-            <p>סה"כ הוספות: {formatCurrency(totalAdded)}</p>
+            <p>סה"כ הפקדות: {formatCurrency(totalAdded)}</p>
             <p>תקציב נוכחי: {formatCurrency(finalBudget)}</p>
           </div>
         </div>
@@ -51,13 +94,19 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
           <table className="report-table">
             <thead>
               <tr>
-                <th>תאריך</th>
-                <th>סכום עדכון</th>
-                <th>תקציב אחרי עדכון</th>
+                <th className="sortable-header" onClick={() => handleSort('date')}>
+                  תאריך <FontAwesomeIcon icon={getSortIcon('date')} />
+                </th>
+                <th className="sortable-header" onClick={() => handleSort('amount')}>
+                  הפקדה נוכחית <FontAwesomeIcon icon={getSortIcon('amount')} />
+                </th>
+                <th className="sortable-header" onClick={() => handleSort('totalBudget')}>
+                  תקציב אחרי עדכון <FontAwesomeIcon icon={getSortIcon('totalBudget')} />
+                </th>
               </tr>
             </thead>
             <tbody>
-              {budgetData.map((item, index) => (
+              {sortedBudgetData.map((item, index) => (
                 <tr key={index}>
                   <td>{formatDate(item.date)}</td>
                   <td>{formatCurrency(item.amount || 0)}</td>
