@@ -7,7 +7,6 @@ import Spinner from '../Spinner';
 import { showConfirm } from '../../utils/dialogs';
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
-
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);

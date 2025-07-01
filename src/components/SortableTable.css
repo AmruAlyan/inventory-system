@@ -1,0 +1,408 @@
+/* SortableTable.css */
+
+.sortable-table-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  background-color: var(--panel-bg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.sortable-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--panel-bg);
+}
+
+.sortable-table.rtl {
+  direction: rtl;
+}
+
+.sortable-table.ltr {
+  direction: ltr;
+}
+
+/* Table Header Styles */
+.sortable-table thead {
+  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
+}
+
+.sortable-table th {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.sortable-table th:first-child {
+  border-top-left-radius: var(--border-radius-md);
+}
+
+.sortable-table th:last-child {
+  border-top-right-radius: var(--border-radius-md);
+}
+
+.sortable-table th.rtl:first-child {
+  border-top-right-radius: var(--border-radius-md);
+  border-top-left-radius: 0;
+}
+
+.sortable-table th.rtl:last-child {
+  border-top-left-radius: var(--border-radius-md);
+  border-top-right-radius: 0;
+}
+
+.sortable-table th.sortable {
+  cursor: pointer;
+}
+
+.sortable-table th.sortable:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.sortable-table th.sorted {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Header Content */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  flex-wrap: nowrap;
+}
+
+.header-text {
+  flex: 1;
+  text-align: center;
+}
+
+/* Sort Icons */
+.sort-icon {
+  width: 14px;
+  height: 14px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sort-icon.inactive {
+  opacity: 0.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sort-icon.active {
+  opacity: 1;
+  color: white;
+  transform: scale(1.1);
+}
+
+.sortable-table th.sortable:hover .sort-icon.inactive {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* Table Body Styles */
+.sortable-table tbody tr {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+.sortable-table tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.sortable-table tbody tr:hover {
+  background-color: rgba(81, 134, 100, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sortable-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.sortable-table td {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: center;
+  color: var(--primary-text);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  vertical-align: middle;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+/* Text Alignment Classes */
+.sortable-table th.left,
+.sortable-table td.left {
+  text-align: left;
+}
+
+.sortable-table th.right,
+.sortable-table td.right {
+  text-align: right;
+}
+
+.sortable-table th.center,
+.sortable-table td.center {
+  text-align: center;
+}
+
+/* Actions Column */
+.actions-header {
+  width: 120px;
+  min-width: 120px;
+}
+
+.actions-cell {
+  width: 120px;
+  min-width: 120px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.action-btn:hover::before {
+  left: 100%;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.edit-btn {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.edit-btn:hover {
+  background-color: var(--secondary);
+  color: white;
+  border-color: var(--secondary);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.delete-btn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.delete-btn:hover {
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Empty State */
+.empty-table {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--secondary-text);
+  font-size: 1.1rem;
+  font-weight: 500;
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-md);
+  border: 2px dashed var(--border-color);
+  margin: var(--spacing-md);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sortable-table th,
+  .sortable-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.85rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .header-text {
+    font-size: 0.8rem;
+  }
+
+  .sort-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .actions-header,
+  .actions-cell {
+    width: 100px;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 576px) {
+  .sortable-table-container {
+    margin: 0 -var(--spacing-md);
+    border-radius: 0;
+  }
+
+  .sortable-table th:first-child,
+  .sortable-table th:last-child {
+    border-radius: 0;
+  }
+
+  .sortable-table th,
+  .sortable-table td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8rem;
+  }
+
+  .table-actions {
+    gap: var(--spacing-xs);
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .actions-header,
+  .actions-cell {
+    width: 80px;
+    min-width: 80px;
+  }
+}
+
+/* Custom Scrollbar for Table */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 3px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Loading State (Optional) */
+.sortable-table.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.sortable-table.loading tbody tr {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Highlight sorted column */
+.sortable-table th.sorted + td,
+.sortable-table tbody tr td:nth-child(var(--sorted-column, 0)) {
+  background-color: rgba(81, 134, 100, 0.02);
+}
+
+/* Enhanced hover effects */
+.sortable-table tbody tr:hover td {
+  border-bottom-color: rgba(81, 134, 100, 0.2);
+}
+
+/* Smooth transitions for better UX */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Print styles */
+@media print {
+  .sortable-table-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .sortable-table th {
+    background: #f8f9fa !important;
+    color: #333 !important;
+  }
+
+  .action-btn {
+    display: none;
+  }
+
+  .actions-header,
+  .actions-cell {
+    display: none;
+  }
+}

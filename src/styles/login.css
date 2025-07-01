@@ -119,6 +119,10 @@ body {
   color: inherit;
 }
 
+.input-group input.password-input {
+  padding: 10px 40px 10px 40px;
+}
+
 .input-group .icon,
 i {
   position: absolute;
@@ -130,6 +134,30 @@ i {
   font-size: 18px;
   color: var(--icon-color);
   text-shadow: 0 0 2px var(--shadow-color);
+}
+
+.password-toggle-btn {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--icon-color);
+  padding: 5px;
+  border-radius: 3px;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary-text);
+}
+
+.password-toggle-btn:focus {
+  outline: 2px solid var(--focus-color, #518664);
+  outline-offset: 2px;
 }
 
 .submit-button {

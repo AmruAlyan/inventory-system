@@ -9,7 +9,7 @@ import Spinner from "../../components/Spinner";
 import { db } from "../../firebase/firebase";
 import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, addDoc } from "firebase/firestore";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
-
+import ExampleTableUsage from '../../components/ExampleTableUsage';
 const Budget = () => {
   const [formData, setFormData] = useState({
     current: 0.00,
@@ -321,12 +321,13 @@ const Budget = () => {
                 />
               </div>
             </div>
-            <div className="budget-content-row">
+            {/* <div className="budget-content-row">
               <BudgetHistoryTable
                 onBudgetChange={handleBudgetHistoryChange}
                 refreshTrigger={tableRefreshTrigger}
               />
-            </div>
+            </div> */}
+            <ExampleTableUsage />
           </div>
         </>
       )}
