@@ -134,12 +134,18 @@ const handleSavePrice = async (itemId) => {
       return;
     }
 
-    // Show the save modal instead of direct confirmation
+    // Show the save modal (no receipt requirement here)
     setShowSaveModal(true);
   };
 
-  // Actually save the purchase with optional receipt
+  // Actually save the purchase with required receipt
   const confirmSavePurchase = async () => {
+    // Check if receipt is required before proceeding
+    if (!receiptFile) {
+      toast.warning('נדרשת העלאת קבלה לפני שמירת הרכישה');
+      return;
+    }
+
     setUploadingReceipt(true);
     
     try {
@@ -847,6 +853,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 <button
                   className="btn btn-primary"
                   onClick={handleSavePurchase}
+                  title="שמור רכישה"
                 >
                   <FontAwesomeIcon icon={faSave} style={{ marginLeft: '8px' }} />
                   שמור רכישה
@@ -951,11 +958,13 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   </label>
                   <span style={{ 
                     fontSize: '0.8rem', 
-                    color: 'var(--secondary-text)', 
+                    color: 'var(--error-color)', 
                     padding: '0.25rem 0.5rem',
-                    borderRadius: '12px'
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--error-bg)',
+                    fontWeight: '600'
                   }}>
-                    אופציונלי
+                    חובה
                   </span>
                 </div>
                 
@@ -965,7 +974,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   marginBottom: '1rem',
                   lineHeight: '1.5'
                 }}>
-                  צרף תמונה או PDF של הקבלה לתיעוד הרכישה
+                  צרף תמונה או PDF של הקבלה לתיעוד הרכישה (שדה חובה)
                 </p>
                 
                 <div style={{ position: 'relative' }}>
@@ -1170,11 +1179,11 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   padding: '0.75rem 2rem',
                   border: 'none',
                   borderRadius: '8px',
-                  background: uploadingReceipt 
+                  background: (uploadingReceipt || !receiptFile)
                     ? 'linear-gradient(135deg, #6c757d 0%, #495057 100%)'
                     : 'linear-gradient(135deg, var(--primary) 0%, #4CAF50 100%)',
                   color: 'white',
-                  cursor: uploadingReceipt ? 'not-allowed' : 'pointer',
+                  cursor: (uploadingReceipt || !receiptFile) ? 'not-allowed' : 'pointer',
                   fontSize: '1rem',
                   fontWeight: '600',
                   transition: 'all 0.3s ease',
@@ -1183,18 +1192,19 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  boxShadow: uploadingReceipt ? 'none' : '0 4px 12px rgba(76, 175, 80, 0.4)'
+                  boxShadow: (uploadingReceipt || !receiptFile) ? 'none' : '0 4px 12px rgba(76, 175, 80, 0.4)'
                 }}
                 onClick={confirmSavePurchase}
-                disabled={uploadingReceipt}
+                disabled={uploadingReceipt || !receiptFile}
+                title={!receiptFile ? 'נדרשת העלאת קבלה לפני שמירת הרכישה' : ''}
                 onMouseOver={(e) => {
-                  if (!uploadingReceipt) {
+                  if (!uploadingReceipt && receiptFile) {
                     e.target.style.transform = 'translateY(-2px)';
                     e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.5)';
                   }
                 }}
                 onMouseOut={(e) => {
-                  if (!uploadingReceipt) {
+                  if (!uploadingReceipt && receiptFile) {
                     e.target.style.transform = 'translateY(0)';
                     e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.4)';
                   }
