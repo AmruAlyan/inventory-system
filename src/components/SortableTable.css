@@ -52,21 +52,21 @@
 }
 
 .sortable-table th:first-child {
-  border-top-left-radius: var(--border-radius-md);
+  /* border-top-left-radius: var(--border-radius-md); */
 }
 
 .sortable-table th:last-child {
-  border-top-right-radius: var(--border-radius-md);
+  /* border-top-right-radius: var(--border-radius-md); */
 }
 
 .sortable-table th.rtl:first-child {
-  border-top-right-radius: var(--border-radius-md);
-  border-top-left-radius: 0;
+  /* border-top-right-radius: var(--border-radius-md); */
+  /* border-top-left-radius: 0; */
 }
 
 .sortable-table th.rtl:last-child {
-  border-top-left-radius: var(--border-radius-md);
-  border-top-right-radius: 0;
+  /* border-top-left-radius: var(--border-radius-md); */
+  /* border-top-right-radius: 0; */
 }
 
 .sortable-table th.sortable {
