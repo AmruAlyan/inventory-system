@@ -95,9 +95,7 @@ const confirmEdit = async () => {
       if (formData.email !== originalData.email || formData.password !== originalData.password) {
         console.log("step 1")
         try {
-          console.log(originalData)
           const credentials = EmailAuthProvider.credential(user.email, currentPassword);
-          console.log(credentials)
           await reauthenticateWithCredential(user, credentials); // Reauthentication step
         } catch (error) {
           showAlert("נכשל בהתחברות מחדש: " + error.message);
@@ -282,8 +280,9 @@ const confirmEdit = async () => {
         <div className="edit-info">
           <h2>עריכת מאפייני המשתמש</h2>
           {renderFormGroup("תפקיד:", "role", "text", true)}
+          {renderFormGroup("דוא\"ל:", "email", "email", true)}
           {renderFormGroup("שם:", "name")}
-          {renderFormGroup("דוא\"ל:", "email", "email")}
+          
           {renderFormGroup("סיסמא:", "password", "password")}
           
           <div className="profile-actions">

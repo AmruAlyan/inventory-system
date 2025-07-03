@@ -50,6 +50,7 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoFocus
+              autocomplete="new-password"
             />
           </div>
           <div className="Product-button-group">
