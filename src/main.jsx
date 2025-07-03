@@ -5,6 +5,12 @@ import './styles/theme.css'
 import './index.css'
 import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import setupLocatorUI from "@locator/runtime";
+
+// Setup LocatorJS for development
+if (import.meta.env.DEV) {
+  setupLocatorUI();
+}
 
 // Main App Component
 function MainApp() {

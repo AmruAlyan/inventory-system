@@ -28,6 +28,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@locator/babel-jsx": "^0.4.4",
+    "@locator/runtime": "^0.4.4",
     "@svgr/rollup": "^8.1.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

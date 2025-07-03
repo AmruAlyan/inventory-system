@@ -697,20 +697,24 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 }
 
 .add-btn {
-  border-color: var(--success);
-  color: var(--success);
+  border: 2px solid var(--success) !important;
+  color: var(--success) !important;
+  background-color: transparent !important;
+  border-radius: 50px !important;
 }
 
 .add-btn:hover:not(.disabled) {
-  background-color: var(--success);
-  color: white;
+  background-color: var(--success) !important;
+  border-color: var(--success) !important;
+  color: white !important;
   transform: translateY(-2px) scale(1.1);
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .add-btn.disabled {
-  border-color: var(--border-color);
-  color: var(--border-color);
+  border: 2px solid var(--border-color) !important;
+  color: var(--border-color) !important;
+  background-color: transparent !important;
   cursor: not-allowed;
   opacity: 0.5;
 }
