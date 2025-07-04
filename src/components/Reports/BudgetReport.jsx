@@ -67,20 +67,20 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
   }, [budgetData, sortConfig]);
 
   return (
-    <div className="budget-report">
+    <>
       {/* Budget Summary Card */}
       <div className="report-summary">
-        <h3>סיכום תקציב</h3>
+        {/* <h3>סיכום תקציב</h3> */}
         <div className="summary-cards">
           <div className="summary-card budget-summary">
-            <h4><FontAwesomeIcon icon={faShekelSign} /> תקציב</h4>
+            <h4><FontAwesomeIcon icon={faShekelSign} />סיכום תקציב</h4>
             <p>עדכוני תקציב: {totalUpdates}</p>
             <p>סה"כ הפקדות: {formatCurrency(totalAdded)}</p>
             <p>תקציב נוכחי: {formatCurrency(finalBudget)}</p>
           </div>
         </div>
       </div>      {/* Budget Chart */}
-      <div className="report-section chart-section">
+      <div className="chart-section">
         <h3><FontAwesomeIcon icon={faChartLine} /> תרשים תקציב</h3>        
         <div className="chart-container">
           <ReportBarChart data={chartData} reportType="budget" />
@@ -117,7 +117,7 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
           </table>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

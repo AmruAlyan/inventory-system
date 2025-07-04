@@ -131,16 +131,16 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
     <div className="combined-report">
       {/* Combined Summary Cards */}
       <div className="report-summary">
-        <h3>סיכום</h3>
+        {/* <h3>סיכום</h3> */}
         <div className="summary-cards">
           <div className="summary-card budget-summary">
-            <h4><FontAwesomeIcon icon={faShekelSign} /> תקציב</h4>
+            <h4><FontAwesomeIcon icon={faShekelSign} />סיכום תקציב</h4>
             <p>עדכוני תקציב: {budgetSummary.totalUpdates}</p>
             <p>סה"כ הפקדות: {formatCurrency(budgetSummary.totalAdded)}</p>
             <p>תקציב נוכחי: {formatCurrency(budgetSummary.finalBudget)}</p>
           </div>
           <div className="summary-card purchase-summary">
-            <h4><FontAwesomeIcon icon={faReceipt} /> רכישות</h4>
+            <h4><FontAwesomeIcon icon={faReceipt} />סיכום רכישות</h4>
             <p>מספר רכישות: {purchaseSummary.totalPurchases}</p>
             <p>סה"כ הוצאות: {formatCurrency(purchaseSummary.totalSpent)}</p>
             <p>ממוצע רכישה: {formatCurrency(purchaseSummary.averagePurchase)}</p>
