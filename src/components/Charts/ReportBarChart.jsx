@@ -1,6 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label, reportType }) => {
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  return (
+    <div 
+      style={{
+        backgroundColor: 'var(--panel-bg)',
+        color: 'var(--primary-text)',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        padding: '8px',
+        fontSize: '12px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}
+    >
+      <p style={{ margin: '0 0 4px 0', fontWeight: 'bold' }}>{`תאריך: ${label}`}</p>
+      {payload.map((entry, index) => (
+        <p 
+          key={index} 
+          style={{ 
+            margin: '2px 0', 
+            color: entry.color
+          }}
+        >
+          {`${entry.name}: ${entry.value} ₪`}
+        </p>
+      ))}
+    </div>
+  );
+};
+
 const hardcodedBudgetData = [
   { date: '2025-06-01', amount: 500, totalBudget: 5000 },
   { date: '2025-06-02', amount: 300, totalBudget: 5300 },
@@ -24,7 +58,7 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
     const sourceData = (data && data.length > 0) ? data : (reportType === 'budget' ? hardcodedBudgetData : hardcodedPurchaseData);
     const processedData = [...sourceData]
       .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, 10)
+      // .slice(0, 10)
       .map(item => {
         if (reportType === 'budget') {
           return {
@@ -36,8 +70,8 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
           return {
             name: item.date,
             totalAmount: item.totalAmount.toFixed(2) || 0,
-            budgetBefore: item.budgetBefore.toFixed(2) || 0,
-            budgetAfter: item.budgetAfter.toFixed(2) || 0,
+            // budgetBefore: item.budgetBefore.toFixed(2) || 0,
+            // budgetAfter: item.budgetAfter.toFixed(2) || 0,
           };
         } else {
           return {
@@ -69,13 +103,7 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
           <XAxis dataKey="name" />
           <YAxis tickFormatter={(value) => `${value} ₪`} />
           <Tooltip 
-            formatter={(value, name, props) => {
-              // Color match for tooltip
-              if (name === 'תקציב נוכחי') return [`${value} ₪`, name, { color: '#82ca9d' }];
-              if (name === 'הפקדה נוכחית') return [`${value} ₪`, name, { color: '#8884d8' }];
-              return [`${value} ₪`, name];
-            }}
-            contentStyle={{ backgroundColor: 'var(--panel-bg)', color: 'var(--primary-text)', borderRadius: '4px', transform: 'scale(0.8)' }}
+            content={<CustomTooltip reportType={reportType} />}
           />
           <Legend />
           <Bar dataKey="totalBudget" name="תקציב נוכחי" fill="#82ca9d" legendType="rect" />
@@ -96,18 +124,12 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
           <XAxis dataKey="name" />
           <YAxis tickFormatter={(value) => `${value} ₪`} />
           <Tooltip 
-            formatter={(value, name, props) => {
-              if (name === 'סה"כ רכישה') return [`${value} ₪`, name, { color: '#8884d8' }];
-              if (name === 'תקציב לפני') return [`${value} ₪`, name, { color: '#82ca9d' }];
-              if (name === 'תקציב אחרי') return [`${value} ₪`, name, { color: '#ffc658' }];
-              return [`${value} ₪`, name];
-            }}
-            contentStyle={{ backgroundColor: 'var(--panel-bg)', color: 'var(--primary-text)', borderRadius: '4px', transform: 'scale(0.8)' }}
+            content={<CustomTooltip reportType={reportType} />}
           />
           <Legend />
           <Bar dataKey="totalAmount" name={'סה"כ רכישה'} fill="#8884d8" legendType="rect" />
-          <Bar dataKey="budgetBefore" name={'תקציב לפני'} fill="#82ca9d" legendType="rect" />
-          <Bar dataKey="budgetAfter" name={'תקציב אחרי'} fill="#ffc658" legendType="rect" />
+          {/* <Bar dataKey="budgetBefore" name={'תקציב לפני'} fill="#82ca9d" legendType="rect" /> */}
+          {/* <Bar dataKey="budgetAfter" name={'תקציב אחרי'} fill="#ffc658" legendType="rect" /> */}
         </BarChart>
       </ResponsiveContainer>
     );

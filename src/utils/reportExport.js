@@ -7,6 +7,13 @@ import { toast } from "react-toastify";
  * Handles professional printing of reports with custom styling
  */
 export const printReport = () => {
+  // Check if report exists
+  const printableReport = document.getElementById('printable-report');
+  if (!printableReport) {
+    toast.error('לא נמצא תוכן להדפסה');
+    return;
+  }
+
   // Add print-specific styling to the page
   const printStyles = document.createElement('style');
   printStyles.id = 'print-styles';
@@ -23,7 +30,7 @@ export const printReport = () => {
         line-height: 1.4 !important;
         direction: rtl !important;
         margin: 0 !important;
-        padding: 10mm 15mm 15mm 15mm !important;
+        padding: 5mm 8mm 15mm 8mm !important;
         background: white !important;
         color: black !important;
       }
@@ -44,9 +51,11 @@ export const printReport = () => {
         left: 0;
         right: 0;
         width: 100% !important;
+        max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0 5mm !important;
         background: white !important;
+        box-sizing: border-box !important;
       }
       
       /* Hide print header completely */
@@ -59,6 +68,7 @@ export const printReport = () => {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        height: 110px !important;
         position: relative !important;
         margin: 0 0 15px 0 !important;
         padding: 10px 15px !important;
@@ -76,11 +86,14 @@ export const printReport = () => {
         position: absolute !important;
         right: 15px !important;
         z-index: 2 !important;
+        // position: relative !important;
+        // z-index: 1 !important;
+        // right: 0 !important;
       }
       
       .report-logo {
-        width: 60px !important;
-        height: 60px !important;
+        width: 100px !important;
+        height: 100px !important;
         object-fit: contain !important;
         border-radius: 50% !important;
         border: 2px solid #518664 !important;
@@ -143,24 +156,30 @@ export const printReport = () => {
       .summary-card {
         border: 1px solid #518664 !important;
         border-radius: 6px !important;
-        padding: 12px !important;
+        padding: 15px !important;
         background: #f8f9fa !important;
-        min-width: 180px !important;
+        min-width: 200px !important;
         flex: 1 !important;
-        max-width: 300px !important;
+        // max-width: 320px !important;
+        max-width: 100% !important;
       }
       
       .summary-card h4 {
         color: #518664 !important;
-        font-size: 14px !important;
+        font-size: 16px !important;
         font-weight: bold !important;
-        margin: 0 0 8px 0 !important;
+        margin: 0 0 12px 0 !important;
         text-align: right !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        direction: rtl !important;
       }
       
       .summary-card p {
-        margin: 4px 0 !important;
-        font-size: 11px !important;
+        margin: 6px 0 !important;
+        font-size: 13px !important;
         color: #333 !important;
         text-align: right !important;
       }
@@ -168,31 +187,32 @@ export const printReport = () => {
       /* Chart styling for print */
       .chart-section {
         background: white !important;
-        border: 1px solid #333 !important;
+        border: 1px solid #518664 !important;
         page-break-inside: avoid !important;
-        margin-bottom: 20px !important;
-        padding: 10px !important;
+        margin: 0 0 20px 0 !important;
+        padding: 18px !important;
         border-radius: 8px !important;
       }
       
       .chart-container {
-        height: 400px !important;
+        height: 300px !important;
         width: 100% !important;
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
         border-radius: 0 !important;
         margin: 0 !important;
+        background: white !important;
       }
       
       .chart-section h3 {
-        color: #333 !important;
-        border-bottom: 1px solid #333 !important;
+        color: #518664 !important;
+        border-bottom: 1px solid #518664 !important;
         font-size: 18px !important;
         font-weight: bold !important;
         margin: 0 0 10px 0 !important;
-        text-align: center !important;
-        padding: 0 !important;
+        text-align: right !important;
+        padding: 0 0 5px 0 !important;
       }
       
       /* Center chart legends in print */
@@ -201,6 +221,9 @@ export const printReport = () => {
         display: flex !important;
         justify-content: center !important;
         width: 100% !important;
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
       .recharts-default-legend {
@@ -209,6 +232,8 @@ export const printReport = () => {
         align-items: center !important;
         flex-wrap: wrap !important;
         gap: 15px !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       
       .recharts-legend-item {
@@ -229,17 +254,48 @@ export const printReport = () => {
         font-weight: 400 !important;
       }
       
+      /* Force white background on all chart elements */
+      .recharts-wrapper,
+      .recharts-surface,
+      svg,
+      canvas {
+        background: white !important;
+      }
+      
+      /* Ensure text in charts is black */
+      .recharts-text,
+      .recharts-cartesian-axis-tick-value,
+      .recharts-legend-item-text {
+        fill: black !important;
+        color: black !important;
+      }
+      
+      /* Ensure all text content is black for print */
+      .report-section h3,
+      .summary-card h4,
+      .summary-card p,
+      .association-title,
+      .association-subtitle,
+      .report-title h2,
+      .report-period,
+      .report-generated,
+      .chart-section h3,
+      .no-data,
+      p, h1, h2, h3, h4, h5, h6, span, div, td, th {
+        color: black !important;
+      }
+      
       /* Table styling */
       .report-section {
-        margin: 25px 0 !important;
+        margin: 20px 0 !important;
         page-break-inside: avoid !important;
       }
       
       .report-section h3 {
         color: #518664 !important;
-        font-size: 16px !important;
+        font-size: 18px !important;
         font-weight: bold !important;
-        margin: 0 0 12px 0 !important;
+        margin: 0 0 15px 0 !important;
         text-align: right !important;
         border-bottom: 1px solid #518664 !important;
         padding-bottom: 5px !important;
@@ -247,31 +303,53 @@ export const printReport = () => {
       
       .report-table {
         width: 100% !important;
+        max-width: 100% !important;
         border-collapse: collapse !important;
         font-size: 10px !important;
-        margin-top: 10px !important;
+        margin-top: 15px !important;
+        table-layout: fixed !important;
+        overflow: hidden !important;
+        border: 1px solid #518664 !important;
+        border-radius: 0px !important;
       }
       
+      .report-table-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
       .report-table th {
         background-color: #518664 !important;
         color: white !important;
-        padding: 8px 6px !important;
+        padding: 6px 4px !important;
         text-align: right !important;
         font-weight: bold !important;
         border: 1px solid #518664 !important;
+        font-size: 11px !important;
+        word-wrap: break-word !important;
+        overflow: hidden !important;
       }
       
       .report-table td {
-        padding: 6px !important;
+        padding: 5px 3px !important;
         text-align: right !important;
         border: 1px solid #ddd !important;
         background: white !important;
+        color: black !important;
+        font-size: 11px !important;
+        word-wrap: break-word !important;
+        overflow: hidden !important;
       }
       
       .report-table tr:nth-child(even) td {
         background-color: #f8f9fa !important;
+        color: black !important;
       }
-      
+
+
       /* Hide sorting icons in print */
       .sortable-header svg,
       .sortable-header .sort-icon,
@@ -310,9 +388,10 @@ export const printReport = () => {
       
       /* Add header to each page */
       @page {
-        margin: 15mm;
+        margin: 10mm 5mm 15mm 5mm;
+        size: A4;
         @top-center {
-          content: "דו״ח מערכת ניהול מלאי";
+          // content: "דו״ח מערכת ניהול מלאי";
         }
         @bottom-center {
           content: "עמוד " counter(page) " מתוך " counter(pages);
@@ -331,21 +410,7 @@ export const printReport = () => {
   document.head.appendChild(printStyles);
   
   // Add print timestamp to the report
-  const printableReport = document.getElementById('printable-report');
   if (printableReport) {
-    // Add print date if not exists
-    let printDate = printableReport.querySelector('.print-timestamp');
-    if (!printDate) {
-      printDate = document.createElement('div');
-      printDate.className = 'print-timestamp';
-      printDate.style.cssText = 'text-align: center; font-size: 11px; color: #666; margin-top: 15px; display: none;';
-      printDate.innerHTML = `נדפס בתאריך: ${new Date().toLocaleDateString('he-IL')} בשעה: ${new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`;
-      printableReport.appendChild(printDate);
-    }
-    
-    // Show print timestamp only during print
-    printDate.style.display = 'block';
-    
     // Trigger print
     setTimeout(() => {
       window.print();
@@ -463,7 +528,8 @@ export const exportToPDF = async () => {
         align-items: center !important;
         justify-content: center !important;
         position: relative !important;
-        margin: 0 0 16px 0 !important;
+        height: 100px !important;
+        margin: 0 0 20px 0 !important;
         padding: 15px 20px !important;
         border-bottom: 3px solid #518664 !important;
         background: white !important;
@@ -480,8 +546,8 @@ export const exportToPDF = async () => {
         z-index: 2 !important;
       }
       #pdf-report-clone .report-logo {
-        width: 80px !important;
-        height: 80px !important;
+        width: 90px !important;
+        height: 90px !important;
         object-fit: contain !important;
         border-radius: 50% !important;
         border: 2px solid #518664 !important;
@@ -505,7 +571,7 @@ export const exportToPDF = async () => {
       }
       #pdf-report-clone .report-title {
         text-align: center !important;
-        margin: 0 0 10px 0 !important;
+        margin: 0 0 20px 0 !important;
         border-bottom: 2px solid #518664 !important;
         padding-bottom: 15px !important;
         page-break-inside: avoid !important;
@@ -526,7 +592,7 @@ export const exportToPDF = async () => {
       }
       #pdf-report-clone .report-summary {
         margin: 0 !important;
-        margin-bottom: 16px !important;
+        margin-bottom: 20px !important;
       }
       #pdf-report-clone .summary-cards {
         display: flex !important;
@@ -572,7 +638,7 @@ export const exportToPDF = async () => {
         background: white !important;
         border: 1px solid #518664 !important;
         margin: 0 !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 150px !important;
         padding: 18px !important;
         border-radius: 8px !important;
         color: black !important;
@@ -602,7 +668,7 @@ export const exportToPDF = async () => {
       }
       #pdf-report-clone .report-section {
         margin: 0px !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 20px !important;
         background: white !important;
         color: black !important;
         page-break-inside: avoid !important;
@@ -761,9 +827,9 @@ export const exportToPDF = async () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210; // A4 width in mm
     const pageHeight = 297; // A4 height in mm
-    const topMargin = 8; // Reduced top margin to move content up
-    const sideMargin = 15; // Keep side margins normal
-    const bottomMargin = 15; // Keep bottom margin normal
+    const topMargin = 15; // Top margin 15mm
+    const sideMargin = 8; // Side margins 15mm
+    const bottomMargin = 15; // Bottom margin 15mm
     const contentWidth = pageWidth - (sideMargin);
     const contentHeight = pageHeight - topMargin - bottomMargin;
     

@@ -150,7 +150,7 @@ const CombinedReport = ({ budgetData, purchaseData, formatCurrency, formatDate }
 
       {/* Combined Chart */}
       {budgetData?.length > 0 && purchaseData?.length > 0 && (
-        <div className="report-section chart-section">
+        <div className="chart-section">
           <h3><FontAwesomeIcon icon={faChartLine} /> תרשים תקציב</h3>
           <div className="chart-container">
             <CustomArea data={combinedChartData} type="budget" chartOnly={true} />

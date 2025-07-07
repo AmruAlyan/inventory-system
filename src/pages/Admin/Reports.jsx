@@ -10,8 +10,8 @@ import {
 import { db } from "../../firebase/firebase";
 import { collection, getDocs, query, orderBy, where, Timestamp } from "firebase/firestore";
 import Spinner from "../../components/Spinner";
-import { BudgetReport, PurchaseReport, CombinedReport } from "../../components/Reports";
-import { exportToPDF } from "../../utils/reportExport";
+import { BudgetReport, PurchaseReport, CombinedReport, CategoryReport } from "../../components/Reports";
+import { exportToPDF, printReport } from "../../utils/reportExport";
 import { toast } from "react-toastify";
 // import logo from "../../assets/pics/Logo-green.svg";
 import logo from "../../assets/pics/Home1.png";
@@ -28,6 +28,82 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
   const [reportGenerated, setReportGenerated] = useState(false);
   const [budgetData, setBudgetData] = useState([]);
   const [purchaseData, setPurchaseData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+  
+  // Category report specific states
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categorySortBy, setCategorySortBy] = useState('name-asc');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+
+  // Load available categories when component mounts or when report type changes to category
+  useEffect(() => {
+    if (selectedReportType === 'category') {
+      loadAvailableCategories();
+    }
+  }, [selectedReportType]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoryDropdownOpen && !event.target.closest('.category-dropdown-container')) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [categoryDropdownOpen]);
+
+  const loadAvailableCategories = async () => {
+    try {
+      // Fetch all categories
+      const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+      const categories = categoriesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name
+      }));
+
+      // Add "ללא קטגוריה" option
+      categories.push({
+        id: 'no-category',
+        name: 'ללא קטגוריה'
+      });
+
+      setAvailableCategories(categories);
+      // By default, select all categories
+      setSelectedCategories(categories.map(cat => cat.id));
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast.error('שגיאה בטעינת קטגוריות');
+    }
+  };
+
+  const handleCategorySelection = (categoryId) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryId)) {
+        return prev.filter(id => id !== categoryId);
+      } else {
+        return [...prev, categoryId];
+      }
+    });
+  };
+
+  const toggleCategoryDropdown = () => {
+    setCategoryDropdownOpen(!categoryDropdownOpen);
+  };
+
+  const getCategorySelectionText = () => {
+    if (selectedCategories.length === 0) {
+      return 'לא נבחרו קטגוריות';
+    } else if (selectedCategories.length === availableCategories.length) {
+      return 'כל הקטגוריות';
+    } else {
+      return `${selectedCategories.length} קטגוריות נבחרו`;
+    }
+  };
   const generateReport = async () => {
     setLoading(true);
     try {
@@ -71,6 +147,88 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
           date: doc.data().date.toDate()
         }));
         setPurchaseData(purchaseHistory);
+      }
+
+      // Fetch category data if needed
+      if (selectedReportType === 'category') {
+        try {
+          // Fetch all categories
+          const categoriesSnapshot = await getDocs(collection(db, 'categories'));
+          const categoriesMap = {};
+          categoriesSnapshot.docs.forEach(doc => {
+            categoriesMap[doc.id] = { id: doc.id, name: doc.data().name };
+          });
+
+          // Fetch all products
+          const productsSnapshot = await getDocs(collection(db, 'products'));
+          const products = productsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+
+          // Group products by category
+          const categoryDataWithProducts = Object.values(categoriesMap).map(category => ({
+            ...category,
+            products: products.filter(product => product.category === category.id)
+          }));
+
+          // Add products without category to "ללא קטגוריה"
+          const productsWithoutCategory = products.filter(product => 
+            !product.category || !categoriesMap[product.category]
+          );
+          
+          if (productsWithoutCategory.length > 0) {
+            categoryDataWithProducts.push({
+              id: 'no-category',
+              name: 'ללא קטגוריה',
+              products: productsWithoutCategory
+            });
+          }
+
+          // Filter categories based on user selection
+          const filteredCategories = categoryDataWithProducts.filter(category => 
+            selectedCategories.includes(category.id)
+          );
+
+          // Sort categories based on user selection
+          const sortedCategories = [...filteredCategories].sort((a, b) => {
+            const [sortField, sortDirection] = categorySortBy.split('-');
+            let result = 0;
+            
+            switch (sortField) {
+              case 'name':
+                result = a.name.localeCompare(b.name, 'he');
+                break;
+              case 'value':
+                const aValue = a.products?.reduce((sum, product) => 
+                  sum + (product.quantity * product.price || 0), 0) || 0;
+                const bValue = b.products?.reduce((sum, product) => 
+                  sum + (product.quantity * product.price || 0), 0) || 0;
+                result = aValue - bValue;
+                break;
+              case 'products':
+                result = (a.products?.length || 0) - (b.products?.length || 0);
+                break;
+              case 'alerts':
+                const aAlerts = a.products?.filter(product => 
+                  product.quantity < (product.minStock || 10)).length || 0;
+                const bAlerts = b.products?.filter(product => 
+                  product.quantity < (product.minStock || 10)).length || 0;
+                result = aAlerts - bAlerts;
+                break;
+              default:
+                return 0;
+            }
+            
+            // Apply direction (desc = descending, asc = ascending)
+            return sortDirection === 'desc' ? -result : result;
+          });
+
+          setCategoryData(sortedCategories);
+        } catch (error) {
+          console.error('Error fetching category data:', error);
+          toast.error('שגיאה בטעינת נתוני קטגוריות');
+        }
       }      // Generate report summary
       setReportGenerated(true);
       toast.success('הדו״ח נוצר בהצלחה');
@@ -88,439 +246,6 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('he-IL').format(date);
-  };
-
-  // Print report function using blank window method like shopping list
-  const printReport = () => {
-    if (!reportGenerated) {
-      toast.error('אנא צור דו״ח קודם');
-      return;
-    }
-
-    const printWindow = window.open('', '_blank');
-    
-    // Generate report content based on type
-    let reportContent = '';
-    
-    if (reportType === 'budget') {
-      const totalUpdates = budgetData.length;
-      const totalAdded = budgetData.reduce((sum, item) => sum + (item.amount || 0), 0);
-      const finalBudget = budgetData.length > 0 ? budgetData[budgetData.length - 1].totalBudget : 0;
-      
-      reportContent = `
-        <div class="section">
-          <h2>סיכום תקציב</h2>
-          <div class="summary-cards">
-            <div class="summary-card">
-              <h3>סה"כ עדכונים</h3>
-              <p class="summary-value">${totalUpdates}</p>
-            </div>
-            <div class="summary-card">
-              <h3>סה"כ הפקדות</h3>
-              <p class="summary-value">${formatCurrency(totalAdded)}</p>
-            </div>
-            <div class="summary-card">
-              <h3>תקציב נוכחי</h3>
-              <p class="summary-value">${formatCurrency(finalBudget)}</p>
-            </div>
-          </div>
-        </div>
-        
-        ${budgetData.length > 0 ? `
-        <div class="section">
-          <h2>פירוט עדכוני התקציב</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>הפקדה נוכחית</th>
-                <th>תקציב אחרי עדכון</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${budgetData.map(item => `
-                <tr>
-                  <td>${formatDate(item.date)}</td>
-                  <td>${formatCurrency(item.amount || 0)}</td>
-                  <td>${formatCurrency(item.totalBudget || 0)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-        ` : ''}
-      `;
-    } else if (reportType === 'purchase') {
-      const totalPurchases = purchaseData.length;
-      const totalSpent = purchaseData.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
-      const averagePurchase = totalPurchases > 0 ? totalSpent / totalPurchases : 0;
-      
-      reportContent = `
-        <div class="section">
-          <h2>סיכום רכישות</h2>
-          <div class="summary-cards">
-            <div class="summary-card">
-              <h3>מספר רכישות</h3>
-              <p class="summary-value">${totalPurchases}</p>
-            </div>
-            <div class="summary-card">
-              <h3>סה"כ הוצאות</h3>
-              <p class="summary-value">${formatCurrency(totalSpent)}</p>
-            </div>
-            <div class="summary-card">
-              <h3>ממוצע רכישה</h3>
-              <p class="summary-value">${formatCurrency(averagePurchase)}</p>
-            </div>
-          </div>
-        </div>
-        
-        ${purchaseData.length > 0 ? `
-        <div class="section">
-          <h2>פירוט רכישות</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>מספר פריטים</th>
-                <th>סה"כ רכישה</th>
-                <th>תקציב לפני</th>
-                <th>תקציב אחרי</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${purchaseData.map(item => `
-                <tr>
-                  <td>${formatDate(item.date)}</td>
-                  <td>${item.items?.length || 0}</td>
-                  <td>${formatCurrency(item.totalAmount || 0)}</td>
-                  <td>${formatCurrency(item.budgetBefore || 0)}</td>
-                  <td>${formatCurrency(item.budgetAfter || 0)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-        ` : ''}
-      `;
-    } else if (reportType === 'combined') {
-      const totalBudgetUpdates = budgetData.length;
-      const totalBudgetAdded = budgetData.reduce((sum, item) => sum + (item.amount || 0), 0);
-      const finalBudget = budgetData.length > 0 ? budgetData[budgetData.length - 1].totalBudget : 0;
-      
-      const totalPurchases = purchaseData.length;
-      const totalPurchaseAmount = purchaseData.reduce((sum, item) => sum + (item.totalAmount || 0), 0);
-      const averagePurchase = totalPurchases > 0 ? totalPurchaseAmount / totalPurchases : 0;
-      
-      reportContent = `
-        <div class="section">
-          <h2>סיכום כללי</h2>
-          <div class="summary-cards">
-            <div class="summary-card">
-              <h3>תקציב נוכחי</h3>
-              <p class="summary-value">${formatCurrency(finalBudget)}</p>
-            </div>
-            <div class="summary-card">
-              <h3>סה"כ הוצאות</h3>
-              <p class="summary-value">${formatCurrency(totalPurchaseAmount)}</p>
-            </div>
-            <div class="summary-card">
-              <h3>יתרה</h3>
-              <p class="summary-value" style="color: ${(finalBudget - totalPurchaseAmount) >= 0 ? '#2e7d32' : '#d32f2f'}">${formatCurrency(finalBudget - totalPurchaseAmount)}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="section">
-          <h2>פירוט תקציב</h2>
-          <div class="summary-grid">
-            <div>עדכוני תקציב: ${totalBudgetUpdates}</div>
-            <div>הפקדות תקציב: ${formatCurrency(totalBudgetAdded)}</div>
-          </div>
-        </div>
-        
-        <div class="section">
-          <h2>פירוט רכישות</h2>
-          <div class="summary-grid">
-            <div>מספר רכישות: ${totalPurchases}</div>
-            <div>ממוצע רכישה: ${formatCurrency(averagePurchase)}</div>
-          </div>
-        </div>
-        
-        ${budgetData.length > 0 ? `
-        <div class="section">
-          <h2>פירוט עדכוני תקציב</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>הפקדה נוכחית</th>
-                <th>תקציב אחרי עדכון</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${budgetData.map(item => `
-                <tr>
-                  <td>${formatDate(item.date)}</td>
-                  <td>${formatCurrency(item.amount || 0)}</td>
-                  <td>${formatCurrency(item.totalBudget || 0)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-        ` : ''}
-        
-        ${purchaseData.length > 0 ? `
-        <div class="section">
-          <h2>פירוט רכישות</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>תאריך</th>
-                <th>מספר פריטים</th>
-                <th>סה"כ רכישה</th>
-                <th>תקציב לפני</th>
-                <th>תקציב אחרי</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${purchaseData.map(item => `
-                <tr>
-                  <td>${formatDate(item.date)}</td>
-                  <td>${item.items?.length || 0}</td>
-                  <td>${formatCurrency(item.totalAmount || 0)}</td>
-                  <td>${formatCurrency(item.budgetBefore || 0)}</td>
-                  <td>${formatCurrency(item.budgetAfter || 0)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-        ` : ''}
-      `;
-    }
-
-    const printContent = `
-      <!DOCTYPE html>
-      <html dir="rtl" lang="he">
-      <head>
-        <meta charset="UTF-8">
-        <title>דו״ח - עמותת ותיקי מטה יהודה</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: white;
-            color: black;
-            direction: rtl;
-            line-height: 1.6;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-          }
-          .header h1 {
-            margin: 0 0 10px 0;
-            color: #2e7d32;
-            font-size: 28px;
-          }
-          .header p {
-            margin: 5px 0;
-            color: #666;
-          }
-          .report-title {
-            font-size: 24px;
-            color: #2e7d32;
-            margin: 20px 0;
-            text-align: center;
-          }
-          .report-period {
-            text-align: center;
-            color: #666;
-            margin-bottom: 10px;
-          }
-          .report-generated {
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 30px;
-          }
-          .section {
-            margin-bottom: 30px;
-            page-break-inside: avoid;
-          }
-          .section h2 {
-            background-color: #f5f5f5;
-            padding: 10px;
-            margin: 20px 0 10px 0;
-            border-right: 4px solid #2e7d32;
-            font-size: 18px;
-          }
-          .summary-cards {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            flex-wrap: wrap;
-          }
-          .summary-card {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px;
-            text-align: center;
-            min-width: 150px;
-            flex: 1;
-          }
-          .summary-card h3 {
-            margin: 0 0 10px 0;
-            color: #2e7d32;
-            font-size: 14px;
-          }
-          .summary-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            margin: 0;
-          }
-          .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 15px 0;
-          }
-          .summary-grid div {
-            background-color: #f9f9f9;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 12px;
-          }
-          th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: right;
-          }
-          th {
-            background-color: #f9f9f9;
-            font-weight: bold;
-            color: #2e7d32;
-          }
-          tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-          }
-          tbody tr:hover {
-            background-color: #e8f5e9;
-          }
-          .print-date {
-            text-align: right;
-            font-size: 12px;
-            color: #666;
-            margin-top: 30px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-          }
-          
-          @media print {
-            body {
-              margin: 0;
-              padding: 15px;
-              font-size: 11px;
-            }
-            .header {
-              margin-bottom: 20px;
-              padding-bottom: 15px;
-            }
-            .header h1 {
-              font-size: 22px;
-            }
-            .report-title {
-              font-size: 18px;
-            }
-            .section h2 {
-              font-size: 14px;
-              padding: 8px;
-              margin: 15px 0 8px 0;
-            }
-            .summary-cards {
-              flex-direction: row;
-              justify-content: space-between;
-            }
-            .summary-card {
-              margin: 5px;
-              padding: 10px;
-              min-width: 120px;
-            }
-            .summary-card h3 {
-              font-size: 12px;
-            }
-            .summary-value {
-              font-size: 16px;
-            }
-            table {
-              font-size: 10px;
-            }
-            th, td {
-              padding: 6px 4px;
-            }
-            .section {
-              margin-bottom: 20px;
-            }
-            .summary-grid {
-              gap: 10px;
-            }
-            .summary-grid div {
-              padding: 8px;
-              font-size: 11px;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>מערכת ניהול מלאי</h1>
-          <p>עמותת ותיקי מטה יהודה</p>
-        </div>
-
-        <div class="report-title">
-          ${reportType === 'budget' && 'דו״ח תקציב'}
-          ${reportType === 'purchase' && 'דו״ח רכישות'}
-          ${reportType === 'combined' && 'דו״ח משולב - תקציב ורכישות'}
-        </div>
-        
-        <div class="report-period">
-          תקופה: ${formatDate(new Date(dateRange.startDate))} - ${formatDate(new Date(dateRange.endDate))}
-        </div>
-        
-        <div class="report-generated">
-          נוצר בתאריך: ${formatDate(new Date())}
-        </div>
-
-        ${reportContent}
-
-        <div class="print-date">
-          הודפס ב: ${new Date().toLocaleString('he-IL')}
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    
-    // Wait a bit for content to load, then print
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 500);
   };
 
   return (
@@ -547,26 +272,77 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
                 <option value="budget">דו״ח תקציב</option>
                 <option value="purchase">דו״ח רכישות</option>
                 <option value="combined">דו״ח משולב</option>
+                <option value="category">דו״ח קטגוריה</option>
               </select>
             </div>
-            <div className="form-group">
-              <label>תאריך התחלה:</label>
-              <input
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
-                className="form-control"
-              />
-            </div>
-            <div className="form-group">
-              <label>תאריך סיום:</label>
-              <input
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
-                className="form-control"
-              />
-            </div>
+            {selectedReportType === 'category' ? (
+              <>
+                <div className="form-group">
+                  <label>קטגוריות לכלול בדו״ח:</label>
+                  <div className="category-dropdown-container">
+                    <div 
+                      className="category-dropdown-toggle"
+                      onClick={toggleCategoryDropdown}
+                    >
+                      <span className="dropdown-text">{getCategorySelectionText()}</span>
+                      <span className={`dropdown-arrow ${categoryDropdownOpen ? 'open' : ''}`}>▼</span>
+                    </div>
+                    {categoryDropdownOpen && (
+                      <div className="category-dropdown-menu">
+                        {availableCategories.map(category => (
+                          <label key={category.id} className="category-checkbox-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(category.id)}
+                              onChange={() => handleCategorySelection(category.id)}
+                            />
+                            <span className="checkbox-text">{category.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>מיון קטגוריות לפי:</label>
+                  <select 
+                    value={categorySortBy} 
+                    onChange={(e) => setCategorySortBy(e.target.value)}
+                    className="form-control"
+                  >
+                    <option value="name-asc">שם קטגוריה (א-ב)</option>
+                    <option value="name-desc">שם קטגוריה (ב-א)</option>
+                    <option value="value-desc">ערך כולל (גבוה לנמוך)</option>
+                    <option value="value-asc">ערך כולל (נמוך לגבוה)</option>
+                    <option value="products-desc">מספר מוצרים (רב למעט)</option>
+                    <option value="products-asc">מספר מוצרים (מעט לרב)</option>
+                    <option value="alerts-desc">אזהרות מלאי (רב למעט)</option>
+                    <option value="alerts-asc">אזהרות מלאי (מעט לרב)</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label>תאריך התחלה:</label>
+                  <input
+                    type="date"
+                    value={dateRange.startDate}
+                    onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
+                    className="form-control"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>תאריך סיום:</label>
+                  <input
+                    type="date"
+                    value={dateRange.endDate}
+                    onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
+                    className="form-control"
+                  />
+                </div>
+              </>
+            )}
             <button 
               onClick={generateReport} 
               disabled={loading}
@@ -599,12 +375,12 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
           <div className="printable-report" id="printable-report">
               {/* Association Header */}            
             <div className="association-header">
+              <div className="association-logo">
+                <img src={logo} alt="לוגו הארגון" className="report-logo" />
+              </div>
               <div className="association-info">
                 <h1 className="association-title">מערכת ניהול מלאי</h1>
                 <p className="association-subtitle">עמותת ותיקי מטה יהודה</p>
-              </div>
-              <div className="association-logo">
-                <img src={logo} alt="לוגו הארגון" className="report-logo" />
               </div>
             </div>
 
@@ -613,12 +389,13 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
                 {reportType === 'budget' && 'דו״ח תקציב'}
                 {reportType === 'purchase' && 'דו״ח רכישות'}
                 {reportType === 'combined' && 'דו״ח משולב - תקציב ורכישות'}
+                {reportType === 'category' && 'דו״ח קטגוריה'}
               </h2>
               <p className="report-period">
                 תקופה: {formatDate(new Date(dateRange.startDate))} - {formatDate(new Date(dateRange.endDate))}
               </p>              
               <p className="report-generated">
-                נוצר בתאריך: {formatDate(new Date())}
+                נוצר בתאריך: {formatDate(new Date())} בשעה {new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>            
             {/* Report Content - Using Modular Components */}
@@ -644,6 +421,14 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
                 purchaseData={purchaseData} 
                 formatCurrency={formatCurrency} 
                 formatDate={formatDate} 
+              />
+            )}
+
+            {reportType === 'category' && (
+              <CategoryReport
+                categoryData={categoryData}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
               />
             )}
           </div>
