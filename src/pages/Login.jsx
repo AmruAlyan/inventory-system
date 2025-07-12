@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase/firebase"; // Using firebase from firebase folder
-import { doc, getDoc } from "firebase/firestore"; // Import Firestore functions
+import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore"; // Import Firestore functions
 import { db } from "../firebase/firebase"; // Firebase Firestore instance
 import "../styles/login.css";
 import image from "../assets/pics/login-2.png";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faKey, faExclamationTriangle, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from "react-router-dom";
+import { faUser, faKey, faExclamationTriangle, faEye, faEyeSlash, faEnvelope, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate, useLocation } from "react-router-dom";
 import ThemeSwitch from "../components/LayoutComponents/ThemeSwitch";
 import { ROLES } from "../constants/roles.js";
-import Logo from "../assets/pics/Logo-colored.png";
+import Logo from "../assets/pics/Home1.png";
 
 function Login() {
   // Input values
@@ -23,7 +23,42 @@ function Login() {
   const [passwordError, setPasswordError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   
+  // Forgot password states
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetEmailError, setResetEmailError] = useState("");
+  const [resetStatusMessage, setResetStatusMessage] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for blocked user message from navigation state
+  useEffect(() => {
+    if (location.state?.error) {
+      setStatusMessage(location.state.error);
+      // Clear the state so it doesn't persist on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Force light mode for login page
+  useEffect(() => {
+    // Store the current theme
+    const originalTheme = document.documentElement.getAttribute('data-theme');
+    
+    // Set light mode for login page
+    document.documentElement.setAttribute('data-theme', 'light');
+    
+    // Cleanup function to restore original theme when component unmounts
+    return () => {
+      if (originalTheme) {
+        document.documentElement.setAttribute('data-theme', originalTheme);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    };
+  }, []);
 
   // Validate email format
   const validateEmail = (email) => {
@@ -44,6 +79,52 @@ function Login() {
       return "הסיסמה חייבת להכיל לפחות 6 תווים";
     }
     return "";
+  };
+
+  // Handle forgot password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    
+    // Validate email
+    const emailValidation = validateEmail(resetEmail);
+    setResetEmailError(emailValidation);
+    
+    if (emailValidation) {
+      return;
+    }
+    
+    setIsResettingPassword(true);
+    setResetStatusMessage("");
+    
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetStatusMessage("נשלח אימייל לאיפוס סיסמה. אנא בדוק את תיבת הדואר שלך.");
+      setResetEmailError("");
+      
+      // Clear form after successful send
+      setTimeout(() => {
+        setResetEmail("");
+        setResetStatusMessage("");
+        setShowForgotPassword(false);
+        setIsResettingPassword(false);
+      }, 4000);
+      
+    } catch (error) {
+      console.error("Password reset error:", error);
+      
+      // Handle specific error cases
+      if (error.code === 'auth/user-not-found') {
+        setResetEmailError("כתובת אימייל לא נמצאה במערכת");
+      } else if (error.code === 'auth/invalid-email') {
+        setResetEmailError("כתובת אימייל לא תקינה");
+      } else if (error.code === 'auth/too-many-requests') {
+        setResetStatusMessage("יותר מדי בקשות. אנא נסה שוב מאוחר יותר.");
+      } else {
+        setResetStatusMessage("שגיאה בשליחת אימייל לאיפוס סיסמה. אנא נסה שוב.");
+      }
+    } finally {
+      setIsResettingPassword(false);
+    }
   };
 
   // Form submission handler
@@ -77,7 +158,35 @@ function Login() {
 
       // Fetch user's role from Firestore
       const userRef = doc(db, "users", user.uid); // Assuming "users" collection
-      const docSnap = await getDoc(userRef);
+      let docSnap = await getDoc(userRef);
+      
+      // Check if user exists in Firestore with invited status
+      if (!docSnap.exists()) {
+        // Check if there's an invited user with this email
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const invitedUser = usersSnapshot.docs.find(doc => {
+          const data = doc.data();
+          return data.email === user.email && data.status === 'invited';
+        });
+        
+        if (invitedUser) {
+          // Move invited user data to the actual user UID and activate account
+          const invitedData = invitedUser.data();
+          await setDoc(userRef, {
+            ...invitedData,
+            status: 'active',
+            isActive: true,
+            activatedAt: new Date(),
+            firstLogin: new Date()
+          });
+          
+          // Delete the invitation record
+          await deleteDoc(doc(db, 'users', invitedUser.id));
+          
+          // Refresh the document snapshot
+          docSnap = await getDoc(userRef);
+        }
+      }
       
       // Update the last login timestamp
       try {
@@ -91,6 +200,12 @@ function Login() {
       if (docSnap.exists()) {
         const userRole = docSnap.data().role; // Assuming role is stored in the 'role' field
 
+        // Check if user is blocked
+        if (userRole.toLowerCase() === ROLES.BLOCKED) {
+          setStatusMessage("חשבונך נחסם. אנא פנה למנהל המערכת.");
+          return;
+        }
+
         // Navigate based on the role
         if (userRole.toLowerCase() === ROLES.ADMIN) {
           navigate("/admin-dashboard", { replace: true });
@@ -98,97 +213,182 @@ function Login() {
           navigate("/manager-dashboard", { replace: true });
         } else {
           console.error("Login error: User role is not admin or manager");
-          setStatusMessage("שם משתמש או סיסמה שגויים. אנא נסה שוב."); // Unauthorized
+          setStatusMessage("דוא״ל או סיסמה שגויים. אנא נסה שוב."); // Unauthorized
         }
       } else {
         console.error("Login error: User document not found in Firestore");
-        setStatusMessage("שם משתמש או סיסמה שגויים. אנא נסה שוב."); // User not found in Firestore
+        setStatusMessage("דוא״ל או סיסמה שגויים. אנא נסה שוב."); // User not found in Firestore
       }
     } catch (error) {
-      setStatusMessage("שם משתמש או סיסמה שגויים. אנא נסה שוב."); // Incorrect username or password
+      setStatusMessage("דוא״ל או סיסמה שגויים. אנא נסה שוב."); // Incorrect username or password
       console.error("Login authentication error:", error.code, error.message);
     }
   };
 
   return (
-    <div className="container">
-      {/* Login Form */}
-      <div className="right-panel">
-        <div className="top-panel">
-          <div className="login-box">
-            <h2>כניסה למערכת</h2>
-            <form onSubmit={handleLogin} noValidate>
-              <div className="input-group">
-                <FontAwesomeIcon icon={faUser} className="icon" />
-                <input 
-                  type="email" 
-                  placeholder="דואר אלקטרוני" 
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    // Clear email error when user starts typing again
-                    if (emailError) setEmailError("");
-                  }}
-                  className={emailError ? 'input-error' : ''}
-                />
-              </div>
-              {emailError && (
-                <div className="validation-error">
-                  <FontAwesomeIcon icon={faExclamationTriangle} /> {emailError}
-                </div>
-              )}
-              <div className="input-group">
-                <FontAwesomeIcon icon={faKey} className="icon" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="סיסמה" 
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    // Clear password error when user starts typing again
-                    if (passwordError) setPasswordError("");
-                  }}
-                  className={`password-input ${passwordError ? 'input-error' : ''}`}
-                />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
-                >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-                </button>
-              </div>
-              {passwordError && (
-                <div className="validation-error">
-                  <FontAwesomeIcon icon={faExclamationTriangle} /> {passwordError}
-                </div>
-              )}
-              <div className="status">
-                <span>{statusMessage}</span>
-              </div>
-              <button className="submit-button" type="submit">כניסה</button>
-            </form>
-          </div>
-        </div>
-        <div className="bottom-panel">
-          <ThemeSwitch sidebarOpen={true} />
-        </div>
-      </div>
+    <div className="container" data-theme="light">
 
-      {/* Title & Image */}
-      <div className="left-panel">
-        <div className="title-box">
+
+      {/* Login Form */}
+      <div className="second">
+        <div className="right-panel">
+          {/* Logo */}
           <div className="logo-container">
             <img src={Logo} alt="Logo" className="logo" />
           </div>
-          <div className="title-box-text">
-            <h1>מערכת ניהול מלאי</h1>
-            <h3> עמותת ותיקי מטה יהודה </h3>
+          <div className="top-panel">
+            <div className="login-box">
+              {!showForgotPassword ? (
+                <>
+                  <h2>כניסה למערכת</h2>
+                  <form onSubmit={handleLogin} noValidate>
+                    <div className="input-group">
+                      <FontAwesomeIcon icon={faUser} className="icon" />
+                      <input 
+                        type="email" 
+                        placeholder="דואר אלקטרוני" 
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          // Clear email error when user starts typing again
+                          if (emailError) setEmailError("");
+                        }}
+                        className={emailError ? 'input-error' : ''}
+                      />
+                    </div>
+                    {emailError && (
+                      <div className="validation-error">
+                        <FontAwesomeIcon icon={faExclamationTriangle} /> {emailError}
+                      </div>
+                    )}
+                    <div className="input-group">
+                      <FontAwesomeIcon icon={faKey} className="icon" />
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="סיסמה" 
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          // Clear password error when user starts typing again
+                          if (passwordError) setPasswordError("");
+                        }}
+                        className={`password-input ${passwordError ? 'input-error' : ''}`}
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "הסתר סיסמה" : "הצג סיסמה"}
+                      >
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                      </button>
+                    </div>
+                    {passwordError && (
+                      <div className="validation-error">
+                        <FontAwesomeIcon icon={faExclamationTriangle} /> {passwordError}
+                      </div>
+                    )}
+                    <div className="status">
+                      <span>{statusMessage}</span>
+                    </div>
+                    <button className="submit-button" type="submit">כניסה</button>
+                  </form>
+                  
+                  {/* Forgot Password Link */}
+                  <div className="forgot-password-link">
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setResetEmail(email); // Pre-fill with current email if any
+                        setStatusMessage("");
+                        setEmailError("");
+                        setPasswordError("");
+                      }}
+                    >
+                      שכחת סיסמה?
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2>איפוס סיסמה</h2>
+                  <p className="forgot-password-description">
+                    הזן את כתובת האימייל שלך ונשלח לך קישור לאיפוס הסיסמה
+                  </p>
+                  <form onSubmit={handleForgotPassword} noValidate>
+                    <div className="input-group">
+                      <FontAwesomeIcon icon={faEnvelope} className="icon" />
+                      <input 
+                        type="email" 
+                        placeholder="דואר אלקטרוני" 
+                        value={resetEmail}
+                        onChange={(e) => {
+                          setResetEmail(e.target.value);
+                          // Clear email error when user starts typing again
+                          if (resetEmailError) setResetEmailError("");
+                        }}
+                        className={resetEmailError ? 'input-error' : ''}
+                      />
+                    </div>
+                    {resetEmailError && (
+                      <div className="validation-error">
+                        <FontAwesomeIcon icon={faExclamationTriangle} /> {resetEmailError}
+                      </div>
+                    )}
+                    <div className={`status ${resetStatusMessage.includes('נשלח') ? 'success' : resetStatusMessage ? 'error' : ''}`}>
+                      <span>{resetStatusMessage}</span>
+                    </div>
+                    <button className="submit-button" type="submit" disabled={isResettingPassword}>
+                      {isResettingPassword ? (
+                        <>שולח...</>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faEnvelope} /> שלח קישור לאיפוס
+                        </>
+                      )}
+                    </button>
+                  </form>
+                  
+                  {/* Back to Login Link */}
+                  <div className="back-to-login-link">
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => {
+                        setShowForgotPassword(false);
+                        setResetEmail("");
+                        setResetEmailError("");
+                        setResetStatusMessage("");
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} /> חזור לכניסה
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+          {/* <div className="bottom-panel">
+            <ThemeSwitch sidebarOpen={true} />
+          </div> */}
         </div>
-        <div className="illustration">
-          <img src={image} alt="מחסן" />
+
+        {/* Title & Image */}
+        <div className="left-panel">
+          <div className="title-box">
+            {/* <div className="logo-container">
+              <img src={Logo} alt="Logo" className="logo" />
+            </div> */}
+            <div className="title-box-text">
+              <h1>מערכת ניהול מלאי</h1>
+              <h3> עמותת ותיקי מטה יהודה </h3>
+            </div>
+          </div>
+          <div className="illustration">
+            <img src={image} alt="מחסן" />
+          </div>
         </div>
       </div>
     </div>

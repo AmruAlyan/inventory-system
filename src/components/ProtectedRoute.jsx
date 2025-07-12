@@ -23,6 +23,17 @@ const ProtectedRoute = ({ children, requireRole = [] }) => {
       const userData = userDoc.data();
       const userRole = userData?.role?.toLowerCase(); // <- normalize to lowercase
 
+      // Check if user is blocked
+      if (userRole === ROLES.BLOCKED) {
+        // Sign out blocked user and redirect to login
+        await auth.signOut();
+        navigate("/login", { 
+          replace: true,
+          state: { error: "חשבונך נחסם. אנא פנה למנהל המערכת." }
+        });
+        return;
+      }
+
       // Check if user has required role
       const hasRequiredRole = requireRole.length === 0 || requireRole.includes(userRole);
 

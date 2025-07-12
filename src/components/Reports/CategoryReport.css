@@ -1,0 +1,657 @@
+/* CategoryReport.css */
+
+.category-report {
+    padding: 0;
+    font-family: inherit;
+}
+
+/* FontAwesome Icons - Transparent Background */
+.category-report .fa,
+.category-report .fas,
+.category-report .far,
+.category-report .fal,
+.category-report .fab,
+.category-report svg[data-icon] {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* No Data State */
+.category-report .no-data {
+    text-align: center;
+    padding: 2rem;
+}
+
+.category-report .no-data p {
+    margin-top: 1rem;
+    color: #666;
+}
+
+/* Report Header */
+.category-report .report-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.category-report .report-header h2 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.category-report .report-header p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Summary Section */
+.category-report .summary-section {
+    margin-bottom: 2rem;
+}
+
+.category-report .summary-section h3 {
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+}
+
+/* Summary Container */
+.category-report .summary-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Main Stats Row */
+.category-report .main-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Stat Cards */
+.category-report .stat-card {
+    background: var(--panel-bg);
+    border: 2px solid;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-report .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: currentColor;
+}
+
+.category-report .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.category-report .stat-card.primary {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.category-report .stat-card.secondary {
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+}
+
+.category-report .stat-card.accent {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.category-report .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.category-report .stat-content {
+    flex: 1;
+}
+
+.category-report .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.category-report .stat-label {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+/* Insight Cards */
+.category-report .insight-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.category-report .insight-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.category-report .insight-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+.category-report .insight-card.warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #f59e0b;
+}
+
+.category-report .insight-card.success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #10b981;
+}
+
+.category-report .insight-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.category-report .insight-icon {
+    font-size: 1.1rem;
+}
+
+.category-report .insight-content {
+    text-align: right;
+}
+
+.category-report .insight-main {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.category-report .insight-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+/* Categories Section */
+.category-report .categories-section h3 {
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    page-break-after: avoid;
+}
+
+/* Category Section */
+.category-report .category-section {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    page-break-inside: avoid;
+    transition: box-shadow 0.2s ease;
+}
+
+.category-report .category-section:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+/* Category Header */
+.category-report .category-header {
+    background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%);
+    color: white;
+    padding: 0.75rem;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.category-report .category-header * {
+    color: white !important;
+}
+
+.category-report .category-header .fa,
+.category-report .category-header .fas,
+.category-report .category-header .far,
+.category-report .category-header .fal,
+.category-report .category-header .fab,
+.category-report .category-header svg,
+.category-report .category-header i {
+    color: white !important;
+}
+
+.category-report .category-header h4 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white !important;
+}
+
+.category-report .category-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+    color: white !important;
+}
+
+/* Category Stats */
+.category-report .category-stats {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    margin: 0;
+}
+
+.category-report .category-stat {
+    text-align: center;
+}
+
+.category-report .category-stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.category-report .category-stat-label {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.category-report .category-stat-warning {
+    color: #ffeb3b;
+}
+
+/* Products Table */
+.category-report .products-table {
+    padding: 0.5rem;
+}
+
+.category-report .table-wrapper {
+    overflow: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.category-report .products-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel-bg);
+}
+
+/* Table Header */
+.category-report .products-table thead tr {
+    background: #f8f9fa;
+}
+
+.category-report .products-table th {
+    padding: 12px;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.category-report .products-table th:hover {
+    background-color: #e9ecef;
+}
+
+.category-report .products-table th.text-right {
+    text-align: right;
+}
+
+.category-report .products-table th.text-center {
+    text-align: center;
+}
+
+.category-report .products-table th .sort-icon {
+    margin-left: 0.5rem;
+}
+
+/* Table Body */
+.category-report .products-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.category-report .products-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.category-report .products-table td {
+    padding: 12px;
+    font-weight: 500;
+}
+
+.category-report .products-table td.text-right {
+    text-align: right;
+}
+
+.category-report .products-table td.text-center {
+    text-align: center;
+}
+
+.category-report .products-table td.primary-color {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Stock Status */
+.category-report .stock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 500;
+}
+
+.category-report .stock-status.out {
+    color: #dc3545;
+}
+
+.category-report .stock-status.low {
+    color: #fd7e14;
+}
+
+.category-report .stock-status.good {
+    color: #28a745;
+}
+
+/* Category Summary */
+.category-report .category-summary {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.category-report .category-summary .warning {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.category-report .category-summary .warning .icon {
+    margin-left: 0.3rem;
+}
+
+/* Empty State */
+.category-report .empty-products {
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+}
+
+.category-report .empty-products .icon {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .category-report .main-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-report .insight-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-report .stat-card {
+        padding: 1rem;
+    }
+    
+    .category-report .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .category-report .stat-icon {
+        font-size: 2rem;
+    }
+    
+    .category-report .insight-main {
+        font-size: 1.2rem;
+    }
+    
+    .category-report .category-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .category-report .category-stats {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .category-report .table-wrapper {
+        font-size: 0.9rem;
+    }
+    
+    .category-report .products-table th,
+    .category-report .products-table td {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-report .stat-card {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .category-report .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .category-report .stat-icon {
+        font-size: 1.75rem;
+    }
+    
+    .category-report .insight-card {
+        padding: 1rem;
+    }
+    
+    .category-report .insight-main {
+        font-size: 1rem;
+    }
+    
+    .category-report .category-stat-value {
+        font-size: 1.4rem;
+    }
+    
+    .category-report .products-table th,
+    .category-report .products-table td {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .category-report {
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .category-report .stat-card {
+        box-shadow: none !important;
+        border: 2px solid !important;
+        background: var(--panel-bg) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-report .stat-card.primary {
+        border-color: #3b82f6 !important;
+        color: #3b82f6 !important;
+    }
+
+    .category-report .stat-card.secondary {
+        border-color: #8b5cf6 !important;
+        color: #8b5cf6 !important;
+    }
+
+    .category-report .stat-card.accent {
+        border-color: #10b981 !important;
+        color: #10b981 !important;
+    }
+
+    .category-report .stat-card::before {
+        display: block !important;
+        height: 4px !important;
+        background: currentColor !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-report .insight-card {
+        box-shadow: none !important;
+        border: 1px solid var(--border-color) !important;
+        background: var(--panel-bg) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-report .insight-card.warning {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+        border-color: #f59e0b !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-report .insight-card.success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+        border-color: #10b981 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .category-report .category-section {
+        box-shadow: none;
+        border: 1px solid var(--border-color) !important;
+        page-break-inside: avoid;
+        background: var(--panel-bg) !important;
+    }
+    
+    .category-report .category-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #4a7c5a 100%) !important;
+        color: white !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        padding: 8px 12px !important;
+    }
+
+    .category-stat {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .category-report .category-stat-value {
+        font-size: 1.5rem !important;
+        font-weight: bold !important;
+    }
+    
+    .category-report .products-table th {
+        background: #f8f9fa !important;
+        border: 1px solid var(--border-color) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .category-report .products-table td {
+        border: 1px solid var(--border-color) !important;
+    }
+
+    .category-report .stock-status.out {
+        color: #dc3545 !important;
+        font-weight: 500 !important;
+    }
+
+    .category-report .stock-status.low {
+        color: #fd7e14 !important;
+        font-weight: 500 !important;
+    }
+
+    .category-report .stock-status.good {
+        color: #28a745 !important;
+        font-weight: 500 !important;
+    }
+
+    .category-report .products-table td.primary-color {
+        color: var(--primary) !important;
+        font-weight: 600 !important;
+    }
+
+    .main-stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    .stat-card {
+        padding: 1rem !important;
+        gap: 0.75rem !important;
+    }
+
+    .category-report .insight-cards {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    /* Force print colors for all elements */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+   .category-report .empty-products {
+       text-align: center !important;
+       
+   }
+}

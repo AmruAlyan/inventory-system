@@ -79,7 +79,9 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
             <p>תקציב נוכחי: {formatCurrency(finalBudget)}</p>
           </div>
         </div>
-      </div>      {/* Budget Chart */}
+      </div>      
+      
+      {/* Budget Chart */}
       <div className="chart-section">
         <h3><FontAwesomeIcon icon={faChartLine} /> תרשים תקציב</h3>        
         <div className="chart-container">

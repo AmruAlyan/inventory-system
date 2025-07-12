@@ -94,7 +94,7 @@ const PurchaseReport = ({ purchaseData, formatCurrency, formatDate }) => {
       </div>
 
       {/* Purchase Chart */}
-      <div className="report-section chart-section">
+      <div className="chart-section">
         <h3><FontAwesomeIcon icon={faChartLine} /> תרשים רכישות</h3>
         <div className="chart-container">
           <ReportBarChart data={chartData} reportType="purchase" />

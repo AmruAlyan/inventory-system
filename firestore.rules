@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - allow users to read/write their own documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow all authenticated users to read all user documents (for admin features)
+      allow read: if request.auth != null;
+      // Allow admins to write any user document
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'מנכ"ל'];
+    }
+    
+    // Verification codes collection - for password reset verification
+    match /verificationCodes/{docId} {
+      // Allow anyone to create verification codes (needed for password reset)
+      allow create: if true;
+      // Allow reading only your own verification codes
+      allow read: if request.auth != null && resource.data.email == request.auth.token.email;
+      // Allow updating only for email sent status (by Cloud Functions)
+      allow update: if request.auth != null && 
+        (request.auth.token.email == resource.data.email ||
+         // Allow Cloud Functions to update email status
+         'emailSent' in request.resource.data || 'emailError' in request.resource.data);
+      // Allow deleting expired codes
+      allow delete: if request.auth != null && request.time > resource.data.expiresAt;
+    }
+    
+    // Products collection (if you have one)
+    match /products/{productId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Categories collection (if you have one)
+    match /categories/{categoryId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Shopping lists collection (if you have one)
+    match /shoppingLists/{listId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Budget collection (if you have one)
+    match /budget/{budgetId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Reports collection (if you have one)
+    match /reports/{reportId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

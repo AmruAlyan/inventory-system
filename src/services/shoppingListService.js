@@ -393,27 +393,35 @@ class ShoppingListService {
 
       console.log('💰 Fetching fresh budget data');
       
-      const budgetSnapshot = await getDocs(collection(db, 'budgets'));
-      if (budgetSnapshot.empty) {
-        return { totalBudget: 0, lastUpdated: Date.now() };
+      // Try to get current budget document first
+      const currentBudgetRef = doc(db, 'budgets', 'current');
+      const currentBudgetDoc = await getDoc(currentBudgetRef);
+      
+      if (currentBudgetDoc.exists()) {
+        const budgetData = {
+          totalBudget: currentBudgetDoc.data().totalBudget || 0,
+          lastUpdated: Date.now()
+        };
+
+        cacheManager.setCache(
+          CACHE_CONFIG.BUDGET.key,
+          budgetData,
+          CACHE_CONFIG.BUDGET.ttl
+        );
+
+        return budgetData;
       }
 
-      const latestBudget = budgetSnapshot.docs
-        .map(doc => ({ ...doc.data(), id: doc.id }))
-        .sort((a, b) => b.date - a.date)[0];
-
-      const budgetData = {
-        totalBudget: latestBudget?.totalBudget || 0,
-        lastUpdated: Date.now()
-      };
-
+      // Fallback: if current doesn't exist, return default
+      const defaultBudget = { totalBudget: 0, lastUpdated: Date.now() };
+      
       cacheManager.setCache(
         CACHE_CONFIG.BUDGET.key,
-        budgetData,
+        defaultBudget,
         CACHE_CONFIG.BUDGET.ttl
       );
 
-      return budgetData;
+      return defaultBudget;
     } catch (error) {
       console.error('Error fetching budget:', error);
       throw error;

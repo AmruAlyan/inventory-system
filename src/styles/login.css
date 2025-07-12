@@ -8,6 +8,7 @@ body {
 
 .container {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
@@ -17,6 +18,14 @@ body {
   box-sizing: border-box;
   background-color: #518664;
   margin: 0;
+}
+
+.second {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .right-panel {
@@ -46,9 +55,12 @@ body {
 } */
 
 .logo {
-  width: 100px;
-  height: 100px;
+  width: 160px;
+  height: 160px;
   /* margin-bottom: 20px; */
+  background: var(--panel-bg);
+  border-radius: 50%;
+  box-shadow: 0px 0px 10px 1px var(--primary-text);
 }
 
 .title-box {
@@ -61,6 +73,8 @@ body {
   border-radius: 10px;
   margin-bottom: 20px;
   width: 100%;
+  max-width: 360px;
+  margin: 0 0 30px 0;
   box-shadow: 0px 0px 10px 1px var(--primary-text);
 }
 
@@ -74,7 +88,7 @@ body {
 }
 
 .title-box-text h1,
-.title-box-text h2 {
+.title-box-text h3 {
   margin: 5px 0;
 }
 
@@ -93,7 +107,7 @@ body {
   border-radius: 10px;
   box-shadow: 0px 0px 10px 1px var(--primary-text);
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
   box-sizing: border-box;
   margin: 30px;
 }
@@ -178,6 +192,12 @@ i {
   background-color: var(--login-hover-bg);
 }
 
+.submit-button:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .input-error {
   border: 1px solid #ff6b6b !important;
   background-color: rgba(255, 107, 107, 0.05);
@@ -192,6 +212,47 @@ i {
   gap: 5px;
   text-align: right;
   padding-right: 5px;
+}
+
+/* Forgot Password Styles */
+.forgot-password-link,
+.back-to-login-link {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--login-bg);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+  padding: 5px;
+}
+
+.link-button:hover {
+  color: var(--login-hover-bg);
+  text-decoration: none;
+}
+
+.forgot-password-description {
+  font-size: 14px;
+  color: var(--secondary-text);
+  margin: 10px 0 20px 0;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.status.success {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+.status.error {
+  color: #ff6b6b;
+  font-weight: 500;
 }
 
 .validation-error svg {
@@ -222,6 +283,82 @@ i {
 /* Theme switch in login context should show text */
 .bottom-panel .sidebar-text {
   display: inline !important;
+}
+
+/* Force light mode for login page */
+.container[data-theme="light"] {
+  --bg-color: #f5f7fa;
+  --panel-bg: #ffffff;
+  --primary-text: #111;
+  --input-border: #ccc;
+  --login-bg: #4CAF50;
+  --button-text: #fff;
+  --login-hover-bg: #388E3C;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --icon-color: #444;
+  --error-color: #d32f2f;
+  --header-bg: #e0e0e0;
+  --icon-highlight: #000000b6;
+  --button-bg: #70707038;
+}
+
+/* Additional override to ensure light mode always applies to login container */
+.container[data-theme="light"] h1,
+.container[data-theme="light"] h2,
+.container[data-theme="light"] h3,
+.container[data-theme="light"] .login-box h2,
+.container[data-theme="light"] .title-box-text {
+  /* Force light theme colors for text elements, excluding errors */
+  color: #111 !important;
+}
+
+.container[data-theme="light"] .top-panel,
+.container[data-theme="light"] .title-box {
+  background-color: #ffffff !important;
+  box-shadow: 0px 0px 10px 1px #111 !important;
+}
+
+.container[data-theme="light"] .input-group input {
+  background-color: #ffffff !important;
+  color: #111 !important;
+  border: 1px solid #ccc !important;
+}
+
+.container[data-theme="light"] .submit-button {
+  background-color: #4CAF50 !important;
+  color: #fff !important;
+}
+
+.container[data-theme="light"] .submit-button:hover {
+  background-color: #388E3C !important;
+}
+
+.container[data-theme="light"] .link-button {
+  color: #4CAF50 !important;
+}
+
+.container[data-theme="light"] .link-button:hover {
+  color: #388E3C !important;
+}
+
+.container[data-theme="light"] .forgot-password-description {
+  color: #666 !important;
+}
+
+/* Ensure error alerts maintain their proper styling in light mode */
+.container[data-theme="light"] .validation-error,
+.container[data-theme="light"] .validation-error * {
+  color: #ff6b6b !important;
+}
+
+.container[data-theme="light"] .status,
+.container[data-theme="light"] .status * {
+  color: #d32f2f !important;
+}
+
+.container[data-theme="light"] .input-error {
+  border: 1px solid #ff6b6b !important;
+  background-color: rgba(255, 107, 107, 0.05) !important;
 }
 
 /* Responsive layout */
@@ -275,6 +412,33 @@ i {
     margin-right: auto;
     margin-top: 0;
   }
+}
 
+/* Invitation info styles */
+.invitation-info {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
 
+.invitation-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+}
+
+.invitation-detail:last-child {
+  border-bottom: none;
+}
+
+.invitation-detail strong {
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 80px;
 }
