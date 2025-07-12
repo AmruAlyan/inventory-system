@@ -33,7 +33,7 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
 
   return (
     <Modal onClose={onClose}>
-      <div className="Product-modal">
+      <div className="reauth">
         <h2>אימות מחדש נדרש</h2>
         <form
           onSubmit={e => {
@@ -43,14 +43,16 @@ const ReauthModal = ({ email, onSuccess, onClose }) => {
           className="Product-form"
         >
           <div className="Product-form-group">
-            <label>סיסמה נוכחית:</label>
+            {/* <label>סיסמה:</label> */}
             <input
               type="password"
               name="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoFocus
-              autocomplete="new-password"
+              autoComplete="new-password"
+              placeholder="הזן את הסיסמה שלך"
+              style={{ margin: "0 20px" }}
             />
           </div>
           <div className="Product-button-group">

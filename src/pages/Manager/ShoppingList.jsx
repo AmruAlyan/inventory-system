@@ -258,7 +258,12 @@ const ShoppingList = () => {
         setBudget(budgetData.totalBudget || 0);
       } catch (error) {
         console.error('Error fetching budget:', error);
-        toast.error('שגיאה בטעינת התקציב');
+        // Set a default budget instead of showing error to user
+        setBudget(0);
+        // Only show error in development
+        if (process.env.NODE_ENV === 'development') {
+          toast.error('שגיאה בטעינת התקציב - משתמש בתקציב ברירת מחדל');
+        }
       }
     };
 

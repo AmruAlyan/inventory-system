@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../../firebase/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faEye, faEyeSlash, faUser } from "@fortawesome/free-solid-svg-icons";
-import "../../styles/Profile.css";
+import { faUserPen, faBan, faUser, faUsers, faPlus, faTrash, faEdit, faUserTie, faUserShield, faCamera, faUserSlash, faUserCheck } from "@fortawesome/free-solid-svg-icons";
+import "../../styles/ModernProfile.css";
+import "../../styles/imageUpload.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
+import ImageUpload from "../../components/ImageUpload";
 import { ROLES } from "../../constants/roles";
-import { showAlert } from "../../utils/dialogs";
+import { showAlert, showConfirm } from "../../utils/dialogs";
 import { toast } from 'react-toastify';
 
 const labelMap = {
   name: "שם",
   email: "דוא\"ל",
-  password: "סיסמא",
+  phone: "טלפון",
   role: "תפקיד"
 };
 
@@ -22,17 +24,60 @@ const AdminProfile = () => {
   const [reauthPassword, setReauthPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' or 'users'
+  const [allUsers, setAllUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: ROLES.MANAGER,
+    tempPassword: ''
+  });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
-    role: "מנהל"
+    phone: "",
+    role: "מנכ\"ל"
   });
   const [originalData, setOriginalData] = useState(formData);
   const [avatarUrl, setAvatarUrl] = useState("");
 
   const user = auth.currentUser;
+
+  // Handle avatar image change
+  const handleAvatarChange = (imageUrl) => {
+    setAvatarUrl(imageUrl);
+  };
+
+  // Handle avatar image delete
+  const handleAvatarDelete = () => {
+    setAvatarUrl('');
+  };
+
+  const formatPhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    
+    // Remove all non-digit characters
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    
+    // Check if it's an Israeli phone number format
+    if (cleaned.length === 10 && cleaned.startsWith('05')) {
+      // Format as 05X-XXX-XXXX
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    } else if (cleaned.length === 9 && cleaned.startsWith('5')) {
+      // Format as 05X-XXX-XXXX (add leading 0)
+      return `0${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}-${cleaned.slice(5)}`;
+    } else if (cleaned.length >= 10) {
+      // Generic format for longer numbers
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    
+    // Return original if doesn't match expected format
+    return phoneNumber;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,15 +91,15 @@ const AdminProfile = () => {
           setFormData({
             name: userData.name || "",
             email: user.email || "",
-            password: "",
-            role: "מנהל" // Static role for Admin
+            phone: userData.phone || "",
+            role: "מנכ\"ל" // Static role for Admin
           });
           
           setOriginalData({
             name: userData.name || "",
             email: user.email || "",
-            password: "",
-            role: "מנהל"
+            phone: userData.phone || "",
+            role: "מנכ\"ל"
           });
           
           // Set avatar URL if exists
@@ -70,11 +115,196 @@ const AdminProfile = () => {
     fetchData();
   }, [user]);
 
+  // Helper function to get role priority for sorting
+  const getRolePriority = (role) => {
+    switch (role) {
+      case ROLES.ADMIN:
+        return 1;
+      case ROLES.MANAGER:
+        return 2;
+      case ROLES.BLOCKED:
+        return 3;
+      default:
+        return 4; // For any unknown roles
+    }
+  };
+
+  // Fetch all users
+  const fetchAllUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const users = usersSnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(u => u.id !== user?.uid) // Exclude current admin user
+        .sort((a, b) => {
+          // Sort by role priority (admins first, then managers, then blocked)
+          const priorityA = getRolePriority(a.role);
+          const priorityB = getRolePriority(b.role);
+          
+          if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+          }
+          
+          // If same role, sort by name alphabetically
+          return (a.name || '').localeCompare(b.name || '');
+        });
+      setAllUsers(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('שגיאה בטעינת המשתמשים');
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  // Load users when switching to users tab
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchAllUsers();
+    }
+  }, [activeTab]);
+
+  // Add new user (with temporary password)
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.tempPassword) {
+      toast.error('אנא מלא את כל השדות הנדרשים');
+      return;
+    }
+
+    if (newUser.tempPassword.length < 6) {
+      toast.error('הסיסמה הזמנית חייבת להכיל לפחות 6 תווים');
+      return;
+    }
+
+    try {
+      // Store current admin auth state
+      const currentUser = auth.currentUser;
+      
+      // Create user account with temporary password
+      const userCredential = await createUserWithEmailAndPassword(auth, newUser.email, newUser.tempPassword);
+      const createdUser = userCredential.user;
+      
+      // Store user info in Firestore while the new user is authenticated
+      await setDoc(doc(db, 'users', createdUser.uid), {
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone || '',
+        role: newUser.role,
+        createdAt: new Date(),
+        createdBy: currentUser.uid
+      });
+
+      // Sign out the created user
+      await signOut(auth);
+
+      toast.success(`משתמש נוצר בהצלחה עם סיסמה זמנית: ${newUser.tempPassword}`);
+      toast.info(`הודע למשתמש להתחבר עם הסיסמה הזמנית`);
+      
+      setShowAddUser(false);
+      setNewUser({ name: '', email: '', phone: '', role: ROLES.MANAGER, tempPassword: '' });
+      
+      // Note: Admin will need to re-authenticate
+      window.location.reload(); // Simple solution - reload to restore admin session
+      
+    } catch (error) {
+      console.error('Error creating user:', error);
+      
+      // Handle specific error cases
+      if (error.code === 'auth/email-already-in-use') {
+        toast.error('כתובת דוא"ל כבר בשימוש');
+      } else if (error.code === 'auth/invalid-email') {
+        toast.error('כתובת דוא"ל לא תקינה');
+      } else if (error.code === 'auth/weak-password') {
+        toast.error('הסיסמה חלשה מדי');
+      } else if (error.code === 'auth/too-many-requests') {
+        toast.error('יותר מדי בקשות. נסה שוב מאוחר יותר.');
+      } else {
+        toast.error('שגיאה ביצירת המשתמש: ' + error.message);
+      }
+    }
+  };
+
+  // Show temp password for user
+  const handleShowTempPassword = async (userEmail, userName) => {
+    const confirmed = await showConfirm(
+      `האם אתה בטוח שברצונך להציג את הסיסמה הזמנית של "${userName}"?`,
+      'הצגת סיסמה זמנית'
+    );
+
+    if (confirmed) {
+      // For now, we'll show a message since we no longer store temp passwords
+      toast.info('הסיסמה הזמנית לא נשמרת במערכת מסיבות אבטחה');
+      toast.info('צור סיסמה חדשה או בקש מהמשתמש לאפס את הסיסמה', { autoClose: false });
+    }
+  };
+
+  // Block/Unblock user
+  const handleBlockUser = async (userId, userName, isCurrentlyBlocked = false) => {
+    const action = isCurrentlyBlocked ? 'לבטל את החסימה של' : 'לחסום את';
+    const confirmed = await showConfirm(
+      `האם אתה בטוח שברצונך ${action} המשתמש "${userName}"?`,
+      isCurrentlyBlocked ? 'ביטול חסימה' : 'חסימת משתמש'
+    );
+
+    if (confirmed) {
+      try {
+        await setDoc(doc(db, 'users', userId), {
+          role: isCurrentlyBlocked ? ROLES.MANAGER : 'blocked', // Restore to MANAGER or block
+          updatedAt: new Date(),
+          updatedBy: user.uid
+        }, { merge: true });
+
+        toast.success(isCurrentlyBlocked ? 'החסימה בוטלה בהצלחה' : 'המשתמש נחסם בהצלחה');
+        fetchAllUsers();
+      } catch (error) {
+        console.error('Error blocking/unblocking user:', error);
+        toast.error('שגיאה בעדכון סטטוס המשתמש');
+      }
+    }
+  };
+
+  // Edit user
+  const handleEditUser = (user) => {
+    if (user.role === ROLES.BLOCKED) {
+      toast.error('לא ניתן לערוך משתמש חסום');
+      return;
+    }
+    setEditingUser({ ...user });
+  };
+
+  // Save user changes
+  const handleSaveUser = async () => {
+    if (!editingUser.name) {
+      toast.error('אנא מלא את כל השדות הנדרשים');
+      return;
+    }
+
+    try {
+      // Update user data in Firestore (NO PASSWORD - Firebase Auth handles passwords)
+      await setDoc(doc(db, 'users', editingUser.id), {
+        name: editingUser.name,
+        phone: editingUser.phone,
+        role: editingUser.role,
+        updatedAt: new Date(),
+        updatedBy: user.uid
+        // ❌ REMOVED: password storage - Passwords managed by Firebase Auth only
+        // ❌ REMOVED: email update - Email managed by Firebase Auth only
+      }, { merge: true });
+
+      toast.success('פרטי המשתמש עודכנו בהצלחה');
+      setEditingUser(null);
+      fetchAllUsers();
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast.error('שגיאה בעדכון המשתמש');
+    }
+  };
+
   const handleEdit = (passwordFromModal) => {
     setCurrentPassword(passwordFromModal); // Save for use during confirmEdit
     setIsEditing(true);                    // Enter edit mode
   };
-  
 
   const cancelEdit = () => {
     setFormData(originalData);
@@ -92,56 +322,35 @@ const confirmEdit = async () => {
     const user = auth.currentUser;
   
     if (user) {
-      // Reauthenticate only if there are changes to email or password
-      if (formData.email !== originalData.email || formData.password !== originalData.password) {
-        console.log("step 1")
-        try {
-          console.log(originalData)
-          const credentials = EmailAuthProvider.credential(user.email, currentPassword);
-          console.log(credentials)
-          await reauthenticateWithCredential(user, credentials); // Reauthentication step
-        } catch (error) {
-          showAlert("נכשל בהתחברות מחדש: " + error.message);
-          return; // Stop if reauthentication fails
-        }
-      }
-  
-      // Check if the email has been changed
-      if (formData.email !== originalData.email) {
-        try {
-          await updateEmail(user, formData.email); // Update email
-        } catch (error) {
-          showAlert("נכשל בעדכון כתובת הדוא\"ל: " + error.message);
-          return; // Stop if email update fails
-        }
-      }
-  
-      // Check if the password has been changed
-      if (formData.password !== originalData.password) {
-        try {
-          await updatePassword(user, formData.password); // Update password
-        } catch (error) {
-          showAlert("נכשל בעדכון הסיסמה: " + error.message);
-          return; // Stop if password update fails
-        }
-      }
-  
       // Now update the Firestore document with the new user data
       try {
         // Create an update object
         const updateData = {
           name: formData.name,
-          email: formData.email,  // Firestore should have the updated email
+          phone: formData.phone,
+          updatedAt: new Date(),
         };
 
-        // Only include password if it's been changed
-        if (formData.password !== originalData.password && formData.password.trim() !== "") {
-          updateData.password = formData.password;
+        // Include avatar URL if it exists, or remove it if it was deleted
+        if (avatarUrl) {
+          updateData.avatarUrl = avatarUrl;
+        } else {
+          // If avatar was removed, explicitly set it to null to remove from Firestore
+          updateData.avatarUrl = null;
         }
 
-        // Update Firestore with the new data
+        // Update Firestore with the new data (excluding email)
         await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
         toast.success("העדכון בוצע בהצלחה!");
+        
+        // Update local state to reflect changes
+        setOriginalData({
+          name: formData.name,
+          email: formData.email, // Keep original email
+          phone: formData.phone,
+          role: formData.role
+        });
+        
       } catch (error) {
         console.error("Firestore update failed:", error.message);
         await showAlert("נכשל בעדכון בפרופיל.", "שגיאה");
@@ -156,13 +365,10 @@ const confirmEdit = async () => {
   const getUserInfo = () => {
     // Filter out any fields we don't want to show
     return Object.keys(formData)
-      .filter(key => key !== "password" || !isEditing) // Only show password during edit
+      .filter(key => key !== "phone" || !isEditing) // Only show phone during edit
       .map((key, index) => {
-        // Special handling for password field
+        // Special handling for phone field
         let value = formData[key];
-        if (key === "password" && !isEditing) {
-          value = "********";
-        }
         
         // For fields that shouldn't be editable
         const isReadOnly = key === "role";
@@ -186,39 +392,9 @@ const confirmEdit = async () => {
   };
 
   const renderFormGroup = (label, key, type = "text", readOnly = false) => {
-    if (key === "password") {
-      return (
-        <div className="form-group input-with-icon" key={key}>
-          <label htmlFor={key}>{label}</label>
-          <div className="input-wrapper" style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="eye-button"
-              aria-label="Toggle password visibility"
-              disabled={readOnly}
-              style={{ marginLeft: 8 }}
-            >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="pass-eye-icon" />
-            </button>
-            <input
-              id={key}
-              type={showPassword ? "text" : "password"}
-              value={formData[key]}
-              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-              placeholder="סיסמה חדשה (לא חובה)"
-              disabled={readOnly}
-              readOnly={readOnly}
-              style={{ flex: 1 }}
-            />
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className={`form-group input-no-icon${readOnly ? ' read-only' : ''}`} key={key}>
-        <label htmlFor={key}>{label}</label>
+      <div className={`modern-form-group ${readOnly ? 'readonly' : ''}`} key={key}>
+        <label className="form-label">{label}</label>
         <input
           id={key}
           type={type}
@@ -227,73 +403,429 @@ const confirmEdit = async () => {
           required
           disabled={readOnly}
           readOnly={readOnly}
+          className={`form-input ${readOnly ? 'readonly-input' : ''}`}
         />
+        {/* {readOnly && (
+          <div className="readonly-indicator">
+            <FontAwesomeIcon icon={faUser} />
+            <span>שדה לקריאה בלבד</span>
+          </div>
+        )} */}
       </div>
     );
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-title">
-        <h1>פרופיל</h1>
+    <div className="modern-profile-container">
+      {/* Navigation Tabs */}
+      <div className="profile-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          <FontAwesomeIcon icon={faUser} />
+          <span>הפרופיל שלי</span>
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => setActiveTab('users')}
+        >
+          <FontAwesomeIcon icon={faUsers} />
+          <span>ניהול משתמשים</span>
+        </button>
       </div>
-      
-      {/* Profile Avatar */}
-      <div className="profile-avatar-container">
-        <div className="profile-avatar">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="Profile" />
-          ) : (
-            <FontAwesomeIcon icon={faUser} className="profile-avatar-placeholder" />
-          )}
-        </div>
-      </div>
-      
-      
 
-      {!isEditing && (
-        <div className="profile-info">
-          <h2>מאפייני המשתמש</h2>
-          <table className="profile-details-table">
-            <tbody>{getUserInfo()}</tbody>
-          </table>
-          <button onClick={() => setShowReauthModal(true)} className="edit-button">
-            <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
-            <span className="edit-text">עריכה</span>
-          </button>
+      {activeTab === 'profile' ? (
+        <>
+          {/* Header Section */}
+          <div className="profile-header">
+            <div className="profile-header-content">
+              <div className="profile-avatar-section">
+                <div className="profile-avatar-wrapper">
+                  <div className="profile-avatar-circle">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" className="avatar-image" />
+                    ) : (
+                      <FontAwesomeIcon icon={faUser} className="avatar-placeholder" />
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="profile-header-info">
+                <h1 className="profile-name">{formData.name || 'Administrator'}</h1>
+                <p className="profile-role">
+                  <FontAwesomeIcon icon={faUserShield} className="role-icon" />
+                  {formData.role}
+                </p>
+                <p className="profile-email">{formData.email}</p>
+              </div>
+              
+              {!isEditing && (
+                <div className="profile-header-actions">
+                  <button 
+                    onClick={() => setShowReauthModal(true)} 
+                    className="modern-edit-btn"
+                  >
+                    <FontAwesomeIcon icon={faUserPen} />
+                    <span>ערוך פרופיל</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="profile-content">
+            {!isEditing ? (
+              <div className="profile-details-card">
+                <div className="card-header">
+                  <h2>פרטי חשבון</h2>
+                </div>
+                <div className="details-grid">
+                  <div className="detail-item">
+                    <div className="detail-label">שם מלא</div>
+                    <div className="detail-value">{formData.name || 'לא הוגדר'}</div>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <div className="detail-label">מספר טלפון</div>
+                    <div className="detail-value">{formatPhoneNumber(formData.phone) || 'לא הוגדר'}</div>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <div className="detail-label">כתובת אימייל</div>
+                    <div className="detail-value">{formData.email}</div>
+                  </div>
+                  
+                  <div className="detail-item">
+                    <div className="detail-label">תפקיד במערכת</div>
+                    <div className="detail-value">
+                      <span className="role-badge admin-role">{formData.role}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="edit-form-card">
+                <div className="card-header">
+                  <h2>עריכת פרטי חשבון</h2>
+                  {/* <div className="card-header-line"></div> */}
+                </div>
+                
+                <div className="edit-form">
+                  <div className="edit-form-grid">
+                    {/* Left Column - Profile Picture Upload Section */}
+                    <div className="form-column profile-picture-column">
+                      <div className="profile-picture-upload">
+                          <ImageUpload
+                            currentImageUrl={avatarUrl}
+                            onImageChange={handleAvatarChange}
+                            onImageDelete={handleAvatarDelete}
+                            productId={user?.uid} // Use user UID as identifier
+                            mode="edit"
+                            uploadPath="users/avatars" // Specify the upload path for user avatars
+                          />
+                      </div>
+                    </div>
+                    
+                    {/* Right Column - Form Fields */}
+                    <div className="form-column form-fields-column">
+                      {/* Personal Information Section */}
+                      <div className="form-row">
+                        {renderFormGroup("שם מלא", "name")}
+                      </div>
+                      
+                      <div className="form-row">
+                        {renderFormGroup("מספר טלפון", "phone", "tel")}
+                      </div>
+                      
+                      {/* System Information Section */}
+                      <div className="form-row">
+                        {renderFormGroup("כתובת אימייל", "email", "email", true)}
+                      </div>
+                      
+                      <div className="form-row">
+                        {renderFormGroup("תפקיד במערכת", "role", "text", true)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="form-actions">
+                    <button onClick={confirmEdit} className="profile-action-btn save-btn">
+                      <FontAwesomeIcon icon={faUserPen} />
+                      <span>שמור שינויים</span>
+                    </button>
+                    <button onClick={cancelEdit} className="profile-action-btn cancel-btn">
+                      <FontAwesomeIcon icon={faBan} />
+                      <span>בטל</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        /* Users Management Section */
+        <div className="users-management">
+          <div className="users-header">
+            <h2>ניהול משתמשים</h2>
+            <button 
+              className="add-user-btn"
+              onClick={() => setShowAddUser(true)}
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              <span>הוסף משתמש</span>
+            </button>
+          </div>
+
+          {/* Invite User Form */}
+          {showAddUser && (
+            <div className="add-user-card">
+              <div className="card-header">
+                <h3>הוספת משתמש חדש</h3>
+                {/* <div className="card-header-line"></div> */}
+              </div>
+              <div className="add-user-form">
+                <div className="invitation-notice">
+                  <p>📧 צור סיסמה זמנית למשתמש שיוכל לשנות אותה בהתחברות הראשונה</p>
+                </div>
+                {/* Hidden inputs to prevent autofill */}
+                <input type="text" style={{display: 'none'}} />
+                <input type="password" style={{display: 'none'}} />
+                <div className="form-grid">
+                  <div className="modern-form-group">
+                    <label className="form-label">תפקיד</label>
+                    <select
+                      value={newUser.role}
+                      onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                      className="form-input"
+                      style={{ direction: 'rtl', textAlign: 'right' }}
+                    >
+                      <option value={ROLES.MANAGER}>מנהל</option>
+                      <option value={ROLES.ADMIN}>מנכ"ל</option>
+                    </select>
+                  </div>
+
+                  <div className="modern-form-group">
+                    <label className="form-label">שם מלא</label>
+                    <input
+                      type="text"
+                      value={newUser.name}
+                      onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                      className="form-input"
+                      placeholder="שם המשתמש"
+                      autoComplete="off"
+                      name="new-user-name-field"
+                    />
+                  </div>
+                  
+                  <div className="modern-form-group">
+                    <label className="form-label">כתובת אימייל</label>
+                    <input
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      className="form-input"
+                      placeholder="example@email.com"
+                      style={{ direction: 'ltr'}}
+                      autoComplete="off"
+                      autoFill="off"
+                      data-lpignore="true"
+                      spellCheck="false"
+                      name="new-user-email-field"
+                    />
+                  </div>
+                  
+                  <div className="modern-form-group">
+                    <label className="form-label">סיסמה זמנית</label>
+                    <input
+                      type="password"
+                      value={newUser.tempPassword}
+                      onChange={(e) => setNewUser({ ...newUser, tempPassword: e.target.value })}
+                      className="form-input"
+                      placeholder="לפחות 6 תווים"
+                      minLength="6"
+                      autoComplete="new-password"
+                      autoFill="off"
+                      data-lpignore="true"
+                      spellCheck="false"
+                      name="new-user-temp-password"
+                    />
+                  </div>
+
+                  <div className="modern-form-group">
+                    <label className="form-label">מספר טלפון</label>
+                    <input
+                      type="tel"
+                      value={newUser.phone}
+                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      className="form-input"
+                      placeholder="05X-XXXXXXX"
+                      // style={{ direction: 'ltr', textAlign: 'left' }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="form-actions">
+                  <button onClick={handleAddUser} className="profile-action-btn save-btn">
+                    <FontAwesomeIcon icon={faPlus} />
+                    <span>הוסף משתמש</span>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowAddUser(false);
+                      setNewUser({ name: '', email: '', phone: '', role: ROLES.MANAGER, tempPassword: '' });
+                    }} 
+                    className="profile-action-btn cancel-btn"
+                  >
+                    <FontAwesomeIcon icon={faBan} />
+                    <span>בטל</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Users List */}
+          <div className="users-list">
+            {isLoadingUsers ? (
+              <div className="loading-users">טוען משתמשים...</div>
+            ) : allUsers.length === 0 ? (
+              <div className="no-users">אין משתמשים נוספים במערכת</div>
+            ) : (
+              <div className="users-grid">
+                {allUsers.map(user => (
+                  <div key={user.id} className="user-card">
+                    {editingUser?.id === user.id ? (
+                      <div className="edit-user-form">
+                        <div className="user-avatar">
+                          {user.avatarUrl ? (
+                            <div className="user-profile-image-container">
+                              <img 
+                                src={user.avatarUrl} 
+                                alt={`${user.name} profile`} 
+                                className="user-profile-image"
+                              />
+                              <div className="user-role-overlay">
+                                <FontAwesomeIcon 
+                                  icon={user.role === ROLES.ADMIN ? faUserShield : user.role === ROLES.BLOCKED ? faUserSlash : faUserTie} 
+                                  className={`user-role-icon ${user.role === ROLES.BLOCKED ? 'blocked' : ''}`}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <FontAwesomeIcon 
+                              icon={user.role === ROLES.ADMIN ? faUserShield : user.role === ROLES.BLOCKED ? faUserSlash : faUserTie} 
+                              className={`user-avatar-icon ${user.role === ROLES.BLOCKED ? 'blocked' : ''}`}
+                            />
+                          )}
+                        </div>
+                        <div className="edit-fields">
+                          <input
+                            type="text"
+                            value={editingUser.name}
+                            onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                            className="edit-input"
+                            placeholder="שם"
+                          />
+                          <input
+                            type="email"
+                            value={editingUser.email}
+                            className="edit-input readonly-input"
+                            placeholder="אימייל"
+                            readOnly
+                            disabled
+                          />
+                          <input
+                            type="tel"
+                            value={editingUser.phone || ''}
+                            onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                            className="edit-input"
+                            placeholder="טלפון"
+                          />
+                          <select
+                            value={editingUser.role}
+                            onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                            className="edit-input"
+                          >
+                            <option value={ROLES.MANAGER}>מנהל</option>
+                            <option value={ROLES.ADMIN}>מנכ"ל</option>
+                          </select>
+                        </div>
+                        <div className="user-actions">
+                          <button onClick={handleSaveUser} className="save-user-btn">
+                            <FontAwesomeIcon icon={faUserPen} />
+                          </button>
+                          <button onClick={() => setEditingUser(null)} className="cancel-user-btn">
+                            <FontAwesomeIcon icon={faBan} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="user-avatar">
+                          {user.avatarUrl ? (
+                            <div className="user-profile-image-container">
+                              <img 
+                                src={user.avatarUrl} 
+                                alt={`${user.name} profile`} 
+                                className="user-profile-image"
+                              />
+                              <div className="user-role-overlay">
+                                <FontAwesomeIcon 
+                                  icon={user.role === ROLES.ADMIN ? faUserShield : user.role === ROLES.BLOCKED ? faUserSlash : faUserTie} 
+                                  className={`user-role-icon ${user.role === ROLES.BLOCKED ? 'blocked' : ''}`}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <FontAwesomeIcon 
+                              icon={user.role === ROLES.ADMIN ? faUserShield : user.role === ROLES.BLOCKED ? faUserSlash : faUserTie} 
+                              className={`user-avatar-icon ${user.role === ROLES.BLOCKED ? 'blocked' : ''}`}
+                            />
+                          )}
+                        </div>
+                        <div className="user-info">
+                          <h3 className="user-name">{user.name}</h3>
+                          <p className="user-email">{user.email}</p>
+                          {user.phone && <p className="user-email">{formatPhoneNumber(user.phone)}</p>}
+                          <div className="user-status-role">
+                            <span className={`user-role-badge ${user.role === ROLES.ADMIN ? 'admin' : user.role === ROLES.BLOCKED ? 'blocked' : 'manager'}`}>
+                              {user.role === ROLES.ADMIN ? 'מנכ"ל' : user.role === ROLES.BLOCKED ? 'חסום' : 'מנהל'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="user-actions">
+                          <button onClick={() => handleEditUser(user)} className="edit-user-btn" disabled={user.role === ROLES.BLOCKED}>
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+                          <button 
+                            onClick={() => handleBlockUser(user.id, user.name, user.role === ROLES.BLOCKED)} 
+                            className={user.role === ROLES.BLOCKED ? "unblock-user-btn" : "block-user-btn"}
+                            title={user.role === ROLES.BLOCKED ? "בטל חסימה" : "חסום משתמש"}
+                          >
+                            <FontAwesomeIcon icon={user.role === ROLES.BLOCKED ? faUserCheck : faUserSlash} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
+      {/* Modals */}
       {showReauthModal && (
         <ReauthModal
           email={originalData.email}
-          onSuccess={(password) => handleEdit(password)} // Pass password to handler
+          onSuccess={(password) => handleEdit(password)}
           onClose={() => setShowReauthModal(false)}
         />
-      )}
-
-
-
-
-      {isEditing && (
-        <div className="edit-info">
-          <h2>עריכת מאפייני המשתמש</h2>
-          {renderFormGroup("תפקיד:", "role", "text", true)}
-          {renderFormGroup("שם:", "name")}
-          {renderFormGroup("דוא\"ל:", "email", "email")}
-          {renderFormGroup("סיסמא:", "password", "password")}
-          
-          <div className="profile-actions">
-            <button onClick={confirmEdit} className="edit-button">
-              <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
-              <span className="edit-text">עדכון</span>
-            </button>
-            <button onClick={cancelEdit} className="edit-button cancel-button">
-              <FontAwesomeIcon icon={faBan} className="profile-icon" />
-              <span className="edit-text">ביטול</span>
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

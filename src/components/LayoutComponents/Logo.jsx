@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import { ReactComponent as LogoSvg } from '../../assets/pics/logo-1.svg';
-import LogoLight from '../../assets/pics/Logo-light.svg';
-import LogoDark from '../../assets/pics/Logo-dark.svg';
-import LogoColored from '../../assets/pics/Logo-colored.png';
+import logo from '../../assets/pics/Home1.png';
 import '../../styles/ForLayout/header.css';
 
 const Logo = ({ size = 40 }) => {
@@ -60,14 +57,15 @@ const Logo = ({ size = 40 }) => {
     
     return (        
         <div className="logo-container">
-            <p className="logo-text-white" style={textStyle}>עמותת ותיקי</p>
+            {/* <p className="logo-text-white" style={textStyle}>עמותת ותיקי</p> */}
+            <p className="logo-text-white" style={textStyle}>עמותת ותיקי מטה יהודה</p>
             <img 
-                src={currentTheme === 'dark' ? LogoDark : LogoLight} 
-                // src={LogoColored}
+                src={logo}
                 alt="Logo" 
-                style={{ width: size, height: 'auto' }}
+                className='app-logo-img'
             />
-            <p className="logo-text-white" style={textStyle}>מטה יהודה</p>
+            {/* <p className="logo-text-white" style={textStyle}>מטה יהודה</p> */}
+            <p className="logo-text-white" style={textStyle}>מערכת ניהול המלאי</p>
         </div>
     );
 };

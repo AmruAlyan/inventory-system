@@ -13,7 +13,8 @@ const ImageUpload = ({
   onImageDelete = null, // Custom delete handler
   productId = null,
   disabled = false,
-  mode = 'add' // 'add' or 'edit'
+  mode = 'add', // 'add' or 'edit'
+  uploadPath = 'products' // Default path for products, can be overridden for users
 }) => {
   const [src, setSrc] = useState(null);
   const [crop, setCrop] = useState({ aspect: 1 });
@@ -180,7 +181,7 @@ const ImageUpload = ({
       
       // Upload to Firebase Storage
       const timestamp = Date.now();
-      const fileName = `products/${productId || 'temp'}_${timestamp}.jpg`;
+      const fileName = `${uploadPath}/${productId || 'temp'}_${timestamp}.jpg`;
       const storageRef = ref(storage, fileName);
       
       console.log('Uploading to Firebase...');
@@ -248,7 +249,7 @@ const ImageUpload = ({
 
   return (
     <div className="image-upload-container">
-      <label>תמונת מוצר:</label>
+      <label>תמונה:</label>
       
       {/* Current Image Display */}
       <div className="current-image-display">

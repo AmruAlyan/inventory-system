@@ -36,15 +36,17 @@
   align-items: center;
   height: 100%;
   margin-right: 20px;
+  background: white;
+  border-radius: 50%;
 }
 
 .app-logo-img {
   height: 50px;
   width: auto;
   object-fit: contain;
-  color: blue;
-  fill: blue;
-  stroke: blue;
+  background-color: var(--panel-bg);
+  border-radius: 50%;
+  /* box-shadow: 0px 0px 10px 1px var(--primary-text); */
 }
 
 .logo-icon {
