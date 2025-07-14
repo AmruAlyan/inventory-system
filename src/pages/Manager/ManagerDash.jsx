@@ -7,6 +7,7 @@ import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
 import CustomArea from "../../components/Charts/CustomArea";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
+import Top3Categories from "../../components/Top3cat";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
@@ -182,7 +183,7 @@ const ManagerDash = () => {
             budgetAfter: data.budgetAfter
           });
         });
-        setRecentPurchases(purchases.slice(0, 5));
+        setRecentPurchases(purchases.slice(0, 10));
         setLoading(false);
       },
       (error) => {
@@ -208,6 +209,16 @@ const ManagerDash = () => {
           categories: [],
           stockStatus: 'outOfStockOrLow'
         }
+      }
+    });
+  };
+
+  const handlePurchaseItemClick = (purchaseId) => {
+    // Navigate to purchases history page and pass the purchase id to trigger modal
+    navigate('/manager-dashboard/new-purchase', {
+      state: {
+        showPurchaseModal: true,
+        purchaseId: purchaseId
       }
     });
   };
@@ -276,9 +287,11 @@ const ManagerDash = () => {
       {/* Main chart area: two rows, two columns */}
       <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
-          <div className="dashboard-chart-wrapper pie-chart-wrapper">
+          
+          {/* <div className="dashboard-chart-wrapper pie-chart-wrapper">
             <CustomPie products={products} userRole="manager" />
-          </div>
+          </div> */}
+          <Top3Categories />
           <div className="dashboard-chart-wrapper area-chart-wrapper">
             <CustomArea data={areaData} />
           </div>
@@ -288,7 +301,7 @@ const ManagerDash = () => {
             <div className="dashboard-purchases">
               <h2 className="dashboard-purchases-title">
                 <FontAwesomeIcon icon={faReceipt} className="dashboard-purchases-icon" />
-                רכישות אחרונות
+                הוצאות אחרונות
               </h2>
               <div className="dashboard-purchases-list">
                 {recentPurchases.length > 0 ? (
@@ -297,11 +310,14 @@ const ManagerDash = () => {
                       <li key={purchase.id} className="dashboard-purchase-item">
                         <span className="dashboard-purchase-date">
                           {purchase.date ? purchase.date.toLocaleDateString('he-IL') : '---'}
-                        </span>
-                        <span className="dashboard-purchase-amount">
+                        </span>                        <span className="dashboard-purchase-amount">
                           {purchase.totalAmount ? purchase.totalAmount.toFixed(2) : '0.00'} ₪
                         </span>
-                        <span className="dashboard-purchase-items">
+                        <span 
+                          className="dashboard-purchase-items clickable"
+                          onClick={() => handlePurchaseItemClick(purchase.id)}
+                          style={{ cursor: 'pointer', color: 'var(--primary)', textDecoration: 'underline' }}
+                        >
                           {purchase.items.length} פריטים
                         </span>
                       </li>
@@ -320,6 +336,11 @@ const ManagerDash = () => {
             />
           </div>
         </div>
+        
+        {/* Third row: Top 3 Categories */}
+        {/* <div className="dashboard-main-row">
+            <Top3Categories />
+        </div> */}
       </div>
     </div>
   );

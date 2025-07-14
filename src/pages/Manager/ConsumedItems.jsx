@@ -560,7 +560,7 @@ const ConsumedItems = () => {
             borderRadius: '8px', 
             border: `2px solid ${mode === 'consumption' ? 'var(--warning)' : 'var(--success)'}`,
             transition: 'border-color 0.3s ease',
-            height: '25px'
+            height: '45px'
           }}>
           <span 
             onClick={mode != 'consumption' ? toggleMode : undefined}

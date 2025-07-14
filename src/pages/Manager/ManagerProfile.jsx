@@ -1,32 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faEye, faEyeSlash, faUser, faAt, faLock, faBriefcase } from "@fortawesome/free-solid-svg-icons";
-import "../../styles/Profile.css";
+import { faUserPen, faBan, faUser, faUserShield, faKey } from "@fortawesome/free-solid-svg-icons";
+import "../../styles/ModernProfile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
+import ImageUpload from "../../components/ImageUpload";
 import { ROLES } from "../../constants/roles";
 import { showAlert } from "../../utils/dialogs";
 
-const labelMap = {
-  name: "שם",
-  email: "דוא\"ל",
-  password: "סיסמא",
-  role: "תפקיד"
+// Phone number formatting utility
+const formatPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber) return '';
+  
+  // Remove all non-digits
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  
+  // Check if it's an Israeli phone number (starts with 05 and has 10 digits)
+  if (cleaned.length === 10 && cleaned.startsWith('05')) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+  }
+  
+  // For other formats, just return as is with dashes for readability
+  if (cleaned.length >= 7) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+  }
+  
+  return cleaned;
 };
 
 const ManagerProfile = () => {
   const [showReauthModal, setShowReauthModal] = useState(false);
-  const [reauthPassword, setReauthPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
-    role: "מנהל מלאי"
+    phone: "",
+    role: "מנהל"
   });
   const [originalData, setOriginalData] = useState(formData);
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -45,15 +57,15 @@ const ManagerProfile = () => {
           setFormData({
             name: userData.name || "",
             email: user.email || "",
-            password: "",
-            role: "מנהל מלאי" // Static role for Manager
+            phone: userData.phone || "",
+            role: "מנהל" // Static role for Manager
           });
           
           setOriginalData({
             name: userData.name || "",
             email: user.email || "",
-            password: "",
-            role: "מנהל מלאי"
+            phone: userData.phone || "",
+            role: "מנהל"
           });
           
           // Set avatar URL if exists
@@ -70,232 +82,229 @@ const ManagerProfile = () => {
   }, [user]);
 
   const handleEdit = (passwordFromModal) => {
-    setCurrentPassword(passwordFromModal); // Save for use during confirmEdit
-    setIsEditing(true);                    // Enter edit mode
+    setCurrentPassword(passwordFromModal);
+    setIsEditing(true);
   };
-  
 
   const cancelEdit = () => {
     setFormData(originalData);
     setIsEditing(false);
   };
 
-const confirmEdit = async () => {
-    const allFilled = Object.values(formData).every((value) => value.trim() !== "");
-    if (!allFilled) {
-      showAlert("אנא מלא את כל השדות");
-      return;
-    }
-  
-    // Reference to the current authenticated user
-    const user = auth.currentUser;
-  
-    if (user) {
-      // Reauthenticate only if there are changes to email or password
-      if (formData.email !== originalData.email || formData.password !== originalData.password) {
-        console.log("step 1")
-        try {
-          const credentials = EmailAuthProvider.credential(user.email, currentPassword);
-          await reauthenticateWithCredential(user, credentials); // Reauthentication step
-        } catch (error) {
-          showAlert("נכשל בהתחברות מחדש: " + error.message);
-          return; // Stop if reauthentication fails
-        }
-      }
-  
-      // Check if the email has been changed
-      if (formData.email !== originalData.email) {
-        try {
-          await updateEmail(user, formData.email); // Update email
-        } catch (error) {
-          alert("נכשל בעדכון כתובת הדוא\"ל: " + error.message);
-          return; // Stop if email update fails
-        }
-      }
-  
-      // Check if the password has been changed
-      if (formData.password !== originalData.password) {
-        try {
-          await updatePassword(user, formData.password); // Update password
-        } catch (error) {
-          alert("נכשל בעדכון הסיסמה: " + error.message);
-          return; // Stop if password update fails
-        }
-      }
-  
-      // Now update the Firestore document with the new user data
-      try {
-        // Create an update object
-        const updateData = {
-          name: formData.name,
-          email: formData.email,  // Firestore should have the updated email
-        };
-
-        // Only include password if it's been changed
-        if (formData.password !== originalData.password && formData.password.trim() !== "") {
-          updateData.password = formData.password;
-        }
-
-        // Update Firestore with the new data
-        await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
-        alert("העדכון בוצע בהצלחה!");
-      } catch (error) {
-        console.error("Firestore update failed:", error.message);
-        alert("נכשל בעדכון בפרופיל.");
-      }
-  
-      setIsEditing(false); // Close the edit mode
-    } else {
-      alert("לא ניתן לזהות את המשתמש. אנא התחבר מחדש.");
+  const handlePasswordReset = async () => {
+    try {
+      await sendPasswordResetEmail(auth, formData.email);
+      showAlert("נשלח אימייל לאיפוס סיסמה לכתובת המייל שלך");
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      showAlert("שגיאה בשליחת אימייל לאיפוס סיסמה");
     }
   };
 
-  const getUserInfo = () => {
-    // Filter out any fields we don't want to show
-    return Object.keys(formData)
-      .filter(key => key !== "password" || !isEditing) // Only show password during edit
-      .map((key, index) => {
-        // Special handling for password field
-        let value = formData[key];
-        if (key === "password" && !isEditing) {
-          value = "********";
-        }
-        // For fields that shouldn't be editable
-        const isReadOnly = key === "role";
-        let icon = null;
-        switch(key) {
-          case "role":
-            icon = <FontAwesomeIcon icon={faBriefcase} className="details-icon" />;
-            break;
-          case "name":
-            icon = <FontAwesomeIcon icon={faUser} className="details-icon" />;
-            break;
-          case "email":
-            icon = <FontAwesomeIcon icon={faAt} className="details-icon" />;
-            break;
-          case "password":
-            icon = <FontAwesomeIcon icon={faLock} className="details-icon" />;
-            break;
-          default:
-            icon = null;
-        }
-        return (
-          <tr key={index} className={isReadOnly ? "readonly-field" : ""}>
-            <td>{icon} {labelMap[key]}:</td>
-            <td>{value}</td>
-          </tr>
-        );
-      });
+  const handleAvatarChange = (newAvatarUrl) => {
+    setAvatarUrl(newAvatarUrl);
+  };
+
+  const handleAvatarDelete = () => {
+    setAvatarUrl("");
+  };
+
+  const confirmEdit = async () => {
+    const allFilled = formData.name.trim() !== "" && formData.email.trim() !== "";
+    if (!allFilled) {
+      showAlert("אנא מלא את כל השדות החובה");
+      return;
+    }
+
+    const user = auth.currentUser;
+
+    if (user) {
+      try {
+        // Update Firestore with the new data
+        const updateData = {
+          name: formData.name,
+          phone: formData.phone || "",
+          avatarUrl: avatarUrl || ""
+        };
+
+        await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
+        
+        // Update originalData to reflect the changes
+        setOriginalData({ ...formData });
+        
+        showAlert("העדכון בוצע בהצלחה!");
+        setIsEditing(false);
+      } catch (error) {
+        console.error("Firestore update failed:", error.message);
+        showAlert("נכשל בעדכון הפרופיל.");
+      }
+    } else {
+      showAlert("לא ניתן לזהות את המשתמש. אנא התחבר מחדש.");
+    }
   };
 
   const renderFormGroup = (label, key, type = "text", readOnly = false) => {
-    if (key === "password") {
-      return (
-        <div className="form-group input-with-icon" key={key}>
-          <label htmlFor={key}>{label}</label>
-          <div className="input-wrapper">
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="eye-button"
-              aria-label="Toggle password visibility"
-              disabled={readOnly}
-            >
-              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="pass-eye-icon" />
-            </button>
-            <input
-              id={key}
-              type={showPassword ? "text" : "password"}
-              value={formData[key]}
-              onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-              placeholder="סיסמה חדשה (לא חובה)"
-              disabled={readOnly}
-              readOnly={readOnly}
-            />
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className={`form-group input-no-icon${readOnly ? ' read-only' : ''}`} key={key}>
-        <label htmlFor={key}>{label}</label>
+      <div className={`modern-form-group ${readOnly ? 'readonly' : ''}`} key={key}>
+        <label className="form-label">{label}</label>
         <input
           id={key}
           type={type}
           value={formData[key]}
           onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-          required
+          required={key === 'name' || key === 'email'}
           disabled={readOnly}
           readOnly={readOnly}
+          className={`form-input ${readOnly ? 'readonly-input' : ''}`}
         />
       </div>
     );
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-title">
-        <h1>פרופיל</h1>
-      </div>
-      
-      {/* Profile Avatar */}
-      <div className="profile-avatar-container">
-        <div className="profile-avatar">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="Profile" />
-          ) : (
-            <FontAwesomeIcon icon={faUser} className="profile-avatar-placeholder" />
+    <div className="modern-profile-container">
+      {/* Header Section */}
+      <div className="profile-header">
+        <div className="profile-header-content">
+          <div className="profile-avatar-section">
+            <div className="profile-avatar-wrapper">
+              <div className="profile-avatar-circle">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Profile" className="avatar-image" />
+                ) : (
+                  <FontAwesomeIcon icon={faUser} className="avatar-placeholder" />
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="profile-header-info">
+            <h1 className="profile-name">{formData.name || 'Manager'}</h1>
+            <p className="profile-role">
+              <FontAwesomeIcon icon={faUserShield} className="role-icon" />
+              {formData.role}
+            </p>
+            <p className="profile-email">{formData.email}</p>
+          </div>
+          
+          {!isEditing && (
+            <div className="profile-header-actions">
+              <button 
+                onClick={() => setShowReauthModal(true)} 
+                className="modern-edit-btn"
+              >
+                <FontAwesomeIcon icon={faUserPen} />
+                <span>ערוך פרופיל</span>
+              </button>
+              <button 
+                onClick={handlePasswordReset} 
+                className="modern-edit-btn password-reset-btn"
+              >
+                <FontAwesomeIcon icon={faKey} />
+                <span>איפוס סיסמה</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
-      
-      
 
-      {!isEditing && (
-        <div className="profile-info">
-          <h2>מאפייני המשתמש</h2>
-          <table className="profile-details-table">
-            <tbody>{getUserInfo()}</tbody>
-          </table>
-          <button onClick={() => setShowReauthModal(true)} className="edit-button">
-            <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
-            <span className="edit-text">עריכה</span>
-          </button>
-        </div>
-      )}
+      {/* Content Section */}
+      <div className="profile-content">
+        {!isEditing ? (
+          <div className="profile-details-card">
+            <div className="card-header">
+              <h2>פרטי חשבון</h2>
+            </div>
+            <div className="details-grid">
+              <div className="detail-item">
+                <div className="detail-label">שם מלא</div>
+                <div className="detail-value">{formData.name || 'לא הוגדר'}</div>
+              </div>
+              
+              <div className="detail-item">
+                <div className="detail-label">מספר טלפון</div>
+                <div className="detail-value">{formatPhoneNumber(formData.phone) || 'לא הוגדר'}</div>
+              </div>
+              
+              <div className="detail-item">
+                <div className="detail-label">כתובת אימייל</div>
+                <div className="detail-value">{formData.email}</div>
+              </div>
+              
+              <div className="detail-item">
+                <div className="detail-label">תפקיד במערכת</div>
+                <div className="detail-value">
+                  <span className="role-badge manager-role">{formData.role}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="edit-form-card">
+            <div className="card-header">
+              <h2>עריכת פרטי חשבון</h2>
+            </div>
+            
+            <div className="edit-form">
+              <div className="edit-form-grid">
+                {/* Left Column - Profile Picture Upload Section */}
+                <div className="form-column profile-picture-column">
+                  <div className="profile-picture-upload">
+                      <ImageUpload
+                        currentImageUrl={avatarUrl}
+                        onImageChange={handleAvatarChange}
+                        onImageDelete={handleAvatarDelete}
+                        productId={user?.uid} // Use user UID as identifier
+                        mode="edit"
+                        uploadPath="users/avatars" // Specify the upload path for user avatars
+                      />
+                  </div>
+                </div>
+                
+                {/* Right Column - Form Fields */}
+                <div className="form-column form-fields-column">
+                  {/* Personal Information Section */}
+                  <div className="form-row">
+                    {renderFormGroup("שם מלא", "name")}
+                  </div>
+                  
+                  <div className="form-row">
+                    {renderFormGroup("מספר טלפון", "phone", "tel")}
+                  </div>
+                  
+                  {/* System Information Section */}
+                  <div className="form-row">
+                    {renderFormGroup("כתובת אימייל", "email", "email", true)}
+                  </div>
+                  
+                  <div className="form-row">
+                    {renderFormGroup("תפקיד במערכת", "role", "text", true)}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="form-actions">
+                <button onClick={confirmEdit} className="profile-action-btn save-btn">
+                  <FontAwesomeIcon icon={faUserPen} />
+                  <span>שמור שינויים</span>
+                </button>
+                <button onClick={cancelEdit} className="profile-action-btn cancel-btn">
+                  <FontAwesomeIcon icon={faBan} />
+                  <span>בטל</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* Modals */}
       {showReauthModal && (
         <ReauthModal
           email={originalData.email}
-          onSuccess={(password) => handleEdit(password)} // Pass password to handler
+          onSuccess={(password) => handleEdit(password)}
           onClose={() => setShowReauthModal(false)}
         />
-      )}
-
-
-
-
-      {isEditing && (
-        <div className="edit-info">
-          <h2>עריכת מאפייני המשתמש</h2>
-          {renderFormGroup("תפקיד:", "role", "text", true)}
-          {renderFormGroup("דוא\"ל:", "email", "email", true)}
-          {renderFormGroup("שם:", "name")}
-          
-          {renderFormGroup("סיסמא:", "password", "password")}
-          
-          <div className="profile-actions">
-            <button onClick={confirmEdit} className="edit-button">
-              <FontAwesomeIcon icon={faUserPen} className="profile-icon" />
-              <span className="edit-text">עדכון</span>
-            </button>
-            <button onClick={cancelEdit} className="edit-button cancel-button">
-              <FontAwesomeIcon icon={faBan} className="profile-icon" />
-              <span className="edit-text">ביטול</span>
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

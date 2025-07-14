@@ -4,7 +4,7 @@ import { faUser, faBars } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ForLayout/header.css";
 import Logo from "./Logo";
 // forwardRef wraps the entire component
-const Header = forwardRef(({ toggleSidebar, toggleProfile, sidebarRef }, ref) => {
+const Header = forwardRef(({ toggleSidebar, toggleProfile, sidebarRef, userAvatar }, ref) => {
     return (
         <header className="layout-header">
             <div className="logo-container">
@@ -15,7 +15,15 @@ const Header = forwardRef(({ toggleSidebar, toggleProfile, sidebarRef }, ref) =>
             <Logo size={55} />
             <div className="header-actions">
                 <button onClick={toggleProfile} className="user-button" ref={ref}>
-                    <FontAwesomeIcon icon={faUser} className="header-icon" />
+                    {userAvatar ? (
+                        <img 
+                            src={userAvatar} 
+                            alt="User Avatar" 
+                            className="header-user-avatar"
+                        />
+                    ) : (
+                        <FontAwesomeIcon icon={faUser} className="header-icon" />
+                    )}
                 </button>
             </div>
         </header>
