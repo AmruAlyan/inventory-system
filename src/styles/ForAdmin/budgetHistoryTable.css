@@ -285,6 +285,20 @@
 
 /* Responsive styling */
 @media (max-width: 768px) {
+  .budget-history-container {
+    padding: 0;
+  }
+
+  .bht-header.page-header {
+    padding: 10px;
+    margin: 0;
+  }
+
+  .history-title {
+    font-size: 1.25rem;
+    /* margin-bottom: 10px; */
+  }
+
   .history-controls {
     flex-direction: column;
     gap: 10px;

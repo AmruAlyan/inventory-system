@@ -54,6 +54,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
     category: product ? product.category : '',
     quantity: product ? product.quantity : '',
     price: product ? product.price : '',
+    minStock: product ? product.minStock || 10 : 10, // Default to 10 if not set
     imageUrl: product && product.imageUrl ? product.imageUrl : null, // Ensure null instead of undefined
   });
   const [status, setStatus] = useState('');
@@ -121,9 +122,16 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.price || !form.quantity || !form.category) {
+    if (!form.name || !form.price || !form.quantity || !form.category || !form.minStock) {
       setStatus('Please fill out all fields.');
       toast.error('שגיאה: נא למלא את כל השדות הדרושים');
+      return;
+    }
+
+    // Validate minStock is positive
+    if (parseInt(form.minStock) < 0) {
+      setStatus('Minimum stock must be a positive number.');
+      toast.error('שגיאה: מלאי מינימום חייב להיות מספר חיובי');
       return;
     }
 
@@ -150,6 +158,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       category: form.category,
       quantity: parseInt(form.quantity),
       price: parseFloat(form.price),
+      minStock: parseInt(form.minStock),
       imageUrl: form.imageUrl || null, // Ensure imageUrl is never undefined
     };
 
@@ -176,7 +185,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
         await addProduct(productData);
         setStatus('Product added successfully!');
         toast.success('המוצר נוסף בהצלחה');
-        setForm({ name: '', category: '', quantity: '', price: '', imageUrl: null }); // Ensure null instead of undefined
+        setForm({ name: '', category: '', quantity: '', price: '', minStock: 10, imageUrl: null }); // Ensure null instead of undefined
         if (onSave) onSave();
         onClose(); // Close modal after successful addition
       }
@@ -208,32 +217,27 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
                   name="category" 
                   value={form.category} 
                   onChange={handleChange}
-                  style={{
-                    borderColor: isCategoryDeleted() && form.category === product?.category ? '#dc3545' : undefined,
-                    borderWidth: isCategoryDeleted() && form.category === product?.category ? '2px' : undefined
-                  }}
                 >
                   <option value="">בחר קטיגוריה...</option>
-                  {/* Show deleted category option if the product has an invalid category */}
-                  {isCategoryDeleted() && (
-                    <option value={product.category} style={{ color: '#dc3545', fontStyle: 'italic' }}>
-                      (קטגוריה שנמחקה) - {product.category}
-                    </option>
-                  )}
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>
-                {/* Show warning if category is deleted */}
-                {isCategoryDeleted() && form.category === product.category && (
-                  <small style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                    ⚠️ הקטגוריה נמחקה. אנא בחר קטגוריה חדשה.
-                  </small>
-                )}
               </div>
               <div className='Product-form-group'>
                 <label>כמות:</label>
                 <input type="number" name="quantity" value={form.quantity} onChange={handleChange} />
+              </div>
+              <div className='Product-form-group'>
+                <label>מלאי מינימום:</label>
+                <input 
+                  type="number" 
+                  name="minStock" 
+                  value={form.minStock} 
+                  onChange={handleChange}
+                  min="0"
+                  title="הכמות המינימלית המומלצת במלאי"
+                />
               </div>
               <div className='Product-form-group'>
                 <label>מחיר:</label>
@@ -254,9 +258,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
             <button type="submit" className='NewProduct-button'>{mode === 'edit' ? 'עדכן מוצר' : 'הוסף מוצר'}</button>
             <button type="button" onClick={handleCancel} className='NewProduct-button'>ביטול</button>
           </div>
-
         </form>
-        {/* {status && <p>{status}</p>} */}
       </div>
     </Modal>
   );

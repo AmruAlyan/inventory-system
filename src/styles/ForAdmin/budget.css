@@ -80,7 +80,7 @@ input[type="number"]::-webkit-inner-spin-button {
     align-items: center;
     justify-content: space-around;
     width: 100%;
-    margin-bottom: 32px;
+    /* margin-bottom: 32px; */
 }
 
 .budget-content-row {

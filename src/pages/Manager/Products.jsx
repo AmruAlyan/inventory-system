@@ -104,17 +104,18 @@ const Products = () => {
       if (!matchesCategory) return false;
 
       // Finally apply stock status filter
+      const minStock = product.minStock || 10; // Default to 10 if not set
       switch (activeFilters.stockStatus) {
         case 'inStock':
           return product.quantity > 0;
         case 'highStock':
-          return product.quantity >= 10;
+          return product.quantity >= minStock;
         case 'outOfStock':
           return product.quantity <= 0;
         case 'lowStock':
-          return product.quantity > 0 && product.quantity < 10;
+          return product.quantity > 0 && product.quantity < minStock;
         case 'outOfStockOrLow':
-          return product.quantity <= 0 || (product.quantity > 0 && product.quantity < 10);
+          return product.quantity <= 0 || (product.quantity > 0 && product.quantity < minStock);
         default:
           return true;
       }
@@ -439,7 +440,7 @@ const Products = () => {
                     setSortDirection('asc');
                   }
                 }}
-                className="sort-select"
+                className="product-sort-select"
               >
                 <option value="">ללא מיון</option>
                 <option value="name">שם מוצר</option>
@@ -575,7 +576,7 @@ const Products = () => {
                   <span className='rounded-full'>
                     {product.quantity <= 0 ? (
                       <span className="bg-red-100">{product.quantity}</span>
-                    ) : product.quantity < 10 ? (
+                    ) : product.quantity < (product.minStock || 10) ? (
                       <span className="bg-yellow-100">{product.quantity}</span>
                     ) : (
                       <span className="bg-green-100">{product.quantity}</span>

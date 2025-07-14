@@ -222,24 +222,39 @@
   /* Stack vertically on smaller screens */
   .Product-form-content {
     flex-direction: column;
-    gap: var(--spacing-md);
+    align-items: center;
+    gap: var(--spacing-sm);
+    height: fit-content;
   }
   
   .Product-form-image {
     flex: none;
     order: -1; /* Move image to top on mobile */
+    width: 50%;
+    align-items: center;
+    justify-content: center;
+    scale: 0.8; /* Slightly smaller on mobile */
   }
 }
 
 @media (max-width: 576px) {
+  .Product-modal h2 {
+    margin-bottom: 0 !important;
+  }
+
   .Product-modal {
     padding: var(--spacing-md);
     width: 95%;
   }
-  
-  .Product-button-group {
-    flex-direction: column;
+
+  .Product-form-group {
+    flex-direction: row;
+    width: 100% !important;
   }
+  
+  /* .Product-button-group {
+    flex-direction: column;
+  } */
   
   .NewProduct-button {
     width: 100%;

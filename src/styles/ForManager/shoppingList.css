@@ -1,0 +1,115 @@
+/* Shopping List Component Styles */
+
+/* Header actions container */
+.shopping-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Action buttons styling */
+.shopping-list-btn {
+  border: 2px solid !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+  min-width: 160px;
+}
+
+.shopping-list-btn.btn-info {
+  border-color: var(--info);
+  color: var(--info);
+}
+
+.shopping-list-btn.btn-success {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.shopping-list-btn.btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Icon spacing in buttons */
+.shopping-list-btn .fa-icon {
+  margin-left: 8px;
+}
+
+/* Loading/spinner container */
+.shopping-list-loading {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+/* Purchased row styling */
+.shopping-list-row-purchased {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+/* Disabled action buttons for purchased items */
+.shopping-list-action-disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Total section styling */
+.shopping-list-total {
+  text-align: center;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Budget status colors */
+.shopping-list-total-danger {
+  color: var(--danger);
+}
+
+.shopping-list-total-success {
+  color: var(--success);
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .shopping-list-actions {
+    /* flex-direction: column; */
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .shopping-list-btn {
+    min-width: auto;
+    width: 100%;
+    background: transparent;
+  }
+  
+  .shopping-list-total {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .shopping-list-actions {
+    gap: 6px;
+  }
+  
+  .shopping-list-btn {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  .shopping-list-total {
+    padding: 0.75rem;
+  }
+  
+  .shopping-list-total h3 {
+    font-size: 16px;
+    margin: 5px 0;
+  }
+}

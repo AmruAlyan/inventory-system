@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
+import { collection, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../../firebase/firebase';
 import { faTableCellsLarge, faEdit, faTrashAlt, faPlus, faSort, faSortUp, faSortDown, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CategoryWidget from '../../components/Widgets/CategoryWidget';
@@ -8,10 +8,13 @@ import Modal from '../../components/Modals/Modal';
 import { toast } from 'react-toastify';
 import Spinner from '../../components/Spinner';
 import { showConfirm } from '../../utils/dialogs';
+import { useNavigate } from 'react-router-dom';
+import { ROLES } from '../../constants/roles';
 import '../../styles/ForManager/categories.css';
 import '../../styles/ForModals/categoryModal.css';
 
 const Categories = () => {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditWidget, setShowEditWidget] = useState(false);
@@ -63,6 +66,15 @@ const Categories = () => {
 
   const handleDelete = async (id) => {
     const category = categories.find((c) => c.id === id);
+    
+    // Check if category has products
+    if (category?.productCount > 0) {
+      toast.error(
+        `לא ניתן למחוק את הקטגוריה "${category.name}" מכיוון שיש ${category.productCount} מוצרים המשויכים אליה. העבר או מחק את המוצרים תחילה.`
+      );
+      return;
+    }
+    
     const confirmDelete = await showConfirm(
       `האם אתה בטוח שברצונך למחוק את הקטגוריה "${category?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`,
       'מחק קטגוריה'
@@ -163,6 +175,101 @@ const Categories = () => {
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
+
+  // Handle clicking on stat-item to navigate to products page with category filter
+  const handleCategoryProductsView = async (categoryId) => {
+    const user = auth.currentUser;
+    if (!user) {
+      // If no user is logged in, redirect to login
+      navigate('/');
+      return;
+    }
+
+    try {
+      // Get user role from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      if (docSnap.exists()) {
+        const userRole = docSnap.data().role;
+        
+        // Navigate based on role to the appropriate products page
+        let basePath;
+        if (userRole === ROLES.ADMIN) {
+          basePath = '/admin-dashboard/products';
+        } else if (userRole === ROLES.MANAGER) {
+          basePath = '/manager-dashboard/products';
+        } else {
+          // Fallback to login if role is not recognized
+          navigate('/');
+          return;
+        }
+
+        // Navigate with category filter
+        navigate(basePath, {
+          state: {
+            applyFilter: {
+              categories: [categoryId],
+              stockStatus: 'all'
+            }
+          }
+        });
+      } else {
+        // User document doesn't exist, redirect to login
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      toast.error('שגיאה בטעינת פרטי המשתמש');
+      // Fallback to manager dashboard in case of error
+      navigate('/manager-dashboard/products', {
+        state: {
+          applyFilter: {
+            categories: [categoryId],
+            stockStatus: 'all'
+          }
+        }
+      });
+    }
+  };
+
+  // Handle clicking on summary stats to navigate to all products
+  const handleAllProductsView = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      navigate('/');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      if (docSnap.exists()) {
+        const userRole = docSnap.data().role;
+        
+        let basePath;
+        if (userRole === ROLES.ADMIN) {
+          basePath = '/admin-dashboard/products';
+        } else if (userRole === ROLES.MANAGER) {
+          basePath = '/manager-dashboard/products';
+        } else {
+          navigate('/');
+          return;
+        }
+
+        // Navigate to products page without filters (show all products)
+        navigate(basePath);
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      toast.error('שגיאה בטעינת פרטי המשתמש');
+      navigate('/manager-dashboard/products');
+    }
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -259,13 +366,17 @@ const Categories = () => {
           </div>
           
           {filteredCategories.length > 0 && (
-            <div className="categories-summary" style={{ marginBottom: '25px' }}>
+            <div className="categories-summary">
               <div className="summary-stats">
                 <div className="summary-item">
                   <span className="summary-number">{filteredCategories.length}</span>
                   <span className="summary-label">קטגוריות</span>
                 </div>
-                <div className="summary-item">
+                <div 
+                  className="summary-item clickable-stat"
+                  onClick={handleAllProductsView}
+                  title="צפה בכל המוצרים"
+                >
                   <span className="summary-number">
                     {filteredCategories.reduce((sum, cat) => sum + cat.productCount, 0)}
                   </span>
@@ -310,8 +421,12 @@ const Categories = () => {
                         </button>
                         <button 
                           onClick={() => handleDelete(category.id)} 
-                          title="מחק קטגוריה"
-                          className="action-btn delete-btn"
+                          title={category.productCount > 0 
+                            ? `לא ניתן למחוק - יש ${category.productCount} מוצרים בקטגוריה זו`
+                            : "מחק קטגוריה"
+                          }
+                          className={`action-btn delete-btn ${category.productCount > 0 ? 'disabled' : ''}`}
+                          disabled={category.productCount > 0}
                         >
                           <FontAwesomeIcon icon={faTrashAlt} />
                         </button>
@@ -320,9 +435,14 @@ const Categories = () => {
                     
                     <div className="card-body">
                       <div className="category-stats">
-                        <div className="stat-item">
+                        <div 
+                          className="stat-item clickable-stat"
+                          onClick={() => handleCategoryProductsView(category.id)}
+                          // title={`צפה במוצרים בקטגוריה "${category.name}"`}
+                        >
                           <span className="stat-number">{category.productCount}</span>
                           <span className="stat-label">מוצרים</span>
+                          <span className="stat-hint">לחץ לצפייה במוצרים</span>
                         </div>
                       </div>
                     </div>

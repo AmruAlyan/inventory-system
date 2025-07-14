@@ -54,8 +54,9 @@ const CustomPie = ({ products = [], userRole = 'manager' }) => {
   useEffect(() => {
     let inStock = 0, lowStock = 0, outOfStock = 0;
     products.forEach(p => {
-      if (p.quantity > 0 && p.quantity >= 10) inStock++;
-      else if (p.quantity > 0 && p.quantity < 10) lowStock++;
+      const minStock = p.minStock || 10; // Default to 10 if not set
+      if (p.quantity > 0 && p.quantity >= minStock) inStock++;
+      else if (p.quantity > 0 && p.quantity < minStock) lowStock++;
       else outOfStock++;
     });
     setData([

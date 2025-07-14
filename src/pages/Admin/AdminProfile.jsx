@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faUser, faUsers, faPlus, faTrash, faEdit, faUserTie, faUserShield, faCamera, faUserSlash, faUserCheck } from "@fortawesome/free-solid-svg-icons";
+import { faUserPen, faBan, faUser, faUsers, faPlus, faTrash, faEdit, faUserTie, faUserShield, faCamera, faUserSlash, faUserCheck, faKey } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ModernProfile.css";
 import "../../styles/imageUpload.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
@@ -301,6 +301,35 @@ const AdminProfile = () => {
     }
   };
 
+  // Handle password reset for current admin user
+  const handlePasswordReset = async () => {
+    const confirmed = await showConfirm(
+      'האם אתה בטוח שברצונך לשלוח קישור לאיפוס סיסמה לכתובת האימייל שלך?',
+      'איפוס סיסמה'
+    );
+
+    if (confirmed) {
+      try {
+        await sendPasswordResetEmail(auth, user.email);
+        toast.success('נשלח קישור לאיפוס סיסמה לכתובת האימייל שלך');
+        toast.info('אנא בדוק את תיבת הדואר שלך (כולל תיקיית הספאם)', { autoClose: 8000 });
+      } catch (error) {
+        console.error('Password reset error:', error);
+        
+        // Handle specific error cases
+        if (error.code === 'auth/user-not-found') {
+          toast.error('כתובת אימייל לא נמצאה במערכת');
+        } else if (error.code === 'auth/invalid-email') {
+          toast.error('כתובת אימייל לא תקינה');
+        } else if (error.code === 'auth/too-many-requests') {
+          toast.error('יותר מדי בקשות. אנא נסה שוב מאוחר יותר');
+        } else {
+          toast.error('שגיאה בשליחת קישור לאיפוס סיסמה. אנא נסה שוב');
+        }
+      }
+    }
+  };
+
   const handleEdit = (passwordFromModal) => {
     setCurrentPassword(passwordFromModal); // Save for use during confirmEdit
     setIsEditing(true);                    // Enter edit mode
@@ -469,6 +498,13 @@ const confirmEdit = async () => {
                   >
                     <FontAwesomeIcon icon={faUserPen} />
                     <span>ערוך פרופיל</span>
+                  </button>
+                  <button 
+                    onClick={handlePasswordReset} 
+                    className="modern-edit-btn password-reset-btn"
+                  >
+                    <FontAwesomeIcon icon={faKey} />
+                    <span>איפוס סיסמה</span>
                   </button>
                 </div>
               )}

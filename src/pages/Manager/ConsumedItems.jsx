@@ -134,18 +134,19 @@ const ConsumedItems = () => {
       // Stock status filter
       let matchesStockStatus = true;
       if (activeFilters.stockStatus) {
+        const minStock = product.minStock || 10; // Default to 10 if not set
         switch (activeFilters.stockStatus) {
           case 'inStock':
-            matchesStockStatus = product.quantity > 10;
+            matchesStockStatus = product.quantity > minStock;
             break;
           case 'lowStock':
-            matchesStockStatus = product.quantity > 0 && product.quantity <= 10;
+            matchesStockStatus = product.quantity > 0 && product.quantity <= minStock;
             break;
           case 'outOfStock':
             matchesStockStatus = product.quantity <= 0;
             break;
           case 'outOfStockOrLow':
-            matchesStockStatus = product.quantity <= 10;
+            matchesStockStatus = product.quantity <= minStock;
             break;
           default:
             matchesStockStatus = true;
@@ -684,7 +685,7 @@ const ConsumedItems = () => {
                   <span className='rounded-full'>
                     {product.quantity <= 0 ? (
                       <span className="bg-red-100">{product.quantity}</span>
-                    ) : product.quantity < 10 ? (
+                    ) : product.quantity < (product.minStock || 10) ? (
                       <span className="bg-yellow-100">{product.quantity}</span>
                     ) : (
                       <span className="bg-green-100">{product.quantity}</span>
@@ -694,7 +695,7 @@ const ConsumedItems = () => {
                 <td>
                   {product.quantity <= 0 ? (
                     <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>אזל</span>
-                  ) : product.quantity < 10 ? (
+                  ) : product.quantity < (product.minStock || 10) ? (
                     <span style={{ color: 'var(--warning)', fontWeight: 'bold' }}>נמוך</span>
                   ) : (
                     <span style={{ color: 'var(--success)', fontWeight: 'bold' }}>תקין</span>

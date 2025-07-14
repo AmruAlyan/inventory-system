@@ -1,6 +1,6 @@
 /* Add these styles if not already present */
 .purchase-details {
-  padding: 1rem;
+  padding: 0;
 }
 
 .purchase-header {
@@ -8,6 +8,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
+  flex-wrap: wrap;
   /* grid-template-columns: repeat(2, 1fr); */
   /* gap: 1rem; */
   margin-bottom: 1rem;
@@ -77,8 +78,8 @@
   display: flex;
   flex-direction: column;
   max-height: 90vh;
-  max-width: 90vw;
-  width: 70%;
+  max-width: 100vw;
+  width: 90%;
 }
 
 .sticky-header {
@@ -120,10 +121,6 @@
   border-top: 1px solid #dee2e6;
 }
 
-.inventory-table {
-  min-width: 100%;
-}
-
 /* Add smooth scrolling */
 .scrollable-content {
   scroll-behavior: smooth;
@@ -146,36 +143,3 @@
 .scrollable-content::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
-
-/* Sortable table header styles for purchase modal */
-/* .purchase-modal .inventory-table th {
-  position: relative;
-  user-select: none;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-}
-
-.purchase-modal .inventory-table th:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.purchase-modal .inventory-table th svg {
-  margin-right: 5px;
-  opacity: 0.5;
-  font-size: 0.8em;
-  transition: opacity 0.2s ease;
-}
-
-.purchase-modal .inventory-table th:hover svg {
-  opacity: 1;
-}
-
-
-.purchase-modal .inventory-table th[data-active="true"] {
-  background-color: rgba(81, 134, 100, 0.1);
-}
-
-.purchase-modal .inventory-table th[data-active="true"] svg {
-  opacity: 1;
-  color: var(--primary);
-} */

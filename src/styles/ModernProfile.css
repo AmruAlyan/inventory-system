@@ -187,6 +187,17 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
+/* Password Reset Button Specific Styles */
+.password-reset-btn {
+  background: rgba(255, 193, 7, 0.2) !important; /* Amber background */
+  border: 2px solid rgba(255, 193, 7, 0.4) !important;
+}
+
+.password-reset-btn:hover {
+  background: rgba(255, 193, 7, 0.3) !important;
+  border-color: rgba(255, 193, 7, 0.6) !important;
+}
+
 /* Content Section */
 .profile-content {
   margin-top: 2rem;
@@ -872,12 +883,6 @@
     padding: 2rem 1.5rem;
   }
 
-  .profile-header-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 1.5rem;
-  }
-
   .profile-avatar-circle {
     width: 100px;
     height: 100px;
@@ -950,6 +955,24 @@
   .profile-picture-column {
     align-items: center;
     order: -1; /* Show picture first on mobile */
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-header-content {
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: repeat(2, auto);
+    /* text-align: center; */
+    gap: 1rem;
+  }
+
+  .profile-avatar-section { grid-area: 1 / 1 / 2 / 2; }
+  .profile-header-info { grid-area: 1 / 2 / 2 / 3; }
+  .profile-header-actions {
+    grid-area: 2 / 1 / 3 / 3;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
   }
 }
 
