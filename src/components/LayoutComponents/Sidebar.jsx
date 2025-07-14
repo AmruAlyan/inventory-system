@@ -30,7 +30,7 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef, isAdmin }
     return (
         <div ref={sidebarRef} className={`sidebar ${isExpanded ? 'expanded' : ''}`}>
             <div className="sidebar-content">
-                {isAdmin ? (
+                {/* {isAdmin ? (
                   <>
                     <div className="sidebar-buttons-container">
                       {items.slice(0, 3).map((item, index) => (
@@ -91,7 +91,7 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef, isAdmin }
                       ))}
                     </div>
                   </>
-                ) : (
+                ) : ( */}
                     <div className="sidebar-buttons-container">
                         {items.map((item, index) => (
                           <NavLink
@@ -121,7 +121,7 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef, isAdmin }
                           </NavLink>
                         ))}
                     </div>
-                )}
+                {/* )} */}
                 <div className="sidebar-buttons-container">
                     <ThemeSwitch sidebarOpen={isExpanded} />
                 </div>

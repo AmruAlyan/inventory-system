@@ -14,15 +14,15 @@ const ProductCard = ({
   isProcessing = false,
   disabled = false
 }) => {
-  const getStockStatusClass = (quantity) => {
+  const getStockStatusClass = (quantity, minStock = 10) => {
     if (quantity <= 0) return 'bg-red-100';
-    if (quantity < 10) return 'bg-yellow-100';
+    if (quantity < minStock) return 'bg-yellow-100';
     return 'bg-green-100';
   };
 
-  const getStockStatusText = (quantity) => {
+  const getStockStatusText = (quantity, minStock = 10) => {
     if (quantity <= 0) return 'אזל';
-    if (quantity < 10) return 'נמוך';
+    if (quantity < minStock) return 'נמוך';
     return 'תקין';
   };
 
@@ -61,8 +61,8 @@ const ProductCard = ({
         
         <div className="product-stock-info">
           <span className="stock-label">מלאי:</span>
-          <span className={`stock-status ${getStockStatusClass(product.quantity)}`}>
-            {getStockStatusText(product.quantity)} ({product.quantity})
+          <span className={`stock-status ${getStockStatusClass(product.quantity, product.minStock)}`}>
+            {getStockStatusText(product.quantity, product.minStock)} ({product.quantity})
           </span>
         </div>
         

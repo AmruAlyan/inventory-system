@@ -7,6 +7,7 @@ import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnaps
 import { db } from '../../firebase/firebase';
 import { useData } from '../../context/DataContext';
 import '../../styles/ForManager/products.css';
+import '../../styles/ForManager/shoppingList.css';
 import Spinner from '../../components/Spinner';
 import shoppingListService from '../../services/shoppingListService';
 
@@ -818,39 +819,36 @@ const ShoppingList = () => {
           <FontAwesomeIcon icon={faShoppingCart} className="page-header-icon" />
           רשימת קניות
         </h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="shopping-list-actions">
           <button
-            className="btn btn-info"
-            style={{ border: '2px solid var(--info)', color: 'var(--info)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            className="btn shopping-list-btn btn-info"
             onClick={handlePrint}
             disabled={shoppingList.length === 0}
           >
-            <FontAwesomeIcon icon={faPrint} style={{ marginLeft: '8px' }} />
+            <FontAwesomeIcon icon={faPrint} className="fa-icon" />
             הדפס רשימה
           </button>
           <button
-            className="btn btn-success"
-            style={{ border: '2px solid var(--success)', color: 'var(--success)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            className="btn shopping-list-btn btn-success"
             onClick={handleCheckAll}
             disabled={shoppingList.length === 0 || checkingAll || shoppingList.filter(item => !item.purchased).length === 0}
           >
             {checkingAll ? (
-              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+              <FontAwesomeIcon icon={faSpinner} spin className="fa-icon" />
             ) : (
-              <FontAwesomeIcon icon={faCheckSquare} style={{ marginLeft: '8px' }} />
+              <FontAwesomeIcon icon={faCheckSquare} className="fa-icon" />
             )}
             סמן הכל כנרכש
           </button>
           <button
-            className="btn btn-danger"
-            style={{ border: '2px solid var(--danger)', color: 'var(--danger)', background: 'transparent', fontWeight: 600, minWidth: 160 }}
+            className="btn shopping-list-btn btn-danger"
             onClick={handleClearAll}
             disabled={shoppingList.length === 0 || clearing}
           >
             {clearing ? (
-              <FontAwesomeIcon icon={faSpinner} spin style={{ marginLeft: '8px' }} />
+              <FontAwesomeIcon icon={faSpinner} spin className="fa-icon" />
             ) : (
-              <FontAwesomeIcon icon={faBroom} style={{ marginLeft: '8px' }} />
+              <FontAwesomeIcon icon={faBroom} className="fa-icon" />
             )}
             נקה את כל הרשימה
           </button>
@@ -858,7 +856,7 @@ const ShoppingList = () => {
       </div>
       
       {(loading || clearing || checkingAll) && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+        <div className="shopping-list-loading">
           <Spinner text={clearing ? 'מנקה את הרשימה...' : checkingAll ? 'מסמן פריטים כנרכשים...' : 'טוען נתונים...'} />
         </div>
       )}
@@ -886,12 +884,7 @@ const ShoppingList = () => {
                 {sortedShoppingList.map(item => (
                   <tr 
                     key={item.id} 
-                    style={item.purchased ? { 
-                      backgroundColor: '#e8f5e9', 
-                      color: '#2e7d32',
-                      textDecoration: 'line-through',
-                      opacity: 0.8 
-                    } : {}}
+                    className={item.purchased ? 'shopping-list-row-purchased' : ''}
                   >
                     <td>                      
                       <input
@@ -946,7 +939,7 @@ const ShoppingList = () => {
                             onClick={() => handleEdit(item)} 
                             title="ערוך כמות"
                             disabled={item.purchased}
-                            style={item.purchased ? { color: '#ccc', cursor: 'not-allowed' } : {}}
+                            className={item.purchased ? 'shopping-list-action-disabled' : ''}
                           >
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
@@ -954,7 +947,7 @@ const ShoppingList = () => {
                             onClick={() => handleDelete(item.id)} 
                             title="הסר"
                             disabled={item.purchased}
-                            style={item.purchased ? { color: '#ccc', cursor: 'not-allowed' } : {}}
+                            className={item.purchased ? 'shopping-list-action-disabled' : ''}
                           >
                             <FontAwesomeIcon icon={faTrash} />
                           </button>
@@ -967,18 +960,18 @@ const ShoppingList = () => {
             </table>
           {/* </div>             */}
           {clearing && (
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+        <div className="shopping-list-loading">
           <Spinner />
         </div>
       )}
-          <div className="shopping-list-total card" style={{ textAlign: 'center', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '1rem' }}>
-              <h3 style={{ color: totalPrice > budget ? 'var(--danger)' : 'inherit' }}>
+          <div className="shopping-list-total card">
+              <h3 className={totalPrice > budget ? 'shopping-list-total-danger' : ''}>
                 סה"כ: {totalPrice.toFixed(2)} ₪
               </h3>
               <h3>
                 תקציב: {budget.toFixed(2)} ₪
               </h3>
-              <h3 style={{ color: totalPrice > budget ? 'var(--danger)' : 'var(--success)' }}>
+              <h3 className={totalPrice > budget ? 'shopping-list-total-danger' : 'shopping-list-total-success'}>
                 {totalPrice > budget ? 'חריגה מהתקציב' : `נותר: ${(budget - totalPrice).toFixed(2)} ₪`}
               </h3>
             </div>

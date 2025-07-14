@@ -206,17 +206,18 @@
 /* Progress Bar */
 .expense-progress {
   width: 100%;
-  height: 6px;
+  height: 8px;
   background-color: var(--border-color);
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
   margin-top: 0.5rem;
+  position: relative;
 }
 
 .progress-bar {
   height: 100%;
   transition: width 0.8s ease;
-  border-radius: 3px;
+  border-radius: 4px;
   position: relative;
 }
 
@@ -252,7 +253,7 @@
 /* Summary Footer */
 .summary-footer {
   background: rgba(0, 0, 0, 0.02);
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem 1rem;
   border-top: 1px solid var(--border-color);
 }
 
@@ -260,6 +261,93 @@
   text-align: center;
   color: var(--primary-text);
   font-size: 1rem;
+}
+
+/* Budget Overview Section */
+.budget-overview {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(81, 134, 100, 0.1), rgba(76, 175, 80, 0.05));
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.budget-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 120px;
+}
+
+.budget-label {
+  font-size: 0.8rem;
+  color: var(--secondary-text);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.budget-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.budget-percentage {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.progress-label {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.remaining-budget {
+  font-size: 0.9rem;
+  color: var(--success);
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Enhanced Progress Bar */
+.enhanced-progress {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.enhanced-progress .progress-fill {
+  height: 100%;
+  transition: width 0.8s ease;
+  border-radius: 4px;
+}
+
+.enhanced-progress .progress-label {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */
@@ -327,6 +415,31 @@
   .total-expense {
     font-size: 0.9rem;
   }
+
+  /* Responsive Design for Budget Overview */
+  .budget-overview {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .budget-stat {
+    min-width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+  }
+
+  .budget-label {
+    margin-bottom: 0;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    right: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -342,6 +455,19 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .budget-overview {
+    padding: 0.75rem;
+  }
+
+  .budget-stat {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .budget-label {
+    margin-bottom: 0.25rem;
   }
 }
 

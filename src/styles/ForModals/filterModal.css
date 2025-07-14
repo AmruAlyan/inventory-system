@@ -190,3 +190,71 @@ input[type="checkbox"]::-moz-checkbox,
 input[type="radio"]::-moz-radio {
   background: transparent;
 }
+
+@media (max-width: 768px) {
+  .filter-modal {
+    width: 90%;
+    max-width: 500px;
+    min-width: 300px;
+    padding: 16px;
+  }
+
+  .filter-modal h2 {
+    margin-bottom: 0;
+  }
+  
+  .filter-content {
+    flex-direction: column;
+    width: 100%;
+    gap: 0;
+  }
+  
+  .filter-section {
+    padding: 0;
+    margin: 0;
+  }
+
+  .categories-list.scrollable-content {
+    max-height: 160px;
+  }
+
+  .stock-status-options {
+    height: 140px;
+  }
+
+  .filter-actions {
+    gap: 8px;
+    margin-top: 2rem;
+  }
+
+  .apply-button, .reset-button, .cancel-button {
+    font-size: 0.85rem;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-modal {
+    width: 95%;
+    max-width: 400px;
+    min-width: 280px;
+    padding: 12px;
+  }
+  
+  .filter-actions {
+    gap: 8px;
+  }
+  
+  .apply-button, .reset-button, .cancel-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-modal {
+    width: 98%;
+    max-width: 350px;
+    min-width: 250px;
+    padding: 10px;
+  }
+}
