@@ -227,15 +227,28 @@ function Login() {
 
   return (
     <div className="container" data-theme="light">
-
-
       {/* Login Form */}
       <div className="second">
+        {/* Left Panel - Branding */}
+        <div className="left-panel">
+          <div className="title-box">
+            <div className="title-box-text">
+              <h1>מערכת ניהול מלאי</h1>
+              <h3>עמותת ותיקי מטה יהודה</h3>
+            </div>
+          </div>
+          <div className="illustration">
+            <img src={image} alt="מחסן" />
+          </div>
+        </div>
+
+        {/* Right Panel - Login Form */}
         <div className="right-panel">
           {/* Logo */}
           <div className="logo-container">
             <img src={Logo} alt="Logo" className="logo" />
           </div>
+          
           <div className="top-panel">
             <div className="login-box">
               {!showForgotPassword ? (
@@ -369,25 +382,6 @@ function Login() {
                 </>
               )}
             </div>
-          </div>
-          {/* <div className="bottom-panel">
-            <ThemeSwitch sidebarOpen={true} />
-          </div> */}
-        </div>
-
-        {/* Title & Image */}
-        <div className="left-panel">
-          <div className="title-box">
-            {/* <div className="logo-container">
-              <img src={Logo} alt="Logo" className="logo" />
-            </div> */}
-            <div className="title-box-text">
-              <h1>מערכת ניהול מלאי</h1>
-              <h3> עמותת ותיקי מטה יהודה </h3>
-            </div>
-          </div>
-          <div className="illustration">
-            <img src={image} alt="מחסן" />
           </div>
         </div>
       </div>
