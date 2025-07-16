@@ -63,15 +63,57 @@
   justify-content: space-around;
   align-items: center;
   padding: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Budget status colors */
-.shopping-list-total-danger {
-  color: var(--danger);
+.shopping-list-total-warning, .shopping-list-total-success h3 {
+  color: black !important;
+}
+
+/* Budget status colors - Gentle approach */
+.shopping-list-total-warning {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px solid #ff9800;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
 }
 
 .shopping-list-total-success {
-  color: var(--success);
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+/* Gentle budget alert styles */
+.budget-alert-gentle {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  color: #e65100;
+  padding: 12px 20px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border-right: 3px solid #ff9800;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+}
+
+.budget-alert-text-gentle {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Subtle budget status indicators */
+.budget-over {
+  color: #ff6f00;
+}
+
+.budget-safe {
+  color: #2e7d32;
 }
 
 /* Responsive design for smaller screens */
@@ -92,6 +134,16 @@
     flex-direction: column;
     gap: 10px;
   }
+  
+  .budget-alert-gentle {
+    padding: 10px 15px;
+    margin: 8px 0;
+  }
+  
+  .budget-alert-text-gentle {
+    font-size: 13px;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 576px) {
@@ -111,5 +163,15 @@
   .shopping-list-total h3 {
     font-size: 16px;
     margin: 5px 0;
+  }
+  
+  .budget-alert-gentle {
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin: 6px 0;
+  }
+  
+  .budget-alert-text-gentle {
+    font-size: 12px;
   }
 }

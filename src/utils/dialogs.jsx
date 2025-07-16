@@ -359,6 +359,176 @@ const IOSConfirmDialog = ({ title, message, onConfirm, onCancel }) => {
   );
 };
 
+// iOS-style Prompt Dialog Component
+const IOSPromptDialog = ({ title, message, defaultValue, onConfirm, onCancel, placeholder = '' }) => {
+  const [inputValue, setInputValue] = React.useState(defaultValue || '');
+  
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onCancel();
+      } else if (e.key === 'Enter') {
+        onConfirm(inputValue);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onConfirm, onCancel, inputValue]);
+  
+  const buttonStyle = {
+    flex: 1,
+    background: 'transparent',
+    border: 'none',
+    fontSize: '17px',
+    cursor: 'pointer',
+    transition: 'background-color 0.1s ease',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+    outline: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+  
+  return (
+    <div 
+      className="ios-dialog-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        animation: 'iosOverlayFadeIn 0.25s ease-out'
+      }}
+      onClick={onCancel}
+    >
+      <div 
+        style={{
+          background: 'var(--dialog-bg)',
+          borderRadius: '14px',
+          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.3)',
+          minWidth: '270px',
+          maxWidth: '420px',
+          width: '90%',
+          overflow: 'hidden',
+          direction: 'rtl',
+          animation: 'dialogslideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          position: 'relative'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '20px 20px 0 20px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '17px',
+            fontWeight: '600',
+            color: 'var(--dialog-text)',
+            lineHeight: '1.3',
+            margin: 0,
+            letterSpacing: '-0.02em',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif'
+          }}>
+            {title}
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div style={{
+          padding: '8px 20px 20px 20px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '13px',
+            color: 'var(--dialog-text)',
+            lineHeight: '1.4',
+            opacity: '0.8',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+            marginBottom: '16px'
+          }}>
+            {message}
+          </div>
+          
+          {/* Input Field */}
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={placeholder}
+            autoFocus
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '1px solid var(--dialog-border)',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+              background: 'var(--dialog-bg)',
+              color: 'var(--dialog-text)',
+              outline: 'none',
+              transition: 'border-color 0.2s ease',
+              textAlign: 'center',
+              direction: 'ltr'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'var(--button-green)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'var(--dialog-border)';
+            }}
+          />
+        </div>
+        
+        {/* Footer */}
+        <div style={{
+          borderTop: '0.5px solid var(--dialog-border)',
+          display: 'flex',
+          height: '44px'
+        }}>
+          <button
+            style={{
+              ...buttonStyle,
+              color: 'var(--dialog-text)',
+              fontWeight: '400'
+            }}
+            onClick={onCancel}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.1)'}
+            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(0, 122, 255, 0.04)'}
+          >
+            ביטול
+          </button>
+          <button
+            style={{
+              ...buttonStyle,
+              color: 'var(--button-green)',
+              fontWeight: '600',
+              borderLeft: '0.5px solid var(--dialog-border)'
+            }}
+            onClick={() => onConfirm(inputValue)}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            onMouseDown={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'}
+            onMouseUp={(e) => e.target.style.backgroundColor = 'rgba(40, 167, 69, 0.04)'}
+          >
+            אישור
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Async Alert function
 export const showAlert = (message, title = 'הודעה') => {
   return new Promise((resolve) => {
@@ -398,6 +568,34 @@ export const showConfirm = (message, title = 'אישור פעולה') => {
       <IOSConfirmDialog
         title={title}
         message={message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+    );
+  });
+};
+
+// Async Prompt function
+export const showPrompt = (message, defaultValue = '', title = 'הזן ערך', placeholder = '') => {
+  return new Promise((resolve) => {
+    const { root } = getDialogContainer();
+    
+    const handleConfirm = (value) => {
+      clearDialog();
+      resolve(value);
+    };
+    
+    const handleCancel = () => {
+      clearDialog();
+      resolve(null);
+    };
+    
+    root.render(
+      <IOSPromptDialog
+        title={title}
+        message={message}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

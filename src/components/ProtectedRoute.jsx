@@ -52,7 +52,7 @@ const ProtectedRoute = ({ children, requireRole = [] }) => {
     });
 
     return () => unsubscribe();
-  }, [location.pathname, navigate]);
+  }, [location.pathname, navigate, requireRole]);
 
   if (isAuthorized === null) return null; // loading spinner or blank
   return children;

@@ -646,3 +646,65 @@ body {
   font-weight: 600;
   min-width: 80px;
 }
+
+/* Authentication Loading Overlay */
+.auth-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.auth-loading-overlay .fa-table-spinner-box {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  min-width: 200px;
+}
+
+.auth-loading-overlay .fa-table-spinner-motion {
+  color: #518664;
+  margin-bottom: 1rem;
+}
+
+.auth-loading-overlay .fa-table-spinner-text {
+  color: #333;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Disable form interaction during authentication */
+.auth-loading-overlay ~ .second {
+  pointer-events: none;
+}
+
+/* Submit button disabled state */
+.submit-button:disabled {
+  background: linear-gradient(135deg, #ccc, #999);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}

@@ -3,11 +3,8 @@ import { Outlet } from "react-router-dom";
 import "../../styles/ForLayout/contentArea.css";
 
 
-const ContentArea = ({ children }) => {
+const ContentArea = () => {
   return (
-    // <div className="content-area">
-    //   {children}
-    // </div>
     <section className="content-area">
       <Outlet />
     </section>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faSave, faTimes, faShoppingCart, faBroom, faSpinner, faCheckSquare, faPrint, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { showConfirm } from '../../utils/dialogs';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, onSnapshot, writeBatch } from 'firebase/firestore';
@@ -21,6 +21,8 @@ const ShoppingList = () => {
   const [checkingAll, setCheckingAll] = useState(false);
   const [budget, setBudget] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState('category');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   // Subscribe to shopping list changes with optimized caching and direct data loading
   useEffect(() => {
@@ -110,7 +112,7 @@ const ShoppingList = () => {
       // Set up a throttled listener for changes
       const unsubscribeListener = onSnapshot(
         collection(doc(db, 'sharedShoppingList', 'globalList'), 'items'),
-        (snapshot) => {
+        () => {
           if (!isMounted) return;
           
           // Clear any pending updates to prevent rapid-fire updates
@@ -194,31 +196,44 @@ const ShoppingList = () => {
         };
 
         if (currentPurchaseDoc.exists()) {
-          // Add new item to existing items array
+          // Add new item to existing items array, but check for duplicates first
           const existingItems = currentPurchaseDoc.data().items || [];
-          purchaseData.items = [
-            ...existingItems,
-            {
-              id: item.id,
-              name: item.name,
-              category: item.category,
+          
+          // Check if this product is already in the purchase
+          const existingItemIndex = existingItems.findIndex(
+            existingItem => existingItem.id === item.productId
+          );
+          
+          if (existingItemIndex === -1) {
+            // Product not found, add it
+            purchaseData.items = [
+              ...existingItems,
+              {
+                id: item.productId,
+                name: item.name,
+                category: item.category,
+                quantity: item.quantity,
+                price: item.price
+              }
+            ];
+          } else {
+            // Product already exists, just update the quantity and other details
+            const updatedItems = [...existingItems];
+            updatedItems[existingItemIndex] = {
+              ...updatedItems[existingItemIndex],
               quantity: item.quantity,
-              price: item.price,
-              actualPrice: item.price, // Default to original price
-              checkedAt: Date.now()
-            }
-          ];
+              price: item.price
+            };
+            purchaseData.items = updatedItems;
+          }
         } else {
           // Create new items array with first item
           purchaseData.items = [{
-            id: item.id,
+            id: item.productId,
             name: item.name,
             category: item.category,
-            categoryName: categories[item.category] || 'לא מוגדר',
             quantity: item.quantity,
-            price: item.price,
-            actualPrice: item.price,
-            checkedAt: Date.now()
+            price: item.price
           }];
         }
 
@@ -229,9 +244,22 @@ const ShoppingList = () => {
         // If item is being unchecked (removed from purchase)
         if (currentPurchaseDoc.exists()) {
           const existingItems = currentPurchaseDoc.data().items || [];
-          await updateDoc(currentPurchaseRef, {
-            items: existingItems.filter(item => item.id !== id)
-          });
+          
+          // Remove the item with matching product id
+          const updatedItems = existingItems.filter(
+            existingItem => existingItem.id !== item.productId
+          );
+          
+          // Only update if we actually removed an item
+          if (updatedItems.length !== existingItems.length) {
+            if (updatedItems.length === 0) {
+              // If no items left, delete the document
+              await deleteDoc(currentPurchaseRef);
+            } else {
+              // Update with remaining items
+              await updateDoc(currentPurchaseRef, { items: updatedItems });
+            }
+          }
         }
       }
 
@@ -262,7 +290,7 @@ const ShoppingList = () => {
         // Set a default budget instead of showing error to user
         setBudget(0);
         // Only show error in development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           toast.error('שגיאה בטעינת התקציב - משתמש בתקציב ברירת מחדל');
         }
       }
@@ -273,18 +301,104 @@ const ShoppingList = () => {
 
   // Load shopping list from localStorage  // Fetch categories
   // Remove local categories state and fetching, use context
-  // Sort shopping list by category
-  const sortedShoppingList = [...shoppingList].sort((a, b) => {
-    const categoryA = categories[a.category] || 'לא מוגדר';
-    const categoryB = categories[b.category] || 'לא מוגדר';
-    return categoryA.localeCompare(categoryB);
-  });
+  
+  // Sorting functionality
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) return faSort;
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  // Sort shopping list with memoization for performance
+  const sortedShoppingList = useMemo(() => {
+    return [...shoppingList].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortField) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'category':
+          aValue = categories[a.category] || 'לא מוגדר';
+          bValue = categories[b.category] || 'לא מוגדר';
+          break;
+        case 'quantity':
+          aValue = a.quantity || 0;
+          bValue = b.quantity || 0;
+          break;
+        case 'price':
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case 'total':
+          aValue = (a.price || 0) * (a.quantity || 0);
+          bValue = (b.price || 0) * (b.quantity || 0);
+          break;
+        case 'purchased':
+          aValue = a.purchased ? 1 : 0;
+          bValue = b.purchased ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortDirection === 'asc') {
+        if (typeof aValue === 'string') {
+          return aValue.localeCompare(bValue);
+        }
+        return aValue > bValue ? 1 : -1;
+      } else {
+        if (typeof aValue === 'string') {
+          return bValue.localeCompare(aValue);
+        }
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  }, [shoppingList, sortField, sortDirection, categories]);
 
   // Calculate total price
   const totalPrice = shoppingList.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
+  
+  // Calculate unpurchased items total for budget checking
+  const unpurchasedTotal = shoppingList
+    .filter(item => !item.purchased)
+    .reduce((total, item) => total + item.price * item.quantity, 0);
+    
+  // Check if budget is exceeded
+  const isBudgetExceeded = totalPrice > budget;
+  const isUnpurchasedBudgetExceeded = unpurchasedTotal > budget;
+  
+  // Show budget warning toast when budget is first exceeded
+  useEffect(() => {
+    if (isBudgetExceeded && totalPrice > 0 && budget > 0) {
+      // Only show if we have valid data and haven't shown this warning recently
+      const lastWarningTime = localStorage.getItem('lastBudgetWarning');
+      const now = Date.now();
+      if (!lastWarningTime || now - parseInt(lastWarningTime) > 300000) { // 5 minutes cooldown instead of 30 seconds
+        toast.info(`התקציב הקיים: ${budget.toFixed(2)} ₪ | סה"כ: ${totalPrice.toFixed(2)} ₪`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+        });
+        localStorage.setItem('lastBudgetWarning', now.toString());
+      }
+    }
+  }, [isBudgetExceeded, totalPrice, budget]);
   // Handle delete item
   const handleDelete = async (id) => {
     const confirmed = await showConfirm(
@@ -306,7 +420,8 @@ const ShoppingList = () => {
         
         if (currentPurchaseDoc.exists()) {
           const existingItems = currentPurchaseDoc.data().items || [];
-          const updatedItems = existingItems.filter(item => item.id !== id);
+          const itemToDelete = shoppingList.find(item => item.id === id);
+          const updatedItems = existingItems.filter(item => item.id !== itemToDelete?.productId);
           
           // Only update if the item was actually in the current purchase
           if (existingItems.length !== updatedItems.length) {
@@ -447,20 +562,17 @@ const ShoppingList = () => {
           
           // Add to purchases tracking
           purchaseItems.push({
-            id: item.id,
+            id: item.productId,
             name: item.name,
             category: item.category,
             quantity: item.quantity,
-            price: item.price,
-            actualPrice: item.price, // Default to original price
-            checkedAt: currentTime
+            price: item.price
           });
         }
         
         // Update current purchase document
         batch.set(currentPurchaseRef, { 
-          items: purchaseItems,
-          lastUpdated: currentTime
+          items: purchaseItems
         });
         
         // Commit all the changes
@@ -775,7 +887,8 @@ const ShoppingList = () => {
       
       if (currentPurchaseDoc.exists()) {
         const existingItems = currentPurchaseDoc.data().items || [];
-        const itemIndex = existingItems.findIndex(item => item.id === id);
+        const currentItem = shoppingList.find(item => item.id === id);
+        const itemIndex = existingItems.findIndex(item => item.id === currentItem?.productId);
         
         if (itemIndex !== -1) {
           // Create a new array with the updated item
@@ -855,6 +968,16 @@ const ShoppingList = () => {
         </div>
       </div>
       
+      {/* Budget Alert - Only show if significantly over budget */}
+      {isBudgetExceeded && (totalPrice - budget) > (budget * 0.1) && !loading && !clearing && !checkingAll && (
+        <div className="budget-alert-gentle">
+          <p className="budget-alert-text-gentle">
+            <span style={{ marginLeft: '8px' }}>💡</span>
+            הסכום הכולל (${totalPrice.toFixed(2)} ₪) עולה על התקציב הקיים
+          </p>
+        </div>
+      )}
+      
       {(loading || clearing || checkingAll) && (
         <div className="shopping-list-loading">
           <Spinner text={clearing ? 'מנקה את הרשימה...' : checkingAll ? 'מסמן פריטים כנרכשים...' : 'טוען נתונים...'} />
@@ -871,12 +994,84 @@ const ShoppingList = () => {
             <table className="inventory-table">              
               <thead>                
                 <tr>
-                  <th>נרכש</th>
-                  <th>שם מוצר</th>
-                  <th>קטגוריה</th>
-                  <th>כמות</th>
-                  <th>מחיר יחידה</th>
-                  <th>מחיר כולל</th>
+                  <th 
+                    onClick={() => handleSort('purchased')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי סטטוס רכישה"
+                  >
+                    נרכש <FontAwesomeIcon icon={getSortIcon('purchased')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('name')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי שם מוצר"
+                  >
+                    שם מוצר <FontAwesomeIcon icon={getSortIcon('name')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('category')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי קטגוריה"
+                  >
+                    קטגוריה <FontAwesomeIcon icon={getSortIcon('category')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('quantity')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי כמות"
+                  >
+                    כמות <FontAwesomeIcon icon={getSortIcon('quantity')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('price')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי מחיר יחידה"
+                  >
+                    מחיר יחידה <FontAwesomeIcon icon={getSortIcon('price')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleSort('total')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי מחיר כולל"
+                  >
+                    מחיר כולל <FontAwesomeIcon icon={getSortIcon('total')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
                   <th>פעולות</th>
                 </tr>
               </thead>              
@@ -891,6 +1086,7 @@ const ShoppingList = () => {
                         type="checkbox"
                         checked={item.purchased || false}
                         onChange={() => handlePurchaseChange(item.id)}
+                        disabled={editingId === item.id}
                       />
                     </td>
                     <td>{item.name}</td>
@@ -964,15 +1160,19 @@ const ShoppingList = () => {
           <Spinner />
         </div>
       )}
-          <div className="shopping-list-total card">
-              <h3 className={totalPrice > budget ? 'shopping-list-total-danger' : ''}>
+          <div className={`shopping-list-total card ${isBudgetExceeded ? 'shopping-list-total-warning' : 'shopping-list-total-success'}`}>
+              <h3>
                 סה"כ: {totalPrice.toFixed(2)} ₪
               </h3>
               <h3>
                 תקציב: {budget.toFixed(2)} ₪
               </h3>
-              <h3 className={totalPrice > budget ? 'shopping-list-total-danger' : 'shopping-list-total-success'}>
-                {totalPrice > budget ? 'חריגה מהתקציב' : `נותר: ${(budget - totalPrice).toFixed(2)} ₪`}
+              <h3 className={isBudgetExceeded ? 'budget-over' : 'budget-safe'}>
+                {isBudgetExceeded ? (
+                  `עודף: ${(totalPrice - budget).toFixed(2)} ₪`
+                ) : (
+                  `נותר: ${(budget - totalPrice).toFixed(2)} ₪`
+                )}
               </h3>
             </div>
         </>

@@ -13,7 +13,6 @@ import Spinner from "../../components/Spinner";
 import { BudgetReport, PurchaseReport, CombinedReport, CategoryReport } from "../../components/Reports";
 import { exportToPDF, printReport } from "../../utils/reportExport";
 import { toast } from "react-toastify";
-// import logo from "../../assets/pics/Logo-green.svg";
 import logo from "../../assets/pics/Home1.png";
 import "../../styles/ForManager/products.css";
 import "../../styles/ForAdmin/reports.css";
@@ -199,23 +198,25 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
               case 'name':
                 result = a.name.localeCompare(b.name, 'he');
                 break;
-              case 'value':
+              case 'value': {
                 const aValue = a.products?.reduce((sum, product) => 
                   sum + (product.quantity * product.price || 0), 0) || 0;
                 const bValue = b.products?.reduce((sum, product) => 
                   sum + (product.quantity * product.price || 0), 0) || 0;
                 result = aValue - bValue;
                 break;
+              }
               case 'products':
                 result = (a.products?.length || 0) - (b.products?.length || 0);
                 break;
-              case 'alerts':
+              case 'alerts': {
                 const aAlerts = a.products?.filter(product => 
                   product.quantity < (product.minStock || 10)).length || 0;
                 const bAlerts = b.products?.filter(product => 
                   product.quantity < (product.minStock || 10)).length || 0;
                 result = aAlerts - bAlerts;
                 break;
+              }
               default:
                 return 0;
             }

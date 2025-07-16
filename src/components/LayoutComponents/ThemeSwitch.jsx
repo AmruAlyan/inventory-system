@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSun, faMoon, faCircleHalfStroke } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ForLayout/themeSwitch.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const ThemeSwitch = ({ sidebarOpen = true }) => {
   const [themeMode, setThemeMode] = useState(() => {
@@ -10,15 +10,13 @@ const ThemeSwitch = ({ sidebarOpen = true }) => {
     return localStorage.getItem("themeMode") || "auto";
   });
 
-  const [actualTheme, setActualTheme] = useState("light");
-
   // Function to get system preference
   const getSystemTheme = () => {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   };
 
   // Function to determine actual theme based on mode
-  const determineActualTheme = (mode) => {
+  const determineActualTheme = useCallback((mode) => {
     switch (mode) {
       case 'light':
         return 'light';
@@ -29,15 +27,14 @@ const ThemeSwitch = ({ sidebarOpen = true }) => {
       default:
         return 'light';
     }
-  };
+  }, []);
 
   // Apply theme to document and update actual theme
   useEffect(() => {
     const newActualTheme = determineActualTheme(themeMode);
-    setActualTheme(newActualTheme);
     document.documentElement.setAttribute("data-theme", newActualTheme);
     localStorage.setItem("themeMode", themeMode);
-  }, [themeMode]);
+  }, [themeMode, determineActualTheme]);
 
   // Listen for system theme changes when in auto mode
   useEffect(() => {
@@ -46,7 +43,6 @@ const ThemeSwitch = ({ sidebarOpen = true }) => {
       
       const handleSystemThemeChange = (e) => {
         const newSystemTheme = e.matches ? 'dark' : 'light';
-        setActualTheme(newSystemTheme);
         document.documentElement.setAttribute("data-theme", newSystemTheme);
       };
 

@@ -3,15 +3,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import '../../styles/ForAdmin/customBar.css';
 
 const CustomLine = ({ data = [] }) => {
-  const [theme, setTheme] = useState('light');
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    const currentTheme = document.documentElement.dataset.theme || 'light';
-    setTheme(currentTheme);
     const observer = new MutationObserver(() => {
-      const updatedTheme = document.documentElement.dataset.theme || 'light';
-      setTheme(updatedTheme);
+      // Re-render when theme changes
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();

@@ -2,13 +2,13 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
-import AdminLayout from "./layouts/AdminLayout"; // assuming AdminLayout is here
-import ManagerLayout from "./layouts/ManagerLayout"; // if you have a similar one
+import AdminLayout from "./layouts/AdminLayout";
+import ManagerLayout from "./layouts/ManagerLayout";
 import ScrollToTop from "./components/ScrollToTop";
 import ProtectedRoute from "./components/ProtectedRoute";
-import BudgetPage from "./pages/Admin/Budget"; // adjust path
-import ReportsPage from "./pages/Admin/Reports"; // adjust path
-import ProductsPage from "./pages/Manager/Products"; // example
+import BudgetPage from "./pages/Admin/Budget";
+import ReportsPage from "./pages/Admin/Reports";
+import ProductsPage from "./pages/Manager/Products";
 import AdminProfile from "./pages/Admin/AdminProfile";
 import ManagerProfile from "./pages/Manager/ManagerProfile";
 import ShoppingList from "./pages/Manager/ShoppingList";
@@ -17,7 +17,7 @@ import Categories from "./pages/Manager/Categories";
 import Purchases from "./pages/Manager/Purchases";
 import ManagerDash from "./pages/Manager/ManagerDash";
 import ConsumedItems from "./pages/Manager/ConsumedItems";
-import AdminDash from "./pages/Admin/AdminDash"; // assuming you have this
+import AdminDash from "./pages/Admin/AdminDash";
 import { DataProvider } from './context/DataContext';
 
 function App() {
@@ -64,7 +64,6 @@ function App() {
             <Route path="shopping-list" element={<ShoppingList />} />
             <Route path="new-purchase" element={<Purchases />} />
             <Route path="consumed-items" element={<ConsumedItems />} />
-            {/* <Route path="budget-expense" element={<BudgetExpenses />} /> */}
             <Route path="profile" element={<ManagerProfile />} />
           </Route>
         </Routes>

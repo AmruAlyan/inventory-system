@@ -228,7 +228,7 @@
     border: solid 1px var(--shadow-color);
     border-radius: 20px;
     position: fixed;
-    width: calc(100% - 48px);
+    width: calc(100% - 20px);
     padding: 1rem !important;
   }
 

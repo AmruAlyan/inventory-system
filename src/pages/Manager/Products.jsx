@@ -9,7 +9,6 @@ import AddToListModal from '../../components/Modals/AddToListModal';
 import ProductCard from '../../components/ProductCard';
 import { toast } from 'react-toastify';
 import { showConfirm } from '../../utils/dialogs';
-// import SeedProductsComponent from '../../components/SeedProductComponent';
 import '../../styles/ForManager/products.css';
 import FilterModal from '../../components/Modals/FilterModal';
 import Spinner from '../../components/Spinner';
@@ -411,7 +410,6 @@ const Products = () => {
 
   return (
     <div className='inventory-container'>
-      {/* <SeedProductsComponent/> */}
       <div className="page-header">
         <h1>
           <FontAwesomeIcon icon={faBoxesStacked} className="page-header-icon" />

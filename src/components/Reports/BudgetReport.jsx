@@ -6,6 +6,40 @@ import ReportBarChart from "../Charts/ReportBarChart";
 const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
   const [sortConfig, setSortConfig] = useState({ field: null, direction: 'asc' });
 
+  // Sorted data - must be before any early returns
+  const sortedBudgetData = useMemo(() => {
+    if (!budgetData || budgetData.length === 0) return [];
+    if (!sortConfig.field) return budgetData;
+    
+    return [...budgetData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortConfig.field) {
+        case 'date':
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case 'amount':
+          aValue = a.amount || 0;
+          bValue = b.amount || 0;
+          break;
+        case 'totalBudget':
+          aValue = a.totalBudget || 0;
+          bValue = b.totalBudget || 0;
+          break;
+        default:
+          aValue = a[sortConfig.field] || '';
+          bValue = b[sortConfig.field] || '';
+      }
+      
+      if (sortConfig.direction === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+  }, [budgetData, sortConfig]);
+
   if (!budgetData || budgetData.length === 0) {
     return (
       <div className="no-data">
@@ -35,36 +69,6 @@ const BudgetReport = ({ budgetData, formatCurrency, formatDate }) => {
     if (sortConfig.field !== field) return faSort;
     return sortConfig.direction === 'asc' ? faSortUp : faSortDown;
   };
-
-  // Sorted data
-  const sortedBudgetData = useMemo(() => {
-    if (!sortConfig.field) return budgetData;
-    
-    return [...budgetData].sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortConfig.field) {
-        case 'date':
-          aValue = new Date(a.date);
-          bValue = new Date(b.date);
-          break;
-        case 'amount':
-          aValue = a.amount || 0;
-          bValue = b.amount || 0;
-          break;
-        case 'totalBudget':
-          aValue = a.totalBudget || 0;
-          bValue = b.totalBudget || 0;
-          break;
-        default:
-          return 0;
-      }
-      
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [budgetData, sortConfig]);
 
   return (
     <>

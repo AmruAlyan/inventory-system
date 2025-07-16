@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpload, faTrash, faCrop, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faUpload, faTrash, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../firebase/firebase';
 import { toast } from 'react-toastify';
@@ -82,8 +82,6 @@ const ImageUpload = ({
   const getCroppedImg = (image, crop) => {
     return new Promise((resolve, reject) => {
       try {
-        console.log('getCroppedImg called with:', { image, crop });
-        
         // Validate that image is a proper HTMLImageElement
         if (!image || !(image instanceof HTMLImageElement)) {
           reject(new Error('Invalid image element provided'));
@@ -103,10 +101,6 @@ const ImageUpload = ({
         canvas.height = crop.height;
         const ctx = canvas.getContext('2d');
 
-        console.log('Canvas dimensions:', canvas.width, canvas.height);
-        console.log('Scale factors:', scaleX, scaleY);
-        console.log('Image dimensions:', image.width, image.height, image.naturalWidth, image.naturalHeight);
-
         if (!ctx) {
           reject(new Error('Unable to get canvas context'));
           return;
@@ -124,10 +118,7 @@ const ImageUpload = ({
           crop.height
         );
 
-        console.log('Image drawn to canvas');
-
         canvas.toBlob((blob) => {
-          console.log('Canvas.toBlob result:', blob);
           if (blob) {
             resolve(blob);
           } else {
@@ -142,10 +133,6 @@ const ImageUpload = ({
   };
 
   const handleCropComplete = async () => {
-    console.log('handleCropComplete called');
-    console.log('completedCrop:', completedCrop);
-    console.log('imgRef.current:', imgRef.current);
-    
     if (!completedCrop || !imgRef.current) {
       toast.error('שגיאה: נתונים חסרים לחיתוך התמונה');
       return;
@@ -171,9 +158,7 @@ const ImageUpload = ({
 
     setUploading(true);
     try {
-      console.log('Starting crop process...');
       const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop);
-      console.log('Cropped image blob:', croppedImageBlob);
       
       if (!croppedImageBlob) {
         throw new Error('Failed to create cropped image');
@@ -184,10 +169,8 @@ const ImageUpload = ({
       const fileName = `${uploadPath}/${productId || 'temp'}_${timestamp}.jpg`;
       const storageRef = ref(storage, fileName);
       
-      console.log('Uploading to Firebase...');
       await uploadBytes(storageRef, croppedImageBlob);
       const downloadURL = await getDownloadURL(storageRef);
-      console.log('Upload successful, URL:', downloadURL);
       
       // If there was a previous image, delete it
       if (currentImageUrl && productId) {

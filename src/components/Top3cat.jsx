@@ -53,7 +53,7 @@ const Top3Categories = () => {
     
     const unsubscribe = onSnapshot(
       query(
-        collection(db, 'budget'),
+        collection(db, 'budgets', 'history', 'entries'),
         where('date', '>=', threeMonthsAgo),
         orderBy('date', 'desc')
       ),
@@ -185,13 +185,6 @@ const Top3Categories = () => {
     return `${percentage.toFixed(1)}%`;
   };
 
-  const getProgressBarColor = (percentage) => {
-    if (percentage >= 80) return '#dc3545'; // Red - High usage
-    if (percentage >= 60) return '#fd7e14'; // Orange - Medium-high usage
-    if (percentage >= 40) return '#ffc107'; // Yellow - Medium usage
-    return '#28a745'; // Green - Low usage
-  };
-
   if (loading) {
     return (
       <div className="top3-categories-container">
@@ -249,12 +242,12 @@ const Top3Categories = () => {
             {totalAllExpenses > 0 ? formatPercentage((totalSpent / totalAllExpenses) * 100) : '0%'}
           </span>
         </div>
-        {totalBudget > 0 && (
+        {/* {totalBudget > 0 && (
           <div className="budget-stat">
             <span className="budget-label">מתוך תקציב:</span>
             <span className="budget-value">{formatCurrency(totalBudget)}</span>
           </div>
-        )}
+        )} */}
       </div>
 
       <div className="top3list">
@@ -327,11 +320,11 @@ const Top3Categories = () => {
         <div className="remaining-budget">
           יתרת הוצאות בקטגוריות אחרות: {formatCurrency(totalAllExpenses - totalSpent)}
         </div>
-        {totalBudget > 0 && (
+        {/* {totalBudget > 0 && (
           <div className="remaining-budget">
             יתרת תקציב: {formatCurrency(totalBudget - totalAllExpenses)}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

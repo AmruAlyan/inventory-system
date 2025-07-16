@@ -28,6 +28,7 @@ const ManagerLayout = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [realName, setRealName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   
@@ -49,27 +50,31 @@ const ManagerLayout = () => {
 
   ];
 
-  // Fetch real user name from Firestore
-  const fetchUserName = useCallback(async () => {
+  // Fetch real user name and avatar from Firestore
+  const fetchUserData = useCallback(async () => {
     const user = auth.currentUser;
     if (user) {
       try {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setRealName(docSnap.data().name || "");
+          const userData = docSnap.data();
+          setRealName(userData.name || "");
+          setUserAvatar(userData.avatarUrl || "");
         } else {
           setRealName(user.displayName || "");
+          setUserAvatar("");
         }
       } catch (err) {
         setRealName(user.displayName || "");
+        setUserAvatar("");
       }
     }
   }, []);
 
   useEffect(() => {
-    fetchUserName();
-  }, [fetchUserName]);
+    fetchUserData();
+  }, [fetchUserData]);
 
   const toggleSidebar = () => {
     if (isProfileOpen) setIsProfileOpen(false);
@@ -94,6 +99,7 @@ const ManagerLayout = () => {
         title={role}
         ref={toggleButtonRef}
         sidebarRef={sidebarRef}
+        userAvatar={userAvatar}
       />
 
       <main className="layout-main">

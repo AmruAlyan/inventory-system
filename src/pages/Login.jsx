@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ThemeSwitch from "../components/LayoutComponents/ThemeSwitch";
 import { ROLES } from "../constants/roles.js";
 import Logo from "../assets/pics/Home1.png";
+import Spinner from "../components/Spinner";
 
 function Login() {
   // Input values
@@ -22,6 +23,9 @@ function Login() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  
+  // Loading state for authentication
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   
   // Forgot password states
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -151,6 +155,7 @@ function Login() {
     setStatusMessage("");
     setEmailError("");
     setPasswordError("");
+    setIsAuthenticating(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -222,11 +227,20 @@ function Login() {
     } catch (error) {
       setStatusMessage("דוא״ל או סיסמה שגויים. אנא נסה שוב."); // Incorrect username or password
       console.error("Login authentication error:", error.code, error.message);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   return (
     <div className="container" data-theme="light">
+      {/* Authentication Loading Overlay */}
+      {isAuthenticating && (
+        <div className="auth-loading-overlay">
+          <Spinner text="מתחבר למערכת..." />
+        </div>
+      )}
+      
       {/* Login Form */}
       <div className="second">
         {/* Left Panel - Branding */}
@@ -304,7 +318,9 @@ function Login() {
                     <div className="status">
                       <span>{statusMessage}</span>
                     </div>
-                    <button className="submit-button" type="submit">כניסה</button>
+                    <button className="submit-button" type="submit" disabled={isAuthenticating}>
+                      {isAuthenticating ? "מתחבר..." : "כניסה"}
+                    </button>
                   </form>
                   
                   {/* Forgot Password Link */}

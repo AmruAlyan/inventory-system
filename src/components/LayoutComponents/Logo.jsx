@@ -8,23 +8,10 @@ import '../../styles/ForLayout/header.css';
 
 const Logo = ({ size = 40 }) => {
     const navigate = useNavigate();
-    const [currentTheme, setCurrentTheme] = useState(() => {
-        const savedTheme = localStorage.getItem("themeMode") || "auto";
-        if (savedTheme === "auto") {
-            return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        return savedTheme;
-    });
 
     useEffect(() => {
         const handleThemeChange = () => {
-            const savedTheme = localStorage.getItem("themeMode") || "auto";
-            if (savedTheme === "auto") {
-                const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                setCurrentTheme(systemTheme);
-            } else {
-                setCurrentTheme(savedTheme);
-            }
+            // Theme changes are handled by CSS variables
         };
 
         // Listen for localStorage changes
@@ -35,13 +22,8 @@ const Logo = ({ size = 40 }) => {
         mediaQuery.addEventListener('change', handleThemeChange);
 
         // Listen for data-theme attribute changes on document
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-                    const currentDataTheme = document.documentElement.getAttribute('data-theme');
-                    setCurrentTheme(currentDataTheme || 'light');
-                }
-            });
+        const observer = new MutationObserver(() => {
+            // Theme changes are handled by CSS variables
         });
 
         observer.observe(document.documentElement, {
