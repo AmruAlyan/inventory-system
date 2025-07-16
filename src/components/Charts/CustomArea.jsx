@@ -27,7 +27,6 @@ const formatHebrewDate = (date) => {
 };
 
 const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
-  const [theme, setTheme] = useState('light');
   const [chartData, setChartData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [gradientOffset, setGradientOffset] = useState(1);
@@ -37,11 +36,8 @@ const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
   const [filterType, setFilterType] = useState('count'); // 'count' or 'date'
 
   useEffect(() => {
-    const currentTheme = document.documentElement.dataset.theme || 'light';
-    setTheme(currentTheme);
     const observer = new MutationObserver(() => {
-      const updatedTheme = document.documentElement.dataset.theme || 'light';
-      setTheme(updatedTheme);
+      // Re-render when theme changes
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
@@ -125,14 +121,6 @@ const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
     }
   };
 
-  const tooltipStyle = {
-    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--panel-bg').trim(),
-    color: getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim(),
-    border: `1px solid ${getComputedStyle(document.documentElement).getPropertyValue('--primary-text').trim()}`,
-    borderRadius: '0.5rem',
-    padding: '0.5rem',
-  };
-
   // Custom tooltip to display the date in full Hebrew format
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -151,8 +139,6 @@ const AreaChartFillByValue = ({ data = [], chartOnly = false }) => {
     }
     return null;
   };
-
-  const formatTooltip = (value, name) => [`${value.toFixed(2)} ₪`, name === 'ערך' ? 'ערך' : name];
 
   if (chartOnly) {
     return (

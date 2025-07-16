@@ -98,16 +98,6 @@ const SwitchableBarChart = ({ budgetData, purchaseData }) => {
     }
   };
   
-  // Format date for the input value (YYYY-MM-DD)
-  const formatDateForInput = (date) => {
-    if (!date) return '';
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   // Custom tooltip to display the date in full Hebrew format
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

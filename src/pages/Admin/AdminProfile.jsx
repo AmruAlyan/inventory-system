@@ -163,7 +163,7 @@ const AdminProfile = () => {
     if (activeTab === 'users') {
       fetchAllUsers();
     }
-  }, [activeTab]);
+  }, [activeTab]); // Removed fetchAllUsers from dependencies to prevent infinite loop
 
   // Add new user (with temporary password)
   const handleAddUser = async () => {

@@ -1,37 +1,9 @@
-'use client'
-
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import '../../styles/ForAdmin/customBar.css';
 
-// Sample data as fallback if no props data is provided
-const sampleData = [
-  { date: 'Apr-1', תקציב: 500 },
-  { date: 'Apr-2', תקציב: 380 },
-  { date: 'Apr-3', תקציב: 300 },
-  { date: 'Apr-4', תקציב: 150 },
-  { date: 'Apr-5', תקציב: 80 },
-  { date: 'Apr-6', תקציב: 50 },
-  { date: 'Apr-7', תקציב: 0 }
-];
-
 const CustomBar = ({ data = [] }) => {
-  const [theme, setTheme] = useState('light');
   const [chartData, setChartData] = useState([]);
-
-  useEffect(() => {
-    const currentTheme = document.documentElement.dataset.theme || 'light';
-    setTheme(currentTheme);
-
-    const observer = new MutationObserver(() => {
-      const updatedTheme = document.documentElement.dataset.theme || 'light';
-      setTheme(updatedTheme);
-    });
-
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (data && data.length > 0) {

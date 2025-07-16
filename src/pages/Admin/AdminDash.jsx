@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faWallet, faShekel, faArrowLeftLong, faReceipt } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faShekel, faArrowLeftLong, faReceipt } from '@fortawesome/free-solid-svg-icons';
 import CustomBar from "../../components/Charts/CustomBar";
 import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
@@ -11,12 +11,11 @@ import Top3Categories from "../../components/Top3cat";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';
+import { UI_CONFIG } from '../../constants/config';
 
 import '../../styles/dashboard.css';
 import '../../styles/ForManager/products.css';
 import '../../styles/ForAdmin/switchableBarChart.css';
-
-const LOW_STOCK_THRESHOLD = 10;
 
 const AdminDash = () => {
   const [loading, setLoading] = useState(true);
@@ -25,9 +24,7 @@ const AdminDash = () => {
   const [productsCount, setProductsCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [barData, setBarData] = useState([]);
-  const [budgetHistory, setBudgetHistory] = useState([]);
   const [recentPurchases, setRecentPurchases] = useState([]);
-  const [products, setProducts] = useState([]);
   const [areaData, setAreaData] = useState([]);
   const [inventoryValue, setInventoryValue] = useState(0);
 
@@ -65,26 +62,27 @@ const AdminDash = () => {
         historyData.sort((a, b) => b.date - a.date);
         setBarData(historyData);
 
+        // Get last balance from the most recent budget history entry
+        const lastBalanceAmount = historyData.length > 0 ? historyData[0].amount : 0;
+        setLastBalance(lastBalanceAmount);
+
         // If budget document exists, use its data
         if (budgetSnapshot.exists()) {
           const data = budgetSnapshot.data();
           setBudget(data.totalBudget || 0);
-          setLastBalance(data.latestUpdate?.amount || 0);
         }
         // Fetch products
         const productsSnapshot = await getDocs(collection(db, 'products'));
         let count = 0;
         let lowStock = 0;
         let totalInventoryValue = 0;
-        const productsArr = [];
         productsSnapshot.forEach(doc => {
           const p = doc.data();
           count++;
           // Count items that are either out of stock OR low stock
-          if (p.quantity <= 0 || (p.quantity > 0 && p.quantity < LOW_STOCK_THRESHOLD)) {
+          if (p.quantity <= 0 || (p.quantity > 0 && p.quantity < UI_CONFIG.LOW_STOCK_THRESHOLD)) {
             lowStock++;
           }
-          productsArr.push(p);
           // Calculate inventory value (quantity * price)
           if (typeof p.quantity === 'number' && typeof p.price === 'number') {
             totalInventoryValue += p.quantity * p.price;
@@ -92,7 +90,6 @@ const AdminDash = () => {
         });
         setProductsCount(count);
         setLowStockCount(lowStock);
-        setProducts(productsArr);
         setInventoryValue(totalInventoryValue);
 
         // Fetch last 3 purchases
@@ -293,10 +290,6 @@ const AdminDash = () => {
       {/* Main chart area: two rows, two columns */}
       <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
-          
-          {/* <div className="dashboard-chart-wrapper pie-chart-wrapper">
-            <CustomPie products={products} userRole="admin" />
-          </div> */}
           <Top3Categories />
           <div className="dashboard-chart-wrapper area-chart-wrapper">
             <CustomArea data={areaData} />

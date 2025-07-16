@@ -6,6 +6,7 @@ import './index.css'
 import { ToastContainer, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import setupLocatorUI from "@locator/runtime";
+import { UI_CONFIG } from './constants/config';
 
 // Setup LocatorJS for development
 if (import.meta.env.DEV) {
@@ -19,7 +20,7 @@ function MainApp() {
       <App />
       <ToastContainer
         position="top-center"
-        autoClose={3000}
+        autoClose={UI_CONFIG.TOAST_AUTO_CLOSE_DELAY}
         hideProgressBar={true}
         newestOnTop={false}
         closeOnClick
@@ -29,7 +30,7 @@ function MainApp() {
         pauseOnHover
         theme="colored"
         transition={Slide}
-        style={{ top: 70 }} // below header
+        style={{ top: 70 }}
       />
     </>
   );
@@ -40,17 +41,3 @@ createRoot(document.getElementById('root')).render(
     <MainApp />
   </StrictMode>,
 )
-
-
-// import React from 'react';
-// import ReactDOM from 'react-dom/client';
-// import App from './App';
-// import { ThemeProvider } from './themeContext';
-// import './index.css';
-
-// const root = ReactDOM.createRoot(document.getElementById('root'));
-// root.render(
-//   <ThemeProvider>
-//     <App />
-//   </ThemeProvider>
-// );

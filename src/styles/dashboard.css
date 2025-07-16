@@ -87,6 +87,7 @@
     min-height: 400px;
     flex: 1;
     min-width: 300px;
+    max-width: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,7 +189,7 @@
 }
 
 .purchases-chart-wrapper {
-    flex: 0 0 calc(40% - 0.75rem);
+    /* flex: 0 0 calc(40% - 0.75rem); */
     padding: 0;
     min-height: 400px;
 }
@@ -252,6 +253,15 @@
 .dashboard-purchase-items {
     min-width: 60px;
     color: var(--secondary-text);
+}
+
+.dashboard-main-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: top;
+    gap: 1.5rem;
 }
 
 @media (max-width: 768px) {

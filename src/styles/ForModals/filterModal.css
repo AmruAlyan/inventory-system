@@ -42,7 +42,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 160px;
+  max-height: 180px;
   overflow-y: auto;
   padding: 12px;
   border-radius: var(--border-radius-md);
@@ -75,8 +75,8 @@
 .stock-status-options {
   display: flex;
   flex-direction: column;
-  height: 160px;
-  gap: 12px;
+  height: 180px;
+  gap: 8px;
   padding: 12px;
   border-radius: var(--border-radius-md);
   background-color: var(--bg-color);

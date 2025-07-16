@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faFileLines, 
-  faSearch, 
-  faToggleOn, 
-  faToggleOff, 
-  faMinus, 
+  faToggleOff,
   faEdit, 
   faSave, 
   faTimes,
   faSpinner,
   faPenToSquare,
   faList,
-  faTableCells,
   faBorderAll,
   faFilter,
   faSort,
@@ -22,6 +17,7 @@ import {
 import { toast } from 'react-toastify';
 import { doc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { showPrompt } from '../../utils/dialogs';
 import '../../styles/ForManager/products.css';
 import Spinner from '../../components/Spinner';
 import ProductCard from '../../components/ProductCard';
@@ -361,14 +357,24 @@ const ConsumedItems = () => {
   };
 
   // Handle actions for cards view
-  const handleCardAction = (product) => {
+  const handleCardAction = async (product) => {
     if (mode === 'consumption') {
-      const quantity = prompt(`כמה יחידות של ${product.name} נצרכו?`, '1');
+      const quantity = await showPrompt(
+        `כמה יחידות של ${product.name} נצרכו?`,
+        '1',
+        'רישום צריכה',
+        'הזן כמות'
+      );
       if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
         handleConsumption(product.id, parseInt(quantity));
       }
     } else {
-      const quantity = prompt(`מה הכמות הנוכחית של ${product.name} במלאי?`, product.quantity.toString());
+      const quantity = await showPrompt(
+        `מה הכמות הנוכחית של ${product.name} במלאי?`,
+        product.quantity.toString(),
+        'עדכון מלאי',
+        'הזן כמות במלאי'
+      );
       if (quantity !== null && !isNaN(quantity) && parseInt(quantity) >= 0) {
         handleStocktaking(product.id, parseInt(quantity));
       }

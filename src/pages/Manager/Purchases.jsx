@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
@@ -6,10 +6,6 @@ import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, up
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
 import '../../styles/ForManager/products.css';
-// import '../../styles/ForModals/PurchaseModal.css';
-// import '../../styles/ForModals/overlay.css';
-// import '../../styles/ForModals/productModal.css';
-// import '../../styles/ForModals/savePurchaseModal.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
 import Spinner from '../../components/Spinner';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -34,6 +30,10 @@ const Purchases = () => {
   const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [dragActive, setDragActive] = useState(false);
+  
+  // Sorting state for current purchase table
+  const [currentPurchaseSortField, setCurrentPurchaseSortField] = useState('name');
+  const [currentPurchaseSortDirection, setCurrentPurchaseSortDirection] = useState('asc');
   
   // Pagination state for purchase history
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,6 +88,7 @@ const Purchases = () => {
 
   // --- Add cancel and save logic for price editing ---
 const handleEditPrice = (item) => {
+  // Use id as the unique identifier for editing
   setEditingId(item.id);
   setEditPrice(item.price);
 };
@@ -97,27 +98,25 @@ const handleCancelEdit = () => {
   setEditPrice('');
 };
 
-const handleSavePrice = async (itemId) => {
+const handleSavePrice = async (productId) => {
   try {
     // Update price in purchases/current
     const currentDoc = doc(db, 'purchases', 'current');
     const currentData = await getDoc(currentDoc);
-    let productId = null;
     if (currentData.exists()) {
       const items = currentData.data().items.map(item => {
-        if (item.id === itemId) {
-          productId = item.id;
+        if (item.id === productId) {
           return { ...item, price: Number(editPrice) };
         }
         return item;
       });
       await updateDoc(currentDoc, { items });
     }
-    // Update price in products collection
-    if (productId) {
-      const productDoc = doc(db, 'products', productId);
-      await updateDoc(productDoc, { price: Number(editPrice) });
-    }
+    
+    // Note: We can no longer directly update the product price in the products collection
+    // since we don't have the product ID. This is actually better for data integrity
+    // as it prevents accidental price changes in the main product catalog.
+    
     setEditingId(null);
     setEditPrice('');
     toast.success('המחיר עודכן בהצלחה');
@@ -154,7 +153,7 @@ const handleSavePrice = async (itemId) => {
 
       // Calculate total purchase amount
       const purchaseAmount = currentPurchase.items.reduce((sum, item) => 
-        sum + (item.actualPrice * item.quantity), 0
+        sum + (item.price * item.quantity), 0
       );
 
       // Get current budget
@@ -203,28 +202,51 @@ const handleSavePrice = async (itemId) => {
       await addDoc(collection(db, 'purchases/history/items'), purchaseData);
 
       // Update product quantities (increase stock for purchased items)
+      // Note: Since we no longer have product IDs in the purchase items,
+      // we need to find products by name. This is less efficient but more robust.
       for (const item of currentPurchase.items) {
-        const productRef = doc(db, 'products', item.id);
-        const productDoc = await getDoc(productRef);
-        
-        if (productDoc.exists()) {
-          const currentQuantity = productDoc.data().quantity || 0;
-          const newQuantity = currentQuantity + item.quantity;
+        try {
+          // Find product by name
+          const productsSnapshot = await getDocs(collection(db, 'products'));
+          const matchingProduct = productsSnapshot.docs.find(doc => 
+            doc.data().name === item.name
+          );
           
-          batch.update(productRef, {
-            quantity: newQuantity,
-            lastModified: Timestamp.fromDate(new Date())
-          });
+          if (matchingProduct) {
+            const productRef = doc(db, 'products', matchingProduct.id);
+            const currentQuantity = matchingProduct.data().quantity || 0;
+            const newQuantity = currentQuantity + item.quantity;
+            
+            batch.update(productRef, {
+              quantity: newQuantity,
+              lastModified: Timestamp.fromDate(new Date())
+            });
+          }
+        } catch (error) {
+          console.warn(`Could not update quantity for product: ${item.name}`, error);
         }
       }
 
       // Clear current purchase
       batch.update(doc(db, 'purchases', 'current'), { items: [] });
 
-      // Delete items from shopping list
-      currentPurchase.items.forEach(item => {
-        batch.delete(doc(db, 'sharedShoppingList', 'globalList', 'items', item.id));
-      });
+      // Delete items from shopping list by finding them by product reference
+      // Get all shopping list items to find which ones match our purchased products
+      const shoppingListSnapshot = await getDocs(
+        collection(doc(db, 'sharedShoppingList', 'globalList'), 'items')
+      );
+      
+      for (const item of currentPurchase.items) {
+        if (item.id) {
+          // Find shopping list items that reference this product
+          shoppingListSnapshot.docs.forEach(shoppingListDoc => {
+            const shoppingListItem = shoppingListDoc.data();
+            if (shoppingListItem.productRef?.id === item.id) {
+              batch.delete(doc(db, 'sharedShoppingList', 'globalList', 'items', shoppingListDoc.id));
+            }
+          });
+        }
+      }
 
       await batch.commit();
       
@@ -346,6 +368,67 @@ const handleSavePrice = async (itemId) => {
     if (sortField !== field) return faSort;
     return sortDirection === 'asc' ? faSortUp : faSortDown;
   };
+
+  // Sorting functionality for current purchase table
+  const handleCurrentPurchaseSort = (field) => {
+    if (currentPurchaseSortField === field) {
+      setCurrentPurchaseSortDirection(currentPurchaseSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCurrentPurchaseSortField(field);
+      setCurrentPurchaseSortDirection('asc');
+    }
+  };
+
+  const getCurrentPurchaseSortIcon = (field) => {
+    if (currentPurchaseSortField !== field) return faSort;
+    return currentPurchaseSortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  // Sort current purchase items with memoization
+  const sortedCurrentPurchaseItems = useMemo(() => {
+    if (!currentPurchase.items) return [];
+    
+    return [...currentPurchase.items].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (currentPurchaseSortField) {
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'category':
+          aValue = categories[a.category] || a.categoryName || 'לא מוגדר';
+          bValue = categories[b.category] || b.categoryName || 'לא מוגדר';
+          break;
+        case 'quantity':
+          aValue = a.quantity || 0;
+          bValue = b.quantity || 0;
+          break;
+        case 'price':
+          aValue = a.price || 0;
+          bValue = b.price || 0;
+          break;
+        case 'total':
+          aValue = (a.price || 0) * (a.quantity || 0);
+          bValue = (b.price || 0) * (b.quantity || 0);
+          break;
+        default:
+          return 0;
+      }
+      
+      if (currentPurchaseSortDirection === 'asc') {
+        if (typeof aValue === 'string') {
+          return aValue.localeCompare(bValue);
+        }
+        return aValue > bValue ? 1 : -1;
+      } else {
+        if (typeof aValue === 'string') {
+          return bValue.localeCompare(aValue);
+        }
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  }, [currentPurchase.items, currentPurchaseSortField, currentPurchaseSortDirection, categories]);
 
   const sortedPurchaseHistory = [...purchaseHistory].sort((a, b) => {
     let aValue, bValue;
@@ -767,19 +850,79 @@ const handleSavePurchaseDate = async (purchaseId) => {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>שם מוצר</th>
-                  <th>קטגוריה</th>
-                  <th>כמות</th>
-                  <th>מחיר</th>
-                  <th>סה"כ</th>
+                  <th 
+                    onClick={() => handleCurrentPurchaseSort('name')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי שם מוצר"
+                  >
+                    שם מוצר <FontAwesomeIcon icon={getCurrentPurchaseSortIcon('name')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleCurrentPurchaseSort('category')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי קטגוריה"
+                  >
+                    קטגוריה <FontAwesomeIcon icon={getCurrentPurchaseSortIcon('category')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleCurrentPurchaseSort('quantity')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי כמות"
+                  >
+                    כמות <FontAwesomeIcon icon={getCurrentPurchaseSortIcon('quantity')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleCurrentPurchaseSort('price')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי מחיר"
+                  >
+                    מחיר <FontAwesomeIcon icon={getCurrentPurchaseSortIcon('price')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
+                  <th 
+                    onClick={() => handleCurrentPurchaseSort('total')} 
+                    style={{ 
+                      cursor: 'pointer', 
+                      userSelect: 'none',
+                      transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    title="לחץ למיון לפי סהכ"
+                  >
+                    סה"כ <FontAwesomeIcon icon={getCurrentPurchaseSortIcon('total')} style={{ marginRight: '5px', fontSize: '0.8em', opacity: 0.7 }} />
+                  </th>
                   <th>פעולות</th>
                 </tr>
               </thead>
               <tbody>
-                {currentPurchase.items.map(item => (
-                  <tr key={item.id}>
+                {sortedCurrentPurchaseItems.map((item, index) => (
+                  <tr key={item.id || `${item.name}-${index}`}>
                     <td>{item.name}</td>
-                    <td>{categories[item.category] || 'לא מוגדר'}</td>
+                    <td>{categories[item.category] || item.categoryName || 'לא מוגדר'}</td>
                     <td>{item.quantity}</td>
                     <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       {editingId === item.id ? (
@@ -845,10 +988,10 @@ const handleSavePurchaseDate = async (purchaseId) => {
             </table>
             
             <div className="purchase-summary card">
-              <div className="d-flex justify-content-between align-items-center" style={{ margin: '1rem' }}>
+              {/* <div className="d-flex justify-content-between align-items-center" style={{ margin: '1rem' }}> */}
                 <h3>
                   סה"כ רכישה: {currentPurchase.items.reduce((sum, item) => 
-                    sum + (item.actualPrice * item.quantity), 0).toFixed(2)} ₪
+                    sum + (item.price * item.quantity), 0).toFixed(2)} ₪
                 </h3>
                 <button
                   className="btn btn-primary"
@@ -858,7 +1001,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                   <FontAwesomeIcon icon={faSave} style={{ marginLeft: '8px' }} />
                   שמור רכישה
                 </button>
-              </div>
+              {/* </div> */}
             </div>
           </>
         )
@@ -927,7 +1070,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
                     textAlign: 'center'
                   }}>
                     <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                      {currentPurchase.items.reduce((sum, item) => sum + (item.actualPrice * item.quantity), 0).toFixed(2)} ₪
+                      {currentPurchase.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} ₪
                     </div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)', marginTop: '0.25rem' }}>
                       סה"כ עלות

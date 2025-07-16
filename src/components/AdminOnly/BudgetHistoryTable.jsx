@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faFilter, faEraser, faSave, faTimes, faSortUp, faSortDown, faSort } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faFilter, faSave, faTimes, faSortUp, faSortDown, faSort } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
-import { collection, doc, getDocs, deleteDoc, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, limit, addDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
-import { showConfirm } from '../../utils/dialogs';
+
 import '../../styles/ForAdmin/budgetHistoryTable.css';
 import '../../styles/ForManager/products.css';
 const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
@@ -63,24 +63,109 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     { value: 'year', label: 'שנה אחרונה' }
   ];
 
+  // Helper to get JS Date from any Firestore/JS/string/number date
+  const toDateObj = (date) => {
+    if (!date) return new Date(0);
+    if (date instanceof Date) return date;
+    if (date && typeof date.toDate === 'function') return date.toDate();
+    if (typeof date === 'number') return new Date(date);
+    if (typeof date === 'string') {
+      const parsed = Date.parse(date);
+      return isNaN(parsed) ? new Date(0) : new Date(parsed);
+    }
+    return new Date(0);
+  };
+
+  // Apply sorting to data
+  const applySorting = useCallback((data) => {
+    return [...data].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = toDateObj(a.date).getTime();
+          bValue = toDateObj(b.date).getTime();
+          break;
+        case 'amount':
+          aValue = a.amount;
+          bValue = b.amount;
+          break;
+        case 'totalBudget':
+          aValue = a.totalBudget;
+          bValue = b.totalBudget;
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+  }, [sortBy, sortOrder]);
+
+  const applyFilter = useCallback((filterValue) => {
+    if (!history.length) return;
+
+    const now = new Date();
+    let filteredData = [];
+
+    switch (filterValue) {
+      case 'week': {
+        // Last 7 days
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        filteredData = history.filter(item => toDateObj(item.date) >= weekAgo);
+        break;
+      }
+      case 'month': {
+        // Last 30 days
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        filteredData = history.filter(item => toDateObj(item.date) >= monthAgo);
+        break;
+      }
+      case '6months': {
+        // Last 180 days
+        const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+        filteredData = history.filter(item => toDateObj(item.date) >= sixMonthsAgo);
+        break;
+      }
+      case 'year': {
+        // Last 365 days
+        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        filteredData = history.filter(item => toDateObj(item.date) >= yearAgo);
+        break;
+      }
+      case 'all':
+      default:
+        filteredData = [...history];
+    }
+
+    // Apply sorting to filtered data
+    const sortedData = applySorting(filteredData);
+    setFilteredHistory(sortedData);
+  }, [history, applySorting]);
+
   // Fetch budget history
   useEffect(() => {
     fetchBudgetHistory();
   }, [refreshTrigger]); // Re-fetch when refreshTrigger changes
 
-  // Apply filters when filter value changes
+  // Apply filters and sorting when relevant data changes
   useEffect(() => {
-    applyFilter(filter);
-    setCurrentPage(1); // Reset to first page on filter change
-  }, [filter, history]);
-
-  // Apply sorting when sort criteria changes
-  useEffect(() => {
-    if (filteredHistory.length > 0) {
-      const sortedData = applySorting(filteredHistory);
-      setFilteredHistory(sortedData);
+    if (history.length > 0) {
+      applyFilter(filter);
+      setCurrentPage(1); // Reset to first page on filter change
     }
-  }, [sortBy, sortOrder]);
+  }, [filter, history, applyFilter]);
+
+  // Re-apply filter when sort criteria changes (which will also apply sorting)
+  useEffect(() => {
+    if (history.length > 0) {
+      applyFilter(filter);
+    }
+  }, [sortBy, sortOrder, applyFilter, filter, history]);
 
   const fetchBudgetHistory = async () => {
     try {
@@ -135,61 +220,6 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     }
   };
 
-  // Helper to get JS Date from any Firestore/JS/string/number date
-  const toDateObj = (date) => {
-    if (!date) return new Date(0);
-    if (date instanceof Date) return date;
-    if (date && typeof date.toDate === 'function') return date.toDate();
-    if (typeof date === 'number') return new Date(date);
-    if (typeof date === 'string') {
-      const parsed = Date.parse(date);
-      return isNaN(parsed) ? new Date(0) : new Date(parsed);
-    }
-    return new Date(0);
-  };
-
-  const applyFilter = (filterValue) => {
-    if (!history.length) return;
-
-    const now = new Date();
-    let filteredData = [];
-
-    switch (filterValue) {
-      case 'week': {
-        // Last 7 days
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => toDateObj(item.date) >= weekAgo);
-        break;
-      }
-      case 'month': {
-        // Last 30 days
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => toDateObj(item.date) >= monthAgo);
-        break;
-      }
-      case '6months': {
-        // Last 180 days
-        const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => toDateObj(item.date) >= sixMonthsAgo);
-        break;
-      }
-      case 'year': {
-        // Last 365 days
-        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        filteredData = history.filter(item => toDateObj(item.date) >= yearAgo);
-        break;
-      }
-      case 'all':
-      default:
-        filteredData = [...history];
-    }
-
-    // Apply sorting
-    filteredData = applySorting(filteredData);
-
-    setFilteredHistory(filteredData);
-  };
-
   // Handle column sorting
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -200,36 +230,6 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       setSortBy(column);
       setSortOrder('desc');
     }
-  };
-
-  // Apply sorting to data
-  const applySorting = (data) => {
-    return [...data].sort((a, b) => {
-      let aValue, bValue;
-
-      switch (sortBy) {
-        case 'date':
-          aValue = toDateObj(a.date).getTime();
-          bValue = toDateObj(b.date).getTime();
-          break;
-        case 'amount':
-          aValue = a.amount;
-          bValue = b.amount;
-          break;
-        case 'totalBudget':
-          aValue = a.totalBudget;
-          bValue = b.totalBudget;
-          break;
-        default:
-          return 0;
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
-    });
   };
 
   // Get sort icon for column headers
@@ -262,160 +262,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     });
   };
 
-  const handleDeleteAll = async () => {
-    const confirmed = await showConfirm(
-      'האם אתה בטוח שברצונך למחוק את כל רשומות התקציב? פעולה זו אינה ניתנת לביטול.',
-      'מחק הכל'
-    );
-    if (confirmed) {
-      try {
-        setIsLoading(true);
 
-        // Get all budget entries
-        const historyRef = collection(db, "budgets", "history", "entries");
-        const querySnapshot = await getDocs(historyRef);
-
-        // Delete each entry
-        const deletePromises = [];
-        querySnapshot.forEach((document) => {
-          deletePromises.push(deleteDoc(doc(db, "budgets", "history", "entries", document.id)));
-        });
-
-        await Promise.all(deletePromises);
-
-        // Reset the current budget document
-        const currentBudgetRef = doc(db, "budgets", "current");
-        await setDoc(currentBudgetRef, {
-          totalBudget: 0,
-          latestUpdate: {
-            amount: 0,
-            date: Timestamp.fromDate(new Date())
-          }
-        });
-
-        // Clear local state
-        setHistory([]);
-        setFilteredHistory([]);
-
-        // Notify parent component
-        if (onBudgetChange) {
-          onBudgetChange();
-        }
-
-        setError(null);
-      } catch (err) {
-        console.error("Error deleting all budget entries:", err);
-        setError("אירעה שגיאה במחיקת רשומות התקציב");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleDelete = async (id, amount, totalBudget) => {
-    const confirmed = await showConfirm(
-      'האם אתה בטוח שברצונך למחוק רשומה זו?',
-      'מחק'
-    );
-    if (confirmed) {
-      try {
-        setIsLoading(true);
-
-        // Get the entry to delete
-        const entryRef = doc(db, "budgets", "history", "entries", id);
-
-        // Get current budget document
-        const currentBudgetRef = doc(db, "budgets", "current");
-
-        // Get all history entries to check if this is the last one
-        const historyQuery = query(collection(db, "budgets", "history", "entries"));
-        const historySnapshot = await getDocs(historyQuery);
-        const isLastEntry = historySnapshot.size === 1;
-
-        // Get the entry we are about to delete to check if it's the latest update
-        const entryToDelete = await getDoc(entryRef);
-        const entryToDeleteData = entryToDelete.data();
-        const entryToDeleteDate = entryToDeleteData.date.toDate();
-
-        // Delete the entry
-        await deleteDoc(entryRef);
-
-        if (isLastEntry) {
-          // If this is the last entry, reset everything
-          await setDoc(currentBudgetRef, {
-            totalBudget: 0,
-            latestUpdate: {
-              amount: 0,
-              date: Timestamp.fromDate(new Date())
-            }
-          });
-        } else {
-          // Update total budget
-          const newTotalBudget = totalBudget - amount;
-          
-          // Check if we're deleting the latest update
-          // Get the current budget document to check the latest update
-          const currentBudgetDoc = await getDoc(currentBudgetRef);
-          const currentBudgetData = currentBudgetDoc.data();
-          const latestUpdateDate = currentBudgetData.latestUpdate.date.toDate();
-          
-          // If the deleted entry was the latest update, find the new latest update
-          if (latestUpdateDate.getTime() === entryToDeleteDate.getTime()) {
-            // Query for the most recent entry after deletion
-            const sortedHistoryQuery = query(
-              collection(db, "budgets", "history", "entries"),
-              orderBy("date", "desc"),
-              // Limit to 1 to get only the most recent entry
-              limit(1)
-            );
-            
-            const sortedHistorySnapshot = await getDocs(sortedHistoryQuery);
-            
-            if (!sortedHistorySnapshot.empty) {
-              // Get the most recent entry
-              const mostRecentDoc = sortedHistorySnapshot.docs[0];
-              const mostRecentData = mostRecentDoc.data();
-              
-              // Update the current budget document with this entry as the latest
-              await setDoc(currentBudgetRef, {
-                totalBudget: newTotalBudget,
-                latestUpdate: {
-                  amount: mostRecentData.amount,
-                  date: mostRecentData.date
-                }
-              }, { merge: true });
-            } else {
-              // Fallback in case something went wrong with the query
-              await updateDoc(currentBudgetRef, {
-                totalBudget: newTotalBudget
-              });
-            }
-          } else {
-            // If deleted entry wasn't the latest, just update the total budget
-            await updateDoc(currentBudgetRef, {
-              totalBudget: newTotalBudget
-            });
-          }
-        }
-
-        // Update both history and filteredHistory state
-        setHistory(prev => prev.filter(item => item.id !== id));
-        setFilteredHistory(prev => prev.filter(item => item.id !== id));
-
-        // Notify parent component
-        if (onBudgetChange) {
-          onBudgetChange();
-        }
-
-        setError(null);
-      } catch (err) {
-        console.error("Error deleting budget entry:", err);
-        setError("אירעה שגיאה במחיקת הרשומה");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
 
   const saveEdit = async () => {
     if (!editingEntry) return;

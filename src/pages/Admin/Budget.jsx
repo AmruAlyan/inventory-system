@@ -3,13 +3,11 @@ import "../../styles/ForAdmin/budget.css";
 import "../../styles/ForManager/products.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShekelSign, faSpinner } from "@fortawesome/free-solid-svg-icons";
-// import CustomBar from "../../components/Charts/CustomBar";
 import BudgetHistoryTable from "../../components/AdminOnly/BudgetHistoryTable";
 import Spinner from "../../components/Spinner";
 import { db } from "../../firebase/firebase";
 import { collection, doc, getDoc, setDoc, getDocs, query, orderBy, Timestamp, addDoc } from "firebase/firestore";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
-// import ExampleTableUsage from '../../components/ExampleTableUsage';
 import SortableTable from "../../components/SortableTable.jsx";
 
 const Budget = () => {

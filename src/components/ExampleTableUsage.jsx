@@ -81,13 +81,11 @@ const ExampleTableUsage = () => {
 
   // Handle edit action
   const handleEdit = (item) => {
-    console.log('Edit item:', item);
     // Add your edit logic here
   };
 
   // Handle delete action
   const handleDelete = (item) => {
-    console.log('Delete item:', item);
     // Add your delete logic here
   };
 

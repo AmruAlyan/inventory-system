@@ -1,7 +1,7 @@
 .category-widget {
     display: flex;
     flex-direction: column;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
     background-color: var(--panel-bg);
     border-radius: var(--border-radius-lg);

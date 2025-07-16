@@ -25,7 +25,7 @@ const Sidebar = ({ isExpanded, items, toggleSidebar, toggleSidebarRef, isAdmin }
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [isExpanded, toggleSidebar, toggleSidebarRef]);
+    }, [isExpanded, toggleSidebar, toggleSidebarRef, isMobile]);
 
     return (
         <div ref={sidebarRef} className={`sidebar ${isExpanded ? 'expanded' : ''}`}>

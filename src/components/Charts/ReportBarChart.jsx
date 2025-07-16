@@ -83,11 +83,6 @@ const ReportBarChart = ({ data = [], reportType = 'budget' }) => {
     setChartData(processedData);
   }, [data, reportType]);
 
-  // Custom tooltip formatter to add ₪ symbol
-  const formatTooltip = (value, name) => {
-    return [`${value} ₪`, name];
-  };
-
   if (reportType !== 'budget' && reportType !== 'purchase') {
     return <div style={{ color: 'red' }}>Unsupported report type</div>;
   }

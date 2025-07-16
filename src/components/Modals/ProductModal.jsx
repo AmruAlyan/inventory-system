@@ -21,7 +21,6 @@ export async function addProduct(productData) {
     
     const productsCollectionRef = collection(db, 'products');
     const docRef = await addDoc(productsCollectionRef, cleanedData);
-    console.log("Product successfully added with ID: ", docRef.id);
     return docRef.id;
   } catch (e) {
     console.error("Error adding product: ", e);
@@ -41,7 +40,6 @@ export async function updateProduct(productId, productData) {
     
     const productDocRef = doc(db, 'products', productId);
     await updateDoc(productDocRef, cleanedData);
-    console.log('Product successfully updated:', productId);
   } catch (e) {
     console.error('Error updating product:', e);
     throw e;
@@ -128,10 +126,22 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
       return;
     }
 
-    // Validate minStock is positive
+    // Validate that all numeric fields are non-negative
+    if (parseInt(form.quantity) < 0) {
+      setStatus('Quantity must be a non-negative number.');
+      toast.error('שגיאה: כמות חייבת להיות מספר לא שלילי');
+      return;
+    }
+
+    if (parseFloat(form.price) < 0) {
+      setStatus('Price must be a non-negative number.');
+      toast.error('שגיאה: מחיר חייב להיות מספר לא שלילי');
+      return;
+    }
+
     if (parseInt(form.minStock) < 0) {
-      setStatus('Minimum stock must be a positive number.');
-      toast.error('שגיאה: מלאי מינימום חייב להיות מספר חיובי');
+      setStatus('Minimum stock must be a non-negative number.');
+      toast.error('שגיאה: מלאי מינימום חייב להיות מספר לא שלילי');
       return;
     }
 
@@ -169,7 +179,6 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
           try {
             const imageRef = ref(storage, originalImageUrl);
             await deleteObject(imageRef);
-            console.log('Original image deleted from storage');
           } catch (deleteError) {
             console.error('Error deleting original image:', deleteError);
             // Don't fail the update if image deletion fails
@@ -226,7 +235,13 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
               </div>
               <div className='Product-form-group'>
                 <label>כמות:</label>
-                <input type="number" name="quantity" value={form.quantity} onChange={handleChange} />
+                <input 
+                  type="number" 
+                  name="quantity" 
+                  value={form.quantity} 
+                  onChange={handleChange}
+                  min="0"
+                />
               </div>
               <div className='Product-form-group'>
                 <label>מלאי מינימום:</label>
@@ -241,7 +256,14 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
               </div>
               <div className='Product-form-group'>
                 <label>מחיר:</label>
-                <input type="number" step="0.01" name="price" value={form.price} onChange={handleChange} />
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  name="price" 
+                  value={form.price} 
+                  onChange={handleChange}
+                  min="0"
+                />
               </div>
             </div>
             <div className='Product-form-image'>
