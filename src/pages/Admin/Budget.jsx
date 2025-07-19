@@ -104,18 +104,21 @@ const Budget = () => {
         // Get latest update info from history entries (first entry is most recent due to sorting)
         let latestAmount = 0;
         let latestDate = new Date().toISOString().split("T")[0];
+        let latestTime = null; // Add time tracking
         
         if (historyData.length > 0) {
           const latestEntry = historyData[0]; // First entry is most recent
           latestAmount = latestEntry.amount || 0;
           latestDate = latestEntry.date.toISOString().split("T")[0];
+          latestTime = latestEntry.date; // Store the full datetime
         }
         
         setFormData({
           current: currentBudget,
           latest: {
             amount: latestAmount,
-            date: latestDate
+            date: latestDate,
+            timestamp: latestTime // Add timestamp to form data
           },
           updates: { amount: "", date: "" }
         });
@@ -160,7 +163,12 @@ const Budget = () => {
       setError(null);
       
       const newTotalBudget = formData.current + updateAmount;
-      const entryDate = Timestamp.fromDate(new Date(updateDate));
+      // Create timestamp with current time but use the selected date
+      const selectedDate = new Date(updateDate);
+      const now = new Date();
+      // Set the selected date but keep current time
+      selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+      const entryTimestamp = Timestamp.fromDate(selectedDate);
       
       // Update current budget document (remove latestUpdate as we get it from history)
       const budgetDocRef = doc(db, "budgets", "current");
@@ -168,12 +176,12 @@ const Budget = () => {
         totalBudget: newTotalBudget
       }, { merge: true });
       
-      // Add to history
+      // Add to history with the timestamp
       const historyRef = collection(db, "budgets", "history", "entries");
       await addDoc(historyRef, {
         amount: updateAmount,
         totalBudget: newTotalBudget,
-        date: entryDate
+        date: entryTimestamp
       });
       
       // Update local state immediately
@@ -181,7 +189,8 @@ const Budget = () => {
         current: newTotalBudget,
         latest: { 
           amount: updateAmount, 
-          date: updateDate 
+          date: updateDate,
+          timestamp: selectedDate // Store the full timestamp
         },
         updates: { amount: "", date: "" },
       }));
@@ -190,12 +199,12 @@ const Budget = () => {
       const newHistoryEntry = {
         id: new Date().getTime().toString(),
         amount: updateAmount,
-        date: new Date(updateDate),
+        date: selectedDate, // Use the full timestamp instead of new Date(updateDate)
         formatted: new Intl.DateTimeFormat('he-IL', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
-        }).format(new Date(updateDate))
+        }).format(selectedDate)
       };
       
       setBudgetHistory(prev => [newHistoryEntry, ...prev]);
@@ -217,7 +226,6 @@ const Budget = () => {
       
       // Only refresh if not already loading to prevent multiple simultaneous calls
       if (isLoading) {
-        console.log("Already loading, skipping refresh");
         return;
       }
       
@@ -237,6 +245,20 @@ const Budget = () => {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'Asia/Jerusalem'
+    }).format(date);
+  };
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    return new Intl.DateTimeFormat('he-IL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
       timeZone: 'Asia/Jerusalem'
     }).format(date);
   };
@@ -271,7 +293,10 @@ const Budget = () => {
                     {formData.latest.amount.toFixed(2)}
                   </div>
                   <div className="latest-update-date">
-                    {formatDate(formData.latest.date)}
+                    {formData.latest.timestamp ? 
+                      formatDateTime(formData.latest.timestamp) : 
+                      formatDate(formData.latest.date)
+                    }
                   </div>
                 </div>
               </div>

@@ -235,6 +235,17 @@
     justify-content: center;
     scale: 0.8; /* Slightly smaller on mobile */
   }
+
+  .Product-modal h2 {
+    margin-bottom: 0 !important;
+  }
+
+  .Product-modal {
+    padding: var(--spacing-md);
+    width: 95%;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
 }
 
 @media (max-width: 576px) {
@@ -245,6 +256,8 @@
   .Product-modal {
     padding: var(--spacing-md);
     width: 95%;
+    max-height: 75vh;
+    overflow-y: auto;
   }
 
   .Product-form-group {

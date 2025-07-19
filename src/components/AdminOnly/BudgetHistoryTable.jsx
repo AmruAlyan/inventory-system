@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faFilter, faSave, faTimes, faSortUp, faSortDown, faSort } from '@fortawesome/free-solid-svg-icons';
 import { db } from '../../firebase/firebase';
-import { collection, doc, getDocs, updateDoc, setDoc, query, orderBy, Timestamp, getDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, setDoc, query, orderBy, Timestamp, getDoc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import Spinner from '../Spinner';
 
 import '../../styles/ForAdmin/budgetHistoryTable.css';
@@ -16,6 +16,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
   const [editingEntry, setEditingEntry] = useState(null);
   const [editForm, setEditForm] = useState({ amount: 0, date: '' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [itemsPerPage, setItemsPerPage] = useState(() => {
     const saved = localStorage.getItem('budgetItemsPerPage');
     return saved ? parseInt(saved) : 10;
@@ -52,6 +53,46 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       month: 'long',
       day: 'numeric'
     }).format(dateObj);
+  };
+
+  // Format date and time for detailed view
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return '';
+    let dateObj;
+    if (timestamp instanceof Date) {
+      dateObj = timestamp;
+    } else if (timestamp && typeof timestamp.toDate === 'function') {
+      dateObj = timestamp.toDate();
+    } else if (typeof timestamp === 'number') {
+      dateObj = new Date(timestamp);
+    } else if (typeof timestamp === 'string') {
+      const parsed = Date.parse(timestamp);
+      dateObj = isNaN(parsed) ? new Date() : new Date(parsed);
+    } else {
+      dateObj = new Date();
+    }
+    
+    const today = new Date();
+    const isToday = dateObj.toDateString() === today.toDateString();
+    
+    if (isToday) {
+      // For today's entries, show date and time
+      return new Intl.DateTimeFormat('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }).format(dateObj);
+    } else {
+      // For older entries, show just the date
+      return new Intl.DateTimeFormat('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }).format(dateObj);
+    }
   };
 
   // Filter options with Hebrew labels
@@ -167,6 +208,15 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     }
   }, [sortBy, sortOrder, applyFilter, filter, history]);
 
+  // Update current time every second for countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const fetchBudgetHistory = async () => {
     try {
       setIsLoading(true);
@@ -253,16 +303,51 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
     localStorage.setItem('budgetItemsPerPage', newItemsPerPage.toString());
   };
 
+  // Check if entry can be edited (within 15 minutes of creation)
+  const canEditEntry = (entry) => {
+    const entryDate = toDateObj(entry.date);
+    const timeDifference = currentTime.getTime() - entryDate.getTime();
+    const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+    
+    // Only allow editing within 15 minutes of creation
+    return Math.abs(timeDifference) <= fifteenMinutes;
+  };
+
+  // Get remaining edit time in a readable format
+  const getRemainingEditTime = (entry) => {
+    const entryDate = toDateObj(entry.date);
+    const timeDifference = currentTime.getTime() - entryDate.getTime();
+    const fifteenMinutes = 15 * 60 * 1000;
+    
+    const remainingTime = fifteenMinutes - Math.abs(timeDifference);
+    
+    if (remainingTime <= 0) {
+      return "פג תוקף";
+    }
+    
+    const remainingMinutes = Math.floor(remainingTime / (60 * 1000));
+    const remainingSeconds = Math.floor((remainingTime % (60 * 1000)) / 1000);
+    
+    // If entry was recently edited (within 10 seconds), show "רענון!" message briefly
+    if (timeDifference < 10000 && timeDifference > 0) {
+      return "רענון!";
+    }
+    
+    if (remainingMinutes > 0) {
+      return `${remainingMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    } else {
+      return `${remainingSeconds}s`;
+    }
+  };
+
   const handleEdit = (entry) => {
     setEditingEntry(entry.id);
-    const dateObj = toDateObj(entry.date); // Use the helper function to properly convert the date
+    const dateObj = toDateObj(entry.date);
     setEditForm({
       amount: entry.amount,
       date: dateObj.toISOString().split('T')[0]
     });
   };
-
-
 
   const saveEdit = async () => {
     if (!editingEntry) return;
@@ -288,13 +373,18 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       const oldEntryRef = doc(db, "budgets", "history", "entries", editingEntry);
       await deleteDoc(oldEntryRef);
 
-      // Create a new entry with the new date as the id (now use addDoc for auto ID)
-      const newDateTimestamp = Timestamp.fromDate(new Date(editForm.date));
+      // Create timestamp with current time but use the selected date
+      const selectedDate = new Date(editForm.date);
+      const now = new Date();
+      // Set the selected date but keep current time (this refreshes the edit window)
+      selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+      const newDateTimestamp = Timestamp.fromDate(selectedDate);
+      
       const historyRef = collection(db, "budgets", "history", "entries");
-      await addDoc(historyRef, {
+      const newDocRef = await addDoc(historyRef, {
         amount: newAmount,
         totalBudget: newTotalBudget,
-        date: newDateTimestamp
+        date: newDateTimestamp // Save with current timestamp to refresh edit window
       });
 
       // Update current total budget
@@ -308,12 +398,12 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
         prev
           .filter(item => item.id !== editingEntry)
           .concat({
-            id: String(newDateTimestamp),
+            id: newDocRef.id,
             amount: newAmount,
             totalBudget: newTotalBudget,
-            date: newDateTimestamp
+            date: newDateTimestamp // Use the refreshed timestamp
           })
-          .sort((a, b) => b.date - a.date)
+          .sort((a, b) => toDateObj(b.date).getTime() - toDateObj(a.date).getTime())
       );
 
       // Reset editing state
@@ -377,7 +467,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
         </div>
       ) : (
         <>
-          <div className="history-table-wrapper">
+          {/* <div className="history-table-wrapper"> */}
             <table className="inventory-table">
               <thead>
                 <tr>
@@ -416,7 +506,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                       className={`sort-icon ${sortBy === 'totalBudget' ? 'active' : ''}`}
                     />
                   </th>
-                  <th>פעולות</th>
+                  <th>סטטוס עריכה</th>
                 </tr>
               </thead>
               <tbody>
@@ -430,6 +520,14 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                           onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
                           className="date-input"
                         />
+                      ) : canEditEntry(entry) ? (
+                        <div style={{ fontSize: '0.9em' }}>
+                          <div style={{ fontWeight: 'bold' }}>{formatDate(entry.date)}</div>
+                          <div style={{ color: '#666', fontSize: '0.85em' }}>
+                            {formatDateTime(entry.date).includes(':') ? 
+                              formatDateTime(entry.date).split(', ')[1] : null}
+                          </div>
+                        </div>
                       ) : (
                         formatDate(entry.date)
                       )}
@@ -457,22 +555,50 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                             <FontAwesomeIcon icon={faTimes} style={{ color: 'white' }} />
                           </button>
                         </>
-                      ) : (
-                        <>
+                      ) : canEditEntry(entry) ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <button className="edit-btn" onClick={() => handleEdit(entry)}>
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
-                          {/* <button className="delete-btn" onClick={() => handleDelete(entry.id, entry.amount, entry.totalBudget)}>
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button> */}
-                        </>
+                          <div className="edit-timer-container" style={{ 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            fontSize: '0.75em',
+                            minWidth: '60px'
+                          }}>
+                            <span className="edit-window-indicator" style={{ 
+                              color: '#4CAF50', 
+                              fontWeight: 'bold',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              ניתן לעריכה
+                            </span>
+                            <span className="countdown-timer" style={{ 
+                              color: getRemainingEditTime(entry) === "פג תוקף" ? '#f44336' : 
+                                    getRemainingEditTime(entry) === "עד סוף היום" ? '#2196F3' : 
+                                    getRemainingEditTime(entry) === "רענון!" ? '#4CAF50' : '#FF9800',
+                              fontWeight: 'bold',
+                              fontSize: '1.1em',
+                              fontFamily: getRemainingEditTime(entry) === "רענון!" ? 'inherit' : 'monospace',
+                              whiteSpace: 'nowrap',
+                              animation: getRemainingEditTime(entry) === "רענון!" ? 'pulse 0.5s ease-in-out' : 'none'
+                            }}>
+                              {getRemainingEditTime(entry)}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#999', fontSize: '0.9em' }}>
+                          לא ניתן לעריכה
+                        </span>
                       )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          {/* </div> */}
           {filteredHistory.length > 0 && (
             <div className="pagination">
               <div className="pagination-controls">

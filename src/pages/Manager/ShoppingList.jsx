@@ -367,14 +367,14 @@ const ShoppingList = () => {
 
   // Calculate total price
   const totalPrice = shoppingList.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + (item.price || 0) * (item.quantity || 0),
     0
   );
   
   // Calculate unpurchased items total for budget checking
   const unpurchasedTotal = shoppingList
     .filter(item => !item.purchased)
-    .reduce((total, item) => total + item.price * item.quantity, 0);
+    .reduce((total, item) => total + (item.price || 0) * (item.quantity || 0), 0);
     
   // Check if budget is exceeded
   const isBudgetExceeded = totalPrice > budget;
@@ -491,9 +491,13 @@ const ShoppingList = () => {
           batch.delete(docRef);
         });
         
-        // Also clear the current purchase document
+        // Also clear the current purchase document if it exists
         const currentPurchaseRef = doc(db, 'purchases', 'current');
-        batch.update(currentPurchaseRef, { items: [] });
+        const currentPurchaseDoc = await getDoc(currentPurchaseRef);
+        
+        if (currentPurchaseDoc.exists()) {
+          batch.update(currentPurchaseRef, { items: [] });
+        }
         
         // Commit the batch
         await batch.commit();
@@ -770,8 +774,8 @@ const ShoppingList = () => {
                   <td>${item.name}</td>
                   <td>${categories[item.category] || 'לא מוגדר'}</td>
                   <td>${item.quantity}</td>
-                  <td>${item.price.toFixed(2)} ₪</td>
-                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                  <td>${(item.price || 0).toFixed(2)} ₪</td>
+                  <td>${((item.price || 0) * (item.quantity || 0)).toFixed(2)} ₪</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -800,8 +804,8 @@ const ShoppingList = () => {
                   <td>${item.name}</td>
                   <td>${categories[item.category] || 'לא מוגדר'}</td>
                   <td>${item.quantity}</td>
-                  <td>${item.price.toFixed(2)} ₪</td>
-                  <td>${(item.price * item.quantity).toFixed(2)} ₪</td>
+                  <td>${(item.price || 0).toFixed(2)} ₪</td>
+                  <td>${((item.price || 0) * (item.quantity || 0)).toFixed(2)} ₪</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -812,7 +816,7 @@ const ShoppingList = () => {
         <div class="total-section">
           <div class="total-row">
             <span>סה"כ לרכישה:</span>
-            <strong>${unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2)} ₪</strong>
+            <strong>${unpurchasedItems.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 0)), 0).toFixed(2)} ₪</strong>
           </div>
           <div class="total-row">
             <span>סה"כ כללי:</span>
@@ -824,7 +828,7 @@ const ShoppingList = () => {
           </div>
           <div class="total-row">
             <span>יתרה:</span>
-            <strong style="color: ${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)) >= 0 ? '#2e7d32' : '#d32f2f'}">${(budget - unpurchasedItems.reduce((total, item) => total + (item.price * item.quantity), 0)).toFixed(2)} ₪</strong>
+            <strong style="color: ${(budget - unpurchasedItems.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 0)), 0)) >= 0 ? '#2e7d32' : '#d32f2f'}">${(budget - unpurchasedItems.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 0)), 0)).toFixed(2)} ₪</strong>
           </div>
         </div>
 
@@ -973,7 +977,7 @@ const ShoppingList = () => {
         <div className="budget-alert-gentle">
           <p className="budget-alert-text-gentle">
             <span style={{ marginLeft: '8px' }}>💡</span>
-            הסכום הכולל (${totalPrice.toFixed(2)} ₪) עולה על התקציב הקיים
+            הסכום הכולל ({totalPrice.toFixed(2)} ₪) עולה על התקציב הקיים
           </p>
         </div>
       )}
@@ -1117,8 +1121,8 @@ const ShoppingList = () => {
                         <span className="quantity-display">{item.quantity}</span>
                       )}
                     </td>
-                    <td>{item.price.toFixed(2)} ₪</td>
-                    <td>{(item.price * item.quantity).toFixed(2)} ₪</td>                    
+                    <td>{(item.price || 0).toFixed(2)} ₪</td>
+                    <td>{((item.price || 0) * (item.quantity || 0)).toFixed(2)} ₪</td>                    
                     <td className="inventory-actions">
                       {editingId === item.id && !item.purchased ? (
                         <>

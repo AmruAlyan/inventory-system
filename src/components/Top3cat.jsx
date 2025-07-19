@@ -229,11 +229,7 @@ const Top3Categories = () => {
       {/* Expenses Overview */}
       <div className="budget-overview">
         <div className="budget-stat">
-          <span className="budget-label">סה"כ הוצאות:</span>
-          <span className="budget-value">{formatCurrency(totalAllExpenses)}</span>
-        </div>
-        <div className="budget-stat">
-          <span className="budget-label">3 עליונות:</span>
+          <span className="budget-label">3 קטגוריות עליונות:</span>
           <span className="budget-value">{formatCurrency(totalSpent)}</span>
         </div>
         <div className="budget-stat">
@@ -242,12 +238,10 @@ const Top3Categories = () => {
             {totalAllExpenses > 0 ? formatPercentage((totalSpent / totalAllExpenses) * 100) : '0%'}
           </span>
         </div>
-        {/* {totalBudget > 0 && (
-          <div className="budget-stat">
-            <span className="budget-label">מתוך תקציב:</span>
-            <span className="budget-value">{formatCurrency(totalBudget)}</span>
-          </div>
-        )} */}
+        <div className="budget-stat">
+          <span className="budget-label">סה"כ הוצאות:</span>
+          <span className="budget-value">{formatCurrency(totalAllExpenses)}</span>
+        </div>
       </div>
 
       <div className="top3list">
@@ -274,23 +268,6 @@ const Top3Categories = () => {
                 </div>
               </div>
 
-              {/* <div className="category-stats">
-                <div className="stat">
-                  <span className="stat-label">פריטים:</span>
-                  <span className="stat-value">{category.totalItems}</span>
-                </div>
-                <div className="stat">
-                  <span className="stat-label">רכישות:</span>
-                  <span className="stat-value">{category.purchaseCount}</span>
-                </div>
-                <div className="stat">
-                  <span className="stat-label">ממוצע לפריט:</span>
-                  <span className="stat-value">
-                    {formatCurrency(category.totalExpense / category.totalItems)}
-                  </span>
-                </div>
-              </div> */}
-
               {/* Progress bar showing percentage of total expenses */}
               <div className="expense-progress">
                 <div 
@@ -311,20 +288,17 @@ const Top3Categories = () => {
 
       {/* Enhanced Summary */}
       <div className="summary-footer">
-        <div className="total-expense">
+        {/* <div className="total-expense">
           <strong>
             3 קטגוריות עליונות: {formatCurrency(totalSpent)}
             <span> ({totalAllExpenses > 0 ? formatPercentage((totalSpent / totalAllExpenses) * 100) : '0%'} מסה"כ ההוצאות)</span>
           </strong>
-        </div>
+        </div> */}
         <div className="remaining-budget">
-          יתרת הוצאות בקטגוריות אחרות: {formatCurrency(totalAllExpenses - totalSpent)}
+          <strong>
+            סה"כ הוצאות בקטגוריות אחרות: {formatCurrency(totalAllExpenses - totalSpent)}
+          </strong>
         </div>
-        {/* {totalBudget > 0 && (
-          <div className="remaining-budget">
-            יתרת תקציב: {formatCurrency(totalBudget - totalAllExpenses)}
-          </div>
-        )} */}
       </div>
     </div>
   );

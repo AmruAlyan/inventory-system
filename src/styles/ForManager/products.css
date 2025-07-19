@@ -281,66 +281,64 @@ body[data-mode="consumption"] .inventory-actions button:first-child:hover {
 
 .purchases-actions button {
   background-color: transparent;
+  color: var(--primary-text);
+  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  margin: 0 4px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  background-color: rgba(81, 134, 100, 0.1);
-  color: var(--primary);
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .purchases-actions button:hover {
-  background-color: var(--success);
-  color: white;
   transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.purchases-actions button:hover {
-  background-color: var(--success);
-  color: white;
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.purchases-actions button svg {
-  transition: all 0.3s ease;
-}
-
-.purchases-actions button:hover svg {
-  transform: scale(1.2);
-}
-
-/* Specific styles for view details button */
+/* View details button (eye icon) */
 .purchases-actions button:nth-child(1) {
-  background-color: rgba(23, 162, 184, 0.1);
   color: var(--info);
+  border-color: var(--info);
 }
 
 .purchases-actions button:nth-child(1):hover {
   background-color: var(--info);
   color: white;
+  border-color: var(--info);
   box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
 }
 
-/* Specific styles for edit date button */
+/* Receipt upload button (cloud upload icon) */
 .purchases-actions button:nth-child(2) {
-  background-color: rgba(81, 134, 100, 0.1);
   color: var(--primary);
+  border-color: var(--primary);
 }
 
 .purchases-actions button:nth-child(2):hover {
   background-color: var(--primary);
   color: white;
+  border-color: var(--primary);
   box-shadow: 0 4px 12px rgba(81, 134, 100, 0.3);
+}
+
+/* Delete button (trash icon) */
+.purchases-actions button:nth-child(3),
+.purchases-actions button.delete-purchase-btn {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.purchases-actions button:nth-child(3):hover,
+.purchases-actions button.delete-purchase-btn:hover {
+  background-color: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 /* Overlay for modals */
@@ -1151,26 +1149,54 @@ body[data-mode="stocktaking"] .stocktaking-btn:hover,
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
 }
 
+.new-purchase-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  border-radius: 16px;
+  margin-top: 2rem;
+  /* box-shadow: 1px 1px 10px black; */
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+
 /* Enhanced styling for the save purchase button */
-.purchase-summary .btn-primary {
+.new-purchase-summary .btn-primary {
   background: linear-gradient(135deg, var(--success) 0%, #2e7d32 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
-.purchase-summary .btn-primary:hover {
+.new-purchase-summary .btn-primary:hover {
   background: linear-gradient(135deg, var(--success-dark) 0%, #1b5e20 100%);
   transform: translateY(-4px) scale(1.05);
   box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
 }
 
-.purchase-summary .btn-primary svg {
+.new-purchase-summary .btn-primary svg {
   transition: transform 0.3s ease;
 }
 
-.purchase-summary .btn-primary:hover svg {
+.new-purchase-summary .btn-primary:hover svg {
   transform: rotate(-10deg) scale(1.2);
   color: white !important;
+}
+
+@media (max-width: 576px) {
+  .new-purchase-summary {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .new-purchase-summary h3 {
+    margin: var(--spacing-sm);
+  }
 }
 
 /* Enhanced styling for the edit price button */

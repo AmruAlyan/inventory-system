@@ -157,6 +157,20 @@ input[type="number"]::-webkit-inner-spin-button {
     gap: 8px;
 }
 
+.latest-update-date {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 6px 12px;
+    background-color: rgba(128, 139, 150, 0.1);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    direction: rtl;
+}
+
 .update-budget {
     background-color: var(--panel-bg);
     border-radius: var(--border-radius-lg);

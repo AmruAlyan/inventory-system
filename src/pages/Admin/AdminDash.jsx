@@ -290,8 +290,10 @@ const AdminDash = () => {
       {/* Main chart area: two rows, two columns */}
       <div className="dashboard-main-charts" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
         <div className="dashboard-main-row" style={{ display: 'flex', gap: '1.5rem' }}>
-          <Top3Categories />
-          <div className="dashboard-chart-wrapper area-chart-wrapper">
+          <div className="dashboard-chart-wrapper switchable-chart-wrapper" id="top3">
+            <Top3Categories />
+          </div>
+          <div className="dashboard-chart-wrapper switchable-chart-wrapper">
             <CustomArea data={areaData} />
           </div>
         </div>

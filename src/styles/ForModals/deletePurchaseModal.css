@@ -1,0 +1,310 @@
+/* Delete Purchase Modal Styles with unique DPM (Delete Purchase Modal) prefix */
+/* Uses Modal.jsx component for overlay */
+
+.dpm-modal-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  width: 90vw;
+  height: auto;
+  background: var(--panel-bg);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+  animation: dpm-slideIn 0.3s ease-out;
+  direction: rtl;
+}
+
+.dpm-modal-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.dpm-modal-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dpm-header-icon {
+  margin-left: 12px;
+  font-size: 1.2em;
+  opacity: 0.9;
+}
+
+.dpm-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid white;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dpm-close-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(220, 53, 69, 0.1), transparent);
+  transition: left 0.4s ease;
+}
+
+.dpm-close-button:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger);
+  transform: scale(1.05);
+}
+
+.dpm-close-button:hover::before {
+  left: 100%;
+}
+
+.dpm-close-button:active {
+  transform: scale(1);
+}
+
+.dpm-modal-content {
+  padding: 2rem;
+  background: var(--panel-bg);
+}
+
+.dpm-warning-section {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.dpm-warning-icon {
+  font-size: 3rem;
+  color: var(--warning);
+  margin-bottom: 1rem;
+  animation: dpm-pulse 2s infinite;
+}
+
+.dpm-warning-title {
+  color: var(--primary-text);
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.dpm-purchase-details {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dpm-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dpm-detail-row:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.dpm-detail-row strong {
+  color: var(--primary-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dpm-detail-row span {
+  color: var(--primary-text);
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.dpm-warning-text {
+  text-align: center;
+}
+
+.dpm-warning-text p {
+  margin: 0 0 0.75rem 0;
+  color: var(--secondary-text);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.dpm-warning-text p:last-child {
+  margin-bottom: 0;
+}
+
+.dpm-irreversible-text {
+  color: var(--danger) !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+}
+
+.dpm-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--danger-dark) 0%, var(--danger) 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dpm-cancel-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.dpm-cancel-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dpm-delete-button {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--danger);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.dpm-delete-button:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dpm-delete-button:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes dpm-slideIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-20px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes dpm-pulse {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dpm-modal-container {
+    width: 95vw;
+    max-width: 95vw;
+    margin: 10px;
+  }
+  
+  .dpm-modal-header,
+  .dpm-modal-content,
+  .dpm-modal-footer {
+    padding: 16px;
+  }
+  
+  .dpm-purchase-details {
+    padding: 1rem;
+  }
+  
+  .dpm-warning-icon {
+    font-size: 2.5rem;
+  }
+  
+  .dpm-warning-title {
+    font-size: 1.1rem;
+  }
+  
+  .dpm-modal-footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .dpm-cancel-button,
+  .dpm-delete-button {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dpm-modal-header h3 {
+    font-size: 1.3rem;
+  }
+  
+  .dpm-detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .dpm-warning-text p {
+    font-size: 0.85rem;
+  }
+}
