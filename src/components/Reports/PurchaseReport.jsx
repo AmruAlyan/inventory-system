@@ -84,7 +84,7 @@ const PurchaseReport = ({ purchaseData, formatCurrency, formatDate }) => {
       <div className="report-summary">
         {/* <h3>סיכום רכישות</h3> */}
         <div className="summary-cards">
-          <div className="summary-card purchase-summary">
+          <div className="summary-card report-purchase-summary">
             <h4><FontAwesomeIcon icon={faReceipt} />סיכום רכישות</h4>
             <p>מספר רכישות: {totalPurchases}</p>
             <p>סה"כ הוצאות: {formatCurrency(totalSpent)}</p>

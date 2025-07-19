@@ -315,9 +315,11 @@ function Login() {
                         <FontAwesomeIcon icon={faExclamationTriangle} /> {passwordError}
                       </div>
                     )}
-                    <div className="status">
-                      <span>{statusMessage}</span>
-                    </div>
+                    {statusMessage && (
+                      <div className="status">
+                        <span>{statusMessage}</span>
+                      </div>
+                    )}
                     <button className="submit-button" type="submit" disabled={isAuthenticating}>
                       {isAuthenticating ? "מתחבר..." : "כניסה"}
                     </button>
@@ -366,9 +368,11 @@ function Login() {
                         <FontAwesomeIcon icon={faExclamationTriangle} /> {resetEmailError}
                       </div>
                     )}
-                    <div className={`status ${resetStatusMessage.includes('נשלח') ? 'success' : resetStatusMessage ? 'error' : ''}`}>
-                      <span>{resetStatusMessage}</span>
-                    </div>
+                    {resetStatusMessage && (
+                      <div className={`status ${resetStatusMessage.includes('נשלח') ? 'success' : resetStatusMessage ? 'error' : ''}`}>
+                        <span>{resetStatusMessage}</span>
+                      </div>
+                    )}
                     <button className="submit-button" type="submit" disabled={isResettingPassword}>
                       {isResettingPassword ? (
                         <>שולח...</>

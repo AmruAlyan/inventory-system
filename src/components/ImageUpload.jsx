@@ -179,7 +179,6 @@ const ImageUpload = ({
           await deleteObject(oldImageRef);
         } catch (error) {
           // Ignore errors when deleting old image
-          console.log('Could not delete old image:', error);
         }
       }
       

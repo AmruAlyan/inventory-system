@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import { faShoppingBag, faSave, faEdit, faTimes, faHistory, faEye, faCartPlus, faFileAlt, faCloudUploadAlt, faReceipt, faCheckCircle, faSort, faSortUp, faSortDown, faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, writeBatch, updateDoc, getDoc, Timestamp, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../../firebase/firebase';
+import { formatDate } from '../../utils/timestampUtils';
 import '../../styles/ForManager/products.css';
 import PurchaseModal from '../../components/Modals/PurchaseModal';
+import SavePurchaseModal from '../../components/Modals/SavePurchaseModal';
+import ReceiptUploadModal from '../../components/Modals/ReceiptUploadModal';
+import DeletePurchaseModal from '../../components/Modals/DeletePurchaseModal';
 import Spinner from '../../components/Spinner';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
@@ -22,14 +26,16 @@ const Purchases = () => {
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editingPurchaseId, setEditingPurchaseId] = useState(null);
-  const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [dragActive, setDragActive] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedReceiptPurchase, setSelectedReceiptPurchase] = useState(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [purchaseToDelete, setPurchaseToDelete] = useState(null);
   
   // Sorting state for current purchase table
   const [currentPurchaseSortField, setCurrentPurchaseSortField] = useState('name');
@@ -475,49 +481,119 @@ const handleSavePrice = async (productId) => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  // Add the handleViewPurchaseDetails function
+// Add the handleViewPurchaseDetails function
 const handleViewPurchaseDetails = (purchase) => {
   setSelectedPurchase(purchase);
 };
 
-// Handle receipt upload
-const handleReceiptUpload = async (file, purchaseId) => {
+// Handle receipt upload modal
+const handleShowReceiptModal = (purchase) => {
+  setSelectedReceiptPurchase(purchase);
+  setShowReceiptModal(true);
+};
+
+// Handle receipt updated callback
+const handleReceiptUpdated = (purchaseId, receiptData) => {
+  // Update the local purchase history state to reflect the changes
+  setPurchaseHistory(prevHistory => 
+    prevHistory.map(purchase => 
+      purchase.id === purchaseId 
+        ? { ...purchase, ...receiptData }
+        : purchase
+    )
+  );
+};
+
+// Check if purchase can be deleted (within 24 hours and is the most recent)
+const canDeletePurchase = (purchase, index) => {
+  // Must be the first item (most recent) in the sorted array
+  if (index !== 0) return false;
+  
+  const purchaseDate = purchase.date && purchase.date.toDate ? purchase.date.toDate() : new Date(purchase.date);
+  const now = new Date();
+  const hoursDiff = (now - purchaseDate) / (1000 * 60 * 60);
+  
+  return hoursDiff <= 24;
+};
+
+// Handle delete purchase
+const handleDeletePurchase = async (purchase) => {
   try {
-    // Create a reference to the storage location
-    const storageRef = ref(storage, `receipts/${purchaseId}/${file.name}`);
+    const batch = writeBatch(db);
     
-    // Upload the file
-    await uploadBytes(storageRef, file);
-    
-    // Get the download URL
-    const downloadURL = await getDownloadURL(storageRef);
-    
-    // Update the purchase document with the receipt URL
-    await updateDoc(doc(db, 'purchases/history/items', purchaseId), {
-      receiptURL: downloadURL,
-      receiptName: file.name,
-      uploadedAt: Date.now()
+    // Get current budget
+    const budgetSnapshot = await getDocs(collection(db, 'budgets'));
+    if (budgetSnapshot.empty) {
+      throw new Error('לא נמצא תקציב במערכת');
+    }
+
+    // Get latest budget document
+    const latestBudget = budgetSnapshot.docs
+      .map(doc => ({ ...doc.data(), id: doc.id }))
+      .sort((a, b) => b.date - a.date)[0];
+
+    // Restore budget (add back the purchase amount)
+    const budgetRef = doc(db, 'budgets', latestBudget.id);
+    batch.update(budgetRef, {
+      totalBudget: latestBudget.totalBudget + purchase.totalAmount
     });
 
-    toast.success('הקבלה הועלתה בהצלחה');
+    // Update product quantities (decrease stock - reverse the purchase)
+    for (const item of purchase.items) {
+      try {
+        // Find product by name
+        const productsSnapshot = await getDocs(collection(db, 'products'));
+        const matchingProduct = productsSnapshot.docs.find(doc => 
+          doc.data().name === item.name
+        );
+        
+        if (matchingProduct) {
+          const productRef = doc(db, 'products', matchingProduct.id);
+          const currentQuantity = matchingProduct.data().quantity || 0;
+          const newQuantity = Math.max(0, currentQuantity - item.quantity); // Ensure non-negative
+          
+          batch.update(productRef, {
+            quantity: newQuantity,
+            lastModified: Timestamp.fromDate(new Date())
+          });
+        }
+      } catch (error) {
+        console.warn(`Could not update quantity for product: ${item.name}`, error);
+      }
+    }
+
+    // Delete the purchase from history
+    const purchaseRef = doc(db, 'purchases/history/items', purchase.id);
+    batch.delete(purchaseRef);
+
+    // Delete receipt from storage if exists
+    if (purchase.receiptURL && purchase.receiptName) {
+      try {
+        const receiptRef = ref(storage, `receipts/${purchase.id}/${purchase.receiptName}`);
+        await deleteObject(receiptRef);
+      } catch (error) {
+        console.warn('Could not delete receipt file:', error);
+      }
+    }
+
+    await batch.commit();
+    
+    toast.success(`הרכישה נמחקה בהצלחה והתקציב הוחזר (${purchase.totalAmount.toFixed(2)} ₪)`);
+    
+    // Close confirmation modal
+    setShowDeleteConfirmation(false);
+    setPurchaseToDelete(null);
+    
   } catch (error) {
-    console.error('Error uploading receipt:', error);
-    toast.error('שגיאה בהעלאת הקבלה');
+    console.error('Error deleting purchase:', error);
+    toast.error(error.message || 'שגיאה במחיקת הרכישה');
   }
 };
 
-// Add handler to save edited purchase date
-const handleSavePurchaseDate = async (purchaseId) => {
-  try {
-    if (!editPurchaseDate) return;
-    const newTimestamp = Timestamp.fromDate(new Date(editPurchaseDate));
-    await updateDoc(doc(db, 'purchases/history/items', purchaseId), { date: newTimestamp });
-    setEditingPurchaseId(null);
-    setEditPurchaseDate("");
-    toast.success('תאריך הרכישה עודכן בהצלחה');
-  } catch (error) {
-    toast.error('שגיאה בעדכון תאריך הרכישה');
-  }
+// Show delete confirmation
+const handleShowDeleteConfirmation = (purchase) => {
+  setPurchaseToDelete(purchase);
+  setShowDeleteConfirmation(true);
 };
   useEffect(() => {
     // If navigated with showHistory or showPurchaseModal, open history and modal
@@ -599,9 +675,31 @@ const handleSavePurchaseDate = async (purchaseId) => {
           purchase={selectedPurchase}
           categories={categories}
           onClose={() => setSelectedPurchase(null)}
-          onReceiptUpload={handleReceiptUpload}
         />
       )}
+      
+      {showReceiptModal && selectedReceiptPurchase && (
+        <ReceiptUploadModal
+          isOpen={showReceiptModal}
+          onClose={() => {
+            setShowReceiptModal(false);
+            setSelectedReceiptPurchase(null);
+          }}
+          purchase={selectedReceiptPurchase}
+          onReceiptUpdated={handleReceiptUpdated}
+        />
+      )}
+      
+      {/* Delete Purchase Modal */}
+      <DeletePurchaseModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => {
+          setShowDeleteConfirmation(false);
+          setPurchaseToDelete(null);
+        }}
+        purchase={purchaseToDelete}
+        onConfirmDelete={handleDeletePurchase}
+      />
       <div className="page-header justify-content-between d-flex align-items-center mb-3">
         <h1>
           <FontAwesomeIcon icon={showHistory ? faHistory : faCartPlus} className="page-header-icon" />
@@ -676,19 +774,10 @@ const handleSavePurchaseDate = async (purchaseId) => {
                 </tr>
               </thead>
               <tbody>
-                {currentPurchases.map(purchase => (
+                {currentPurchases.map((purchase, index) => (
                   <tr key={purchase.id}>
                     <td>
-                      {editingPurchaseId === purchase.id ? (
-                        <input
-                          type="date"
-                          value={editPurchaseDate}
-                          onChange={e => setEditPurchaseDate(e.target.value)}
-                          style={{ maxWidth: 140 }}
-                        />
-                      ) : (
-                        purchase.date && purchase.date.toDate ? purchase.date.toDate().toLocaleDateString('he-IL') : new Date(purchase.date).toLocaleDateString('he-IL')
-                      )}
+                      {formatDate(purchase.date)}
                     </td>
                     <td>{purchase.items?.length || 0}</td>
                     <td>{purchase.totalAmount?.toFixed(2) || '0.00'} ₪</td>
@@ -742,43 +831,23 @@ const handleSavePurchaseDate = async (purchaseId) => {
                       )}
                     </td>
                     <td className='purchases-actions'>
-                      {editingPurchaseId === purchase.id ? (
-                        <>
-                          <button onClick={() => handleSavePurchaseDate(purchase.id)} className="btn btn-sm btn-success" title="שמור תאריך"
-                            style={{
-                              color: 'white',
-                              border: '1px solid white',
-                              backgroundColor: 'transparent'
-                            }}>
-                            <FontAwesomeIcon icon={faSave} />
-                          </button>
-                          <button onClick={() => { setEditingPurchaseId(null); setEditPurchaseDate(""); }} className="btn btn-sm btn-danger" title="בטל"
-                            style={{
-                              color: 'white',
-                              border: '1px solid white',
-                              backgroundColor: 'transparent'
-                            }}>
-                            <FontAwesomeIcon icon={faTimes} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                          <button
-                            className="btn btn-sm btn-primary ms-2"
-                            onClick={() => {
-                              setEditingPurchaseId(purchase.id);
-                              // Set initial value for date input
-                              let d = purchase.date && purchase.date.toDate ? purchase.date.toDate() : new Date(purchase.date);
-                              setEditPurchaseDate(d.toISOString().split('T')[0]);
-                            }}
-                            title="ערוך תאריך"
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </button>
-                        </>
+                      <button onClick={() => handleViewPurchaseDetails(purchase)} title="צפה בפרטים">
+                        <FontAwesomeIcon icon={faEye} />
+                      </button>
+                      <button
+                        onClick={() => handleShowReceiptModal(purchase)}
+                        title="עדכן קבלה"
+                      >
+                        <FontAwesomeIcon icon={faCloudUploadAlt} />
+                      </button>
+                      {canDeletePurchase(purchase, sortedPurchaseHistory.findIndex(p => p.id === purchase.id)) && (
+                        <button
+                          className="delete-purchase-btn"
+                          onClick={() => handleShowDeleteConfirmation(purchase)}
+                          title="מחק רכישה (זמין רק 24 שעות מהרכישה)"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -987,7 +1056,7 @@ const handleSavePurchaseDate = async (purchaseId) => {
               </tbody>
             </table>
             
-            <div className="purchase-summary card">
+            <div className="new-purchase-summary card">
               {/* <div className="d-flex justify-content-between align-items-center" style={{ margin: '1rem' }}> */}
                 <h3>
                   סה"כ רכישה: {currentPurchase.items.reduce((sum, item) => 
@@ -1007,368 +1076,21 @@ const handleSavePurchaseDate = async (purchaseId) => {
         )
       )}
 
-      {/* Save Purchase Modal */}
-      {showSaveModal && (
-        <div className="modal-overlay save-purchase-modal" onClick={closeSaveModal}>
-          <div className="Product-modal save-purchase-modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px', padding: '0' }}>
-            {/* Modal Header */}
-            <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary) 0%, #4CAF50 100%)',
-              color: 'white',
-              padding: '1.5rem',
-              borderTopLeftRadius: 'var(--border-radius-lg)',
-              borderTopRightRadius: 'var(--border-radius-lg)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <FontAwesomeIcon icon={faReceipt} style={{ fontSize: '1.5rem' }} />
-                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '600' }}>שמירת רכישה</h2>
-              </div>
-              <button 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'background-color 0.3s ease'
-                }}
-                onClick={closeSaveModal}
-                onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            </div>
-            
-            {/* Modal Body */}
-            <div style={{ padding: '2rem' }}>
-              {/* Purchase Summary */}
-              <div style={{ 
-                marginBottom: '2rem', 
-                padding: '1.5rem', 
-                borderRadius: '12px',
-                border: '1px solid var(--border-color)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <FontAwesomeIcon icon={faShoppingBag} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
-                  <h3 style={{ margin: 0, color: 'var(--primary-text)', fontSize: '1.1rem' }}>סיכום הרכישה</h3>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div style={{ 
-                    padding: '1rem', 
-                    borderRadius: '8px',
-                    border: '1px solid #dee2e6',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                      {currentPurchase.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} ₪
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)', marginTop: '0.25rem' }}>
-                      סה"כ עלות
-                    </div>
-                  </div>
-                  <div style={{ 
-                    padding: '1rem', 
-                    borderRadius: '8px',
-                    border: '1px solid #dee2e6',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--info)' }}>
-                      {currentPurchase.items.length}
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--secondary-text)', marginTop: '0.25rem' }}>
-                      פריטים
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Receipt Upload Section */}
-              <div style={{ marginBottom: '2  rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <FontAwesomeIcon icon={faCloudUploadAlt} style={{ color: 'var(--primary)', fontSize: '1.2rem' }} />
-                  <label style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--primary-text)', margin: 0 }}>
-                    העלאת קבלה
-                  </label>
-                  <span style={{ 
-                    fontSize: '0.8rem', 
-                    color: 'var(--error-color)', 
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '12px',
-                    backgroundColor: 'var(--error-bg)',
-                    fontWeight: '600'
-                  }}>
-                    חובה
-                  </span>
-                </div>
-                
-                <p style={{ 
-                  fontSize: '0.9rem', 
-                  color: 'var(--secondary-text)', 
-                  marginBottom: '1rem',
-                  lineHeight: '1.5'
-                }}>
-                  צרף תמונה או PDF של הקבלה לתיעוד הרכישה (שדה חובה)
-                </p>
-                
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="receipt-file-input"
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={handleReceiptFileSelect}
-                    style={{ display: 'none' }}
-                  />
-                  
-                  {!receiptFile ? (
-                    <div
-                      onClick={() => document.getElementById('receipt-file-input').click()}
-                      onDragEnter={handleDragIn}
-                      onDragLeave={handleDragOut}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                      style={{
-                        width: '100%',
-                        minHeight: '120px',
-                        border: `2px dashed ${dragActive ? 'var(--primary)' : '#cbd5e0'}`,
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        textAlign: 'center'
-                      }}
-                      onMouseOver={(e) => {
-                        if (!dragActive) {
-                          e.target.style.borderColor = 'var(--primary)';
-                        }
-                      }}
-                      onMouseOut={(e) => {
-                        if (!dragActive) {
-                          e.target.style.borderColor = '#cbd5e0';
-                        }
-                      }}
-                    >
-                      <FontAwesomeIcon 
-                        icon={faCloudUploadAlt} 
-                        style={{ 
-                          fontSize: '2.5rem', 
-                          color: dragActive ? 'var(--primary)' : 'var(--primary)', 
-                          opacity: dragActive ? 1 : 0.7,
-                          transition: 'all 0.3s ease'
-                        }} 
-                      />
-                      <div>
-                        <div style={{ 
-                          fontSize: '1rem', 
-                          fontWeight: '500', 
-                          color: dragActive ? 'var(--primary)' : 'var(--primary-text)', 
-                          marginBottom: '0.25rem',
-                          transition: 'color 0.3s ease'
-                        }}>
-                          {dragActive ? 'שחרר לכן להעלאה' : 'לחץ לבחירת קובץ קבלה'}
-                        </div>
-                        <div style={{ 
-                          fontSize: '0.85rem', 
-                          color: 'var(--secondary-text)',
-                          fontWeight: dragActive ? '500' : 'normal'
-                        }}>
-                          {dragActive ? 'קובץ מוכן להעלאה' : 'או גרור ושחרר כאן'}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{
-                      padding: '1.5rem',
-                      border: '2px solid var(--success)',
-                      borderRadius: '12px',
-                      backgroundColor: 'rgba(40, 167, 69, 0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '1rem'
-                    }}>
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--success)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
-                        <FontAwesomeIcon icon={faCheckCircle} style={{ color: 'white', fontSize: '1.5rem' }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ 
-                          fontSize: '1rem', 
-                          fontWeight: '600', 
-                          color: 'var(--success)',
-                          marginBottom: '0.25rem',
-                          wordBreak: 'break-word'
-                        }}>
-                          {receiptFile.name}
-                        </div>
-                        <div style={{ 
-                          fontSize: '0.85rem', 
-                          color: 'var(--secondary-text)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem'
-                        }}>
-                          <span>{(receiptFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                          <span>•</span>
-                          <span>{receiptFile.type.includes('image') ? '📷 תמונה' : '📄 PDF'}</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRemoveReceiptFile}
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '50%',
-                          background: 'rgba(220, 53, 69, 0.1)',
-                          border: '1px solid rgba(220, 53, 69, 0.3)',
-                          color: 'var(--danger)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease',
-                          flexShrink: 0
-                        }}
-                        title="הסר קובץ"
-                        onMouseOver={(e) => {
-                          e.target.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
-                          e.target.style.borderColor = 'var(--danger)';
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
-                          e.target.style.borderColor = 'rgba(220, 53, 69, 0.3)';
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faTimes} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                <div style={{ 
-                  fontSize: '0.8rem', 
-                  color: 'var(--secondary-text)', 
-                  marginTop: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  justifyContent: 'center'
-                }}>
-                  <span>📏 מקסימום 10MB</span>
-                  <span>•</span>
-                  <span>📷 JPG, PNG </span>
-                  <span>•</span>
-                  <span>📄 PDF</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Modal Footer */}
-            <div style={{ 
-              padding: '1.5rem 2rem',
-              borderTop: '1px solid var(--border-color)',
-              borderBottomLeftRadius: 'var(--border-radius-lg)',
-              borderBottomRightRadius: 'var(--border-radius-lg)',
-              display: 'flex', 
-              gap: '1rem', 
-              justifyContent: 'flex-end'
-            }}>
-              <button
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  color: 'var(--secondary-text)',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: '500',
-                  transition: 'all 0.3s ease',
-                  minWidth: '100px'
-                }}
-                onClick={closeSaveModal}
-                disabled={uploadingReceipt}
-                onMouseOver={(e) => {
-                  e.target.style.borderColor = '#adb5bd';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.borderColor = '#dee2e6';
-                }}
-              >
-                ביטול
-              </button>
-              <button
-                style={{
-                  padding: '0.75rem 2rem',
-                  border: 'none',
-                  borderRadius: '8px',
-                  background: (uploadingReceipt || !receiptFile)
-                    ? 'linear-gradient(135deg, #6c757d 0%, #495057 100%)'
-                    : 'linear-gradient(135deg, var(--primary) 0%, #4CAF50 100%)',
-                  color: 'white',
-                  cursor: (uploadingReceipt || !receiptFile) ? 'not-allowed' : 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  transition: 'all 0.3s ease',
-                  minWidth: '140px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  boxShadow: (uploadingReceipt || !receiptFile) ? 'none' : '0 4px 12px rgba(76, 175, 80, 0.4)'
-                }}
-                onClick={confirmSavePurchase}
-                disabled={uploadingReceipt || !receiptFile}
-                title={!receiptFile ? 'נדרשת העלאת קבלה לפני שמירת הרכישה' : ''}
-                onMouseOver={(e) => {
-                  if (!uploadingReceipt && receiptFile) {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 6px 16px rgba(76, 175, 80, 0.5)';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!uploadingReceipt && receiptFile) {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.4)';
-                  }
-                }}
-              >
-                {uploadingReceipt ? (
-                  <>
-                    <FontAwesomeIcon icon={faCartPlus} spin />
-                    שומר...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faSave} />
-                    שמור רכישה
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SavePurchaseModal
+        isOpen={showSaveModal}
+        onClose={closeSaveModal}
+        currentPurchase={currentPurchase}
+        receiptFile={receiptFile}
+        dragActive={dragActive}
+        uploadingReceipt={uploadingReceipt}
+        onReceiptFileSelect={handleReceiptFileSelect}
+        onRemoveReceiptFile={handleRemoveReceiptFile}
+        onDragIn={handleDragIn}
+        onDragOut={handleDragOut}
+        onDrag={handleDrag}
+        onDrop={handleDrop}
+        onConfirmSave={confirmSavePurchase}
+      />
     </div>
   );
 };

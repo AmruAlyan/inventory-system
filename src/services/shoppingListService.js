@@ -38,11 +38,9 @@ class ShoppingListService {
       const cachedList = cacheManager.getCache(CACHE_CONFIG.SHOPPING_LIST.key);
       
       if (cachedList) {
-        console.log('📋 Using cached shopping list data');
         return cachedList.data;
       }
 
-      console.log('📋 Fetching fresh shopping list data');
       return await this.fetchShoppingListFromFirebase();
     } catch (error) {
       console.error('Error getting shopping list:', error);
@@ -167,8 +165,6 @@ class ShoppingListService {
 
       // Fetch uncached products in batches (Firestore 'in' query limit is 10)
       if (uncachedIds.length > 0) {
-        console.log(`🔄 Fetching ${uncachedIds.length} products from Firebase`);
-        
         const batchSize = 10;
         const batches = [];
         
@@ -249,7 +245,6 @@ class ShoppingListService {
           }
 
           isFetching = true;
-          console.log('📋 Shopping list change detected, refreshing...');
           
           // Check if we have valid cached data first
           const cachedList = cacheManager.getCache(CACHE_CONFIG.SHOPPING_LIST.key);
@@ -285,7 +280,6 @@ class ShoppingListService {
 
           // If we can use cached data with the new changes, update it
           if (canUseCachedData) {
-            console.log('📋 Using cached data with new changes');
             // Get actual changes
             const changedItems = [];
             snapshot.docChanges().forEach(change => {
@@ -387,12 +381,9 @@ class ShoppingListService {
       const cachedBudget = cacheManager.getCache(CACHE_CONFIG.BUDGET.key);
       
       if (cachedBudget) {
-        console.log('💰 Using cached budget data');
         return cachedBudget.data;
       }
 
-      console.log('💰 Fetching fresh budget data');
-      
       // Try to get current budget document first
       const currentBudgetRef = doc(db, 'budgets', 'current');
       const currentBudgetDoc = await getDoc(currentBudgetRef);
@@ -523,15 +514,12 @@ class ShoppingListService {
    */
   async preloadCache() {
     try {
-      console.log('🚀 Preloading shopping list cache...');
-      
       // Preload shopping list and products
       const [shoppingListData, budgetData] = await Promise.all([
         this.fetchShoppingListFromFirebase(),
         this.getBudget()
       ]);
 
-      console.log('✅ Cache preloaded successfully');
       return { shoppingListData, budgetData };
       
     } catch (error) {

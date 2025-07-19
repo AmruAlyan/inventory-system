@@ -418,7 +418,7 @@
 /* Empty State */
 .category-report .empty-products {
     padding: 2rem;
-    text-align: center;
+    text-align: center !important;
     color: #666;
 }
 
@@ -652,6 +652,8 @@
 
    .category-report .empty-products {
        text-align: center !important;
-       
    }
+    .category-report .empty-products p {
+         text-align: center !important;
+    }
 }

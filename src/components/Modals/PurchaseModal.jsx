@@ -1,115 +1,12 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faReceipt, faCloudUploadAlt, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faReceipt, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
+import { formatTimestamp } from '../../utils/timestampUtils';
 import '../../styles/ForModals/productModal.css';
 import '../../styles/ForModals/PurchaseModal.css';
 
-// Drag and Drop Upload Component
-const DragDropUpload = ({ onFileDrop }) => {
-  const [dragActive, setDragActive] = React.useState(false);
-  const inputRef = React.useRef(null);
-
-  const handleDrag = React.useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDragIn = React.useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      setDragActive(true);
-    }
-  }, []);
-
-  const handleDragOut = React.useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-  }, []);
-
-  const handleDrop = React.useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      // Create synthetic event to match input onChange signature
-      const syntheticEvent = {
-        target: {
-          files: [file]
-        }
-      };
-      onFileDrop(syntheticEvent);
-      e.dataTransfer.clearData();
-    }
-  }, [onFileDrop]);
-
-  const handleClick = React.useCallback(() => {
-    inputRef.current?.click();
-  }, []);
-
-  React.useEffect(() => {
-    window.addEventListener('dragover', handleDrag);
-    window.addEventListener('drop', handleDrag);
-    
-    return () => {
-      window.removeEventListener('dragover', handleDrag);
-      window.removeEventListener('drop', handleDrag);
-    };
-  }, [handleDrag]);
-
-  return (
-    <div
-      className={`drag-drop-area ${dragActive ? 'drag-active' : ''}`}
-      onDragEnter={handleDragIn}
-      onDragLeave={handleDragOut}
-      onDragOver={handleDrag}
-      onDrop={handleDrop}
-      onClick={handleClick}
-      style={{
-        minHeight: '120px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '15px',
-        cursor: 'pointer'
-      }}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,.pdf"
-        onChange={onFileDrop}
-        style={{ display: 'none' }}
-      />
-      <FontAwesomeIcon 
-        icon={faCloudUploadAlt} 
-        style={{ 
-          fontSize: '2.5rem', 
-          color: dragActive ? '#667eea' : '#94a3b8',
-          transition: 'color 0.3s ease'
-        }} 
-      />
-      <span style={{ 
-        color: dragActive ? '#667eea' : '#64748b',
-        fontWeight: '500',
-        transition: 'color 0.3s ease',
-        fontSize: '1rem'
-      }}>
-        גרור ושחרר קובץ כאן, או לחץ להעלאה
-      </span>
-      <small style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-        תומך בתמונות (JPG, PNG, GIF) ו-PDF עד 10MB
-      </small>
-    </div>
-  );
-};
-
-const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
+const PurchaseModal = ({ purchase, onClose, categories }) => {
   const [sortField, setSortField] = React.useState('name');
   const [sortDirection, setSortDirection] = React.useState('asc');
 
@@ -168,13 +65,6 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
       }
     });
   }, [purchase.items, sortField, sortDirection, categories]);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      onReceiptUpload(file, purchase.id);
-    }
-  };
 
   return (
     <Modal onClose={onClose}>
@@ -330,22 +220,17 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
           </div>
 
           <div className="receipt-section">
-            <div className="d-flex justify-content-between align-items-center">
-              <h4>קבלה</h4>
-              {purchase.receiptName && (
-                <div className="receipt-info mt-2">
-                  <small>שם קובץ: {purchase.receiptName}</small>
-                  <br />
-                  <small>הועלה בתאריך: {(() => {
-                    if (!purchase.uploadedAt) return '—';
-                    if (typeof purchase.uploadedAt === 'object' && purchase.uploadedAt.seconds) {
-                      return new Date(purchase.uploadedAt.seconds * 1000).toLocaleDateString('he-IL');
-                    }
-                    const d = new Date(purchase.uploadedAt);
-                    return isNaN(d) ? '—' : d.toLocaleDateString('he-IL');
-                  })()}</small>
-                </div>
-              )}
+            <div className="receipt-header">
+              <div className="receipt-title">
+                <h4>קבלה:</h4>
+                {purchase.receiptName && (
+                  <div className="receipt-info">
+                    <small>שם קובץ: {purchase.receiptName}</small>
+                    <br />
+                    <small>הועלה בתאריך: {formatTimestamp(purchase.uploadedAt)}</small>
+                  </div>
+                )}
+              </div>
               {purchase.receiptURL ? (
                 <div className="d-flex gap-2">
                   <a 
@@ -358,7 +243,9 @@ const PurchaseModal = ({ purchase, onClose, categories, onReceiptUpload }) => {
                   </a>
                 </div>
               ) : (
-                <DragDropUpload onFileDrop={handleFileChange} />
+                <div className="no-receipt">
+                  <p style={{ color: '#6c757d', fontStyle: 'italic' }}>לא הועלתה קבלה</p>
+                </div>
               )}
             </div>
           </div>

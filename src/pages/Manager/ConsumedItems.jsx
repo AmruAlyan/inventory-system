@@ -393,7 +393,6 @@ const ConsumedItems = () => {
         const cardsPerRow = Math.max(1, possibleCards); // At least 1 card per row
         
         if (cardsPerRow !== actualCardsPerRow) {
-          console.log(`Cards per row changed from ${actualCardsPerRow} to ${cardsPerRow}`);
           setActualCardsPerRow(cardsPerRow);
           
           // Force recalculation of current page to ensure we don't exceed total pages

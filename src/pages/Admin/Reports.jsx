@@ -3,15 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faFileLines, 
   faPrint, 
-  faFilePdf, 
   faFilter,
-  faChartLine
+  faChartLine,
+  faLightbulb
 } from "@fortawesome/free-solid-svg-icons";
 import { db } from "../../firebase/firebase";
 import { collection, getDocs, query, orderBy, where, Timestamp } from "firebase/firestore";
 import Spinner from "../../components/Spinner";
 import { BudgetReport, PurchaseReport, CombinedReport, CategoryReport } from "../../components/Reports";
-import { exportToPDF, printReport } from "../../utils/reportExport";
+import { printReport } from "../../utils/reportExport";
 import { toast } from "react-toastify";
 import logo from "../../assets/pics/Home1.png";
 import "../../styles/ForManager/products.css";
@@ -364,12 +364,13 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
           {/* Report Header */}
           <div className="report-header no-print">
             <div className="report-actions">
-              <button onClick={printReport} className="btn" title="הדפס דו״ח">
+              <button onClick={printReport} className="btn" title="הדפס דו״ח או שמור כ-PDF">
                 <FontAwesomeIcon icon={faPrint} />
               </button>
-              <button onClick={exportToPDF} className="btn btn-secondary" title="ייצא ל-PDF">
-                <FontAwesomeIcon icon={faFilePdf} />
-              </button>
+              <small className="print-note">
+                <FontAwesomeIcon icon={faLightbulb} className="note-icon" />
+                לשמירה כ-PDF: בחר "שמור כ-PDF" במקום מדפסת
+              </small>
             </div>
           </div>          
           {/* Printable Report */}
@@ -392,9 +393,11 @@ const Reports = () => {  const [loading, setLoading] = useState(false);
                 {reportType === 'combined' && 'דו״ח משולב - תקציב ורכישות'}
                 {reportType === 'category' && 'דו״ח קטגוריה'}
               </h2>
-              <p className="report-period">
-                תקופה: {formatDate(new Date(dateRange.startDate))} - {formatDate(new Date(dateRange.endDate))}
-              </p>              
+              {reportType !== 'category' && (
+                <p className="report-period">
+                  תקופה: {formatDate(new Date(dateRange.startDate))} - {formatDate(new Date(dateRange.endDate))}
+                </p>
+              )}              
               <p className="report-generated">
                 נוצר בתאריך: {formatDate(new Date())} בשעה {new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
               </p>

@@ -214,7 +214,7 @@
   min-width: 120px;
   height: 47px;
   white-space: nowrap;
-  margin-top: 8px;
+  margin-top: 29px;
   position: relative;
   overflow: hidden;
 }
@@ -261,7 +261,10 @@
 
 .report-actions {
   display: flex;
-  gap: 1rem;
+  gap: 2rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: right;
 }
 
 .report-actions .btn {
@@ -282,6 +285,22 @@
   background: var(--primary);
   border-color: var(--panel-bg);
   color: var(--panel-bg);
+}
+
+.print-note {
+  color: white;
+  font-size: 1rem;
+  font-style: italic;
+  margin: 0;
+  white-space: wrap;
+  text-align: center;
+}
+
+.note-icon {
+  margin-left: 0.75rem;
+  /* color: #f0f0f0; */
+  color: goldenrod;
+  scale: 1.2;
 }
 
 /* Printable Report */
@@ -350,7 +369,7 @@
   padding: 1rem !important;
 }
 
-.purchase-summary {
+.report-purchase-summary {
   background: var(--panel-bg) !important;
   border: 1px solid var(--primary) !important;
   border-right: 4px solid var(--primary) !important;
@@ -473,7 +492,8 @@
 
 .chart-container {
   height: 300px;
-  width: 70%;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -716,21 +736,52 @@
     grid-template-columns: 1fr;
   }
   
-  .report-actions {
-    flex-direction: column;
-  }
-  
   .printable-report {
     padding: 1rem;
   }
   
+  .report-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) #f1f1f1;
+  }
+  
+  .report-table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .report-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .report-table-container::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+  .report-table-container::-webkit-scrollbar-thumb:hover {
+    background: #3d6b4e;
+  }
+  
   .report-table {
     font-size: 0.875rem;
+    min-width: 600px; /* Ensure table maintains minimum width for readability */
+    white-space: nowrap;
   }
   
   .report-table th,
   .report-table td {
     padding: 0.5rem;
+    min-width: 80px; /* Prevent columns from being too narrow */
+  }
+  
+  .report-table th:first-child,
+  .report-table td:first-child {
+    min-width: 120px; /* Give more space to first column (usually names) */
   }
 }
 

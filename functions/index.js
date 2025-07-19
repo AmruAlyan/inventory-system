@@ -83,12 +83,6 @@ exports.sendInvitationEmail = functions.https.onCall(async (data, context) => {
     */
 
     // For now, we'll log the email content and return success
-    console.log('Invitation email would be sent to:', email);
-    console.log('Signup link:', signupLink);
-    console.log('Invited by:', invitedBy);
-    console.log('Role:', role);
-    console.log('Is resend:', isResend);
-
     // In a real implementation, replace the above with actual email sending
     
     return { 
@@ -207,8 +201,6 @@ exports.sendVerificationEmail = functions.firestore
       
       await transporter.sendMail(mailOptions);
       
-      console.log(`Verification email sent successfully to ${email}`);
-      
       // Update document to mark email as sent
       await snap.ref.update({
         emailSent: true,
@@ -250,7 +242,6 @@ exports.cleanupExpiredCodes = functions.pubsub
     
     await batch.commit();
     
-    console.log(`Cleaned up ${expiredCodes.size} expired verification codes`);
     return null;
   });
 
