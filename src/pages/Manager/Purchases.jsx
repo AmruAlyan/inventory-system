@@ -145,6 +145,7 @@ const handleSavePrice = async (productId) => {
 
   // Actually save the purchase with required receipt
   const confirmSavePurchase = async () => {
+
     // Check if receipt is required before proceeding
     if (!receiptFile) {
       toast.warning('נדרשת העלאת קבלה לפני שמירת הרכישה');
@@ -152,10 +153,11 @@ const handleSavePrice = async (productId) => {
     }
 
     setUploadingReceipt(true);
-    
     try {
       const batch = writeBatch(db);
-      const purchaseId = Date.now().toString();
+      // Use a Firestore-generated ID for purchase UID
+      const purchaseDocRef = doc(collection(db, 'purchases/history/items'));
+      const purchaseId = purchaseDocRef.id;
 
       // Calculate total purchase amount
       const purchaseAmount = currentPurchase.items.reduce((sum, item) => 
@@ -188,13 +190,30 @@ const handleSavePrice = async (productId) => {
         budgetAfter: latestBudget.totalBudget - purchaseAmount
       };
 
-      // Upload receipt if provided
+      // Upload receipt and ensure only one file per purchase
       if (receiptFile) {
         try {
+          // Delete all files in receipts/{purchaseId}/ before uploading new receipt
+          const folderRef = ref(storage, `receipts/${purchaseId}`);
+          let filesToDelete = [];
+          try {
+            const listResult = await import('firebase/storage').then(m => m.listAll(folderRef));
+            filesToDelete = listResult.items;
+          } catch (error) {
+            filesToDelete = [];
+          }
+          for (const fileRef of filesToDelete) {
+            try {
+              await deleteObject(fileRef);
+            } catch (error) {
+              // Ignore errors for individual files
+              console.warn('Could not delete old receipt file:', error);
+            }
+          }
+          // Upload new receipt
           const storageRef = ref(storage, `receipts/${purchaseId}/${receiptFile.name}`);
           await uploadBytes(storageRef, receiptFile);
           const downloadURL = await getDownloadURL(storageRef);
-          
           purchaseData.receiptURL = downloadURL;
           purchaseData.receiptName = receiptFile.name;
           purchaseData.uploadedAt = Timestamp.fromDate(new Date());
@@ -204,8 +223,8 @@ const handleSavePrice = async (productId) => {
         }
       }
 
-      // Add to purchase history
-      await addDoc(collection(db, 'purchases/history/items'), purchaseData);
+      // Add to purchase history with the generated UID
+      await setDoc(purchaseDocRef, purchaseData);
 
       // Update product quantities (increase stock for purchased items)
       // Note: Since we no longer have product IDs in the purchase items,

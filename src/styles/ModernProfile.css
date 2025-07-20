@@ -291,6 +291,12 @@
   box-shadow: 0 4px 15px rgba(81, 134, 100, 0.3);
 }
 
+.manager-role {
+  background: linear-gradient(135deg, var(--info), var(--info-dark));
+  color: white;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
 .password-dots {
   font-size: 1.5rem;
   letter-spacing: 0.2rem;

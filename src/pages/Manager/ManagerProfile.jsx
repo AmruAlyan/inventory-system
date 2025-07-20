@@ -3,31 +3,84 @@ import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPen, faBan, faUser, faUserShield, faKey } from "@fortawesome/free-solid-svg-icons";
+import { faUserPen, faBan, faUser, faUserTie, faKey } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ModernProfile.css";
 import ReauthModal from "../../components/Modals/ReauthModal";
 import ImageUpload from "../../components/ImageUpload";
 import { ROLES } from "../../constants/roles";
-import { showAlert } from "../../utils/dialogs";
+import { showAlert, showConfirm } from "../../utils/dialogs";
+import { toast } from 'react-toastify';
+import { ref } from "firebase/storage";
+import { storage } from "../../firebase/firebase";
 
 // Phone number formatting utility
 const formatPhoneNumber = (phoneNumber) => {
   if (!phoneNumber) return '';
   
-  // Remove all non-digits
+  // Remove all non-digit characters
   const cleaned = phoneNumber.replace(/\D/g, '');
   
-  // Check if it's an Israeli phone number (starts with 05 and has 10 digits)
+  // Check if it's an Israeli phone number format
   if (cleaned.length === 10 && cleaned.startsWith('05')) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    // Format as 05X-XXX-XXXX
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  } else if (cleaned.length === 9 && cleaned.startsWith('5')) {
+    // Format as 05X-XXX-XXXX (add leading 0)
+    return `0${cleaned.slice(0, 2)}-${cleaned.slice(2, 5)}-${cleaned.slice(5)}`;
+  } else if (cleaned.length >= 10) {
+    // Generic format for longer numbers
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   }
   
-  // For other formats, just return as is with dashes for readability
-  if (cleaned.length >= 7) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+  // Return original if doesn't match expected format
+  return phoneNumber;
+};
+
+// Validate phone number format
+const validatePhoneNumber = (phoneNumber) => {
+  if (!phoneNumber || phoneNumber.trim() === '') {
+    return { isValid: true, message: '' }; // Empty is allowed
   }
   
-  return cleaned;
+  // Remove all non-digit characters
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  
+  // Check if it has exactly 10 digits and starts with 05
+  if (cleaned.length !== 10) {
+    return { isValid: false, message: 'מספר הטלפון חייב להכיל בדיוק 10 ספרות' };
+  }
+  
+  if (!cleaned.startsWith('05')) {
+    return { isValid: false, message: 'מספר הטלפון חייב להתחיל ב-05' };
+  }
+  
+  // Check if the third digit is valid (Israeli mobile numbers)
+  const validThirdDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  if (!validThirdDigits.includes(cleaned[2])) {
+    return { isValid: false, message: 'מספר הטלפון אינו תקין' };
+  }
+  
+  return { isValid: true, message: '' };
+};
+
+// Handle phone number input with real-time formatting
+const handlePhoneInput = (value, setState, fieldName) => {
+  // Remove all non-digit characters
+  const cleaned = value.replace(/\D/g, '');
+  
+  // Limit to 10 digits
+  const limited = cleaned.slice(0, 10);
+  
+  // Format as user types
+  let formatted = limited;
+  if (limited.length >= 3) {
+    formatted = `${limited.slice(0, 3)}${limited.length > 3 ? '-' : ''}${limited.slice(3)}`;
+  }
+  if (limited.length >= 6) {
+    formatted = `${limited.slice(0, 3)}-${limited.slice(3, 6)}${limited.length > 6 ? '-' : ''}${limited.slice(6)}`;
+  }
+  
+  setState(prev => ({ ...prev, [fieldName]: formatted }));
 };
 
 const ManagerProfile = () => {
@@ -38,7 +91,7 @@ const ManagerProfile = () => {
     name: "",
     email: "",
     phone: "",
-    role: "מנהל"
+    role: "מנהל מלאי"
   });
   const [originalData, setOriginalData] = useState(formData);
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -58,14 +111,14 @@ const ManagerProfile = () => {
             name: userData.name || "",
             email: user.email || "",
             phone: userData.phone || "",
-            role: "מנהל" // Static role for Manager
+            role: "מנהל מלאי" // Static role for Manager
           });
           
           setOriginalData({
             name: userData.name || "",
             email: user.email || "",
             phone: userData.phone || "",
-            role: "מנהל"
+            role: "מנהל מלאי"
           });
           
           // Set avatar URL if exists
@@ -105,7 +158,25 @@ const ManagerProfile = () => {
     setAvatarUrl(newAvatarUrl);
   };
 
-  const handleAvatarDelete = () => {
+  const handleAvatarDelete = async () => {
+    if (!user?.uid) {
+      setAvatarUrl("");
+      return;
+    }
+    try {
+      // Delete all files in the user's avatar folder
+      const folderRef = ref(storage, `users/avatars/${user.uid}`);
+      const listResult = await import('firebase/storage').then(m => m.listAll(folderRef));
+      for (const fileRef of listResult.items) {
+        try {
+          await import('firebase/storage').then(m => m.deleteObject(fileRef));
+        } catch (error) {
+          // Ignore errors for individual files
+        }
+      }
+    } catch (error) {
+      // Ignore if folder doesn't exist
+    }
     setAvatarUrl("");
   };
 
@@ -114,6 +185,15 @@ const ManagerProfile = () => {
     if (!allFilled) {
       showAlert("אנא מלא את כל השדות החובה");
       return;
+    }
+
+    // Validate phone number if provided
+    if (formData.phone) {
+      const phoneValidation = validatePhoneNumber(formData.phone);
+      if (!phoneValidation.isValid) {
+        showAlert(phoneValidation.message);
+        return;
+      }
     }
 
     const user = auth.currentUser;
@@ -151,11 +231,19 @@ const ManagerProfile = () => {
           id={key}
           type={type}
           value={formData[key]}
-          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+          onChange={(e) => {
+            if (key === 'phone') {
+              handlePhoneInput(e.target.value, setFormData, key);
+            } else {
+              setFormData({ ...formData, [key]: e.target.value });
+            }
+          }}
           required={key === 'name' || key === 'email'}
           disabled={readOnly}
           readOnly={readOnly}
           className={`form-input ${readOnly ? 'readonly-input' : ''}`}
+          placeholder={key === 'phone' ? '050-000-0000' : ''}
+          maxLength={key === 'phone' ? 12 : undefined} // 050-000-0000 = 12 characters
         />
       </div>
     );
@@ -181,7 +269,7 @@ const ManagerProfile = () => {
           <div className="profile-header-info">
             <h1 className="profile-name">{formData.name || 'Manager'}</h1>
             <p className="profile-role">
-              <FontAwesomeIcon icon={faUserShield} className="role-icon" />
+              <FontAwesomeIcon icon={faUserTie} className="role-icon" />
               {formData.role}
             </p>
             <p className="profile-email">{formData.email}</p>

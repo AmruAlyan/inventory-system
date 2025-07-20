@@ -8,7 +8,6 @@ import image from "../assets/pics/login-2.png";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faKey, faExclamationTriangle, faEye, faEyeSlash, faEnvelope, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useLocation } from "react-router-dom";
-import ThemeSwitch from "../components/LayoutComponents/ThemeSwitch";
 import { ROLES } from "../constants/roles.js";
 import Logo from "../assets/pics/Home1.png";
 import Spinner from "../components/Spinner";

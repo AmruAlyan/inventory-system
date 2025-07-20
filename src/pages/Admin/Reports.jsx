@@ -17,7 +17,8 @@ import logo from "../../assets/pics/Home1.png";
 import "../../styles/ForManager/products.css";
 import "../../styles/ForAdmin/reports.css";
 
-const Reports = () => {  const [loading, setLoading] = useState(false);
+const Reports = () => {  
+  const [loading, setLoading] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState('budget'); // What user selected in dropdown
   const [reportType, setReportType] = useState('budget'); // What's actually being displayed
   const [dateRange, setDateRange] = useState({

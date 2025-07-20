@@ -244,7 +244,7 @@ export default function ProductModal({ onClose, product = null, onSave, mode = '
                 />
               </div>
               <div className='Product-form-group'>
-                <label>מלאי מינימום:</label>
+                <label>התראת חוסר במלאי:</label>
                 <input 
                   type="number" 
                   name="minStock" 

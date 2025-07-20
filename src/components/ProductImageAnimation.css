@@ -32,6 +32,8 @@
 .no-image-placeholder {
   font-size: 24px;
   color: #6c757d;
+  background: transparent;
+  border: none;
 }
 
 @keyframes flyToCart {

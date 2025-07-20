@@ -7,7 +7,7 @@ import CustomLine from "../../components/Charts/CustomLine";
 import CustomPie from "../../components/Charts/CustomPie";
 import CustomArea from "../../components/Charts/CustomArea";
 import SwitchableBarChart from "../../components/Charts/SwitchableBarChart";
-import Top3Categories from "../../components/Top3cat";
+import Top3Categories from "../../components/Top3Categories";
 import { db } from '../../firebase/firebase';
 import { collection, getDocs, doc, getDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import Spinner from '../../components/Spinner';

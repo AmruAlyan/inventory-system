@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { getStorage, ref as storageRef, deleteObject } from 'firebase/storage';
 import { db } from '../../firebase/firebase';
 import { faCartPlus, faEdit, faTrashAlt, faPlus, faFilter, faBoxesStacked, faSort, faSortUp, faSortDown, faList, faTableCells, faBorderAll } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -62,14 +63,33 @@ const Products = () => {
 
   const handleDelete = async (id) => {
     const product = products.find((p) => p.id === id);
-    
+
     const confirmed = await showConfirm(
       `האם אתה בטוח שברצונך למחוק את המוצר "${product?.name ?? ''}"? פעולה זו אינה ניתנת לביטול.`,
       'מחיקת מוצר'
     );
-    
+
     if (confirmed) {
       try {
+        // Delete product image from Firebase Storage if it exists
+        if (product && product.imageUrl) {
+          try {
+            const storage = getStorage();
+            // imageUrl is a download URL, need to get the storage path
+            // Firebase Storage download URLs are of the form:
+            // https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<path>?alt=media&token=...
+            // We need to extract the <path> part (decodeURIComponent)
+            const matches = product.imageUrl.match(/\/o\/(.+)\?/);
+            if (matches && matches[1]) {
+              const filePath = decodeURIComponent(matches[1]);
+              const imgRef = storageRef(storage, filePath);
+              await deleteObject(imgRef);
+            }
+          } catch (imgErr) {
+            // Log but don't block product deletion if image deletion fails
+            console.warn('Failed to delete product image from storage:', imgErr);
+          }
+        }
         await deleteDoc(doc(db, 'products', id));
         toast.success(`המוצר "${product?.name ?? ''}" נמחק בהצלחה`);
       } catch (error) {
@@ -87,6 +107,7 @@ const Products = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
+    setCurrentPage(1); // Reset to first page when searching
   };  const filterProducts = (products) => {
     return products.filter(product => {
       // First apply search filter

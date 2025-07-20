@@ -342,10 +342,9 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
 
   const handleEdit = (entry) => {
     setEditingEntry(entry.id);
-    const dateObj = toDateObj(entry.date);
     setEditForm({
       amount: entry.amount,
-      date: dateObj.toISOString().split('T')[0]
+      date: '' // Don't need date since we're not editing it
     });
   };
 
@@ -373,18 +372,14 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
       const oldEntryRef = doc(db, "budgets", "history", "entries", editingEntry);
       await deleteDoc(oldEntryRef);
 
-      // Create timestamp with current time but use the selected date
-      const selectedDate = new Date(editForm.date);
-      const now = new Date();
-      // Set the selected date but keep current time (this refreshes the edit window)
-      selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-      const newDateTimestamp = Timestamp.fromDate(selectedDate);
+      // Create new entry with updated amount but keep the original date
+      const newDateTimestamp = entry.date; // Keep the original date unchanged
       
       const historyRef = collection(db, "budgets", "history", "entries");
       const newDocRef = await addDoc(historyRef, {
         amount: newAmount,
         totalBudget: newTotalBudget,
-        date: newDateTimestamp // Save with current timestamp to refresh edit window
+        date: newDateTimestamp // Keep original date
       });
 
       // Update current total budget
@@ -401,7 +396,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
             id: newDocRef.id,
             amount: newAmount,
             totalBudget: newTotalBudget,
-            date: newDateTimestamp // Use the refreshed timestamp
+            date: newDateTimestamp // Use the original date unchanged
           })
           .sort((a, b) => toDateObj(b.date).getTime() - toDateObj(a.date).getTime())
       );
@@ -513,14 +508,7 @@ const BudgetHistoryTable = ({ onBudgetChange, refreshTrigger }) => {
                 {currentHistory.map(entry => (
                   <tr key={entry.id}>
                     <td>
-                      {editingEntry === entry.id ? (
-                        <input
-                          type="date"
-                          value={editForm.date}
-                          onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
-                          className="date-input"
-                        />
-                      ) : canEditEntry(entry) ? (
+                      {canEditEntry(entry) ? (
                         <div style={{ fontSize: '0.9em' }}>
                           <div style={{ fontWeight: 'bold' }}>{formatDate(entry.date)}</div>
                           <div style={{ color: '#666', fontSize: '0.85em' }}>

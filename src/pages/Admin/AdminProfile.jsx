@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../../firebase/firebase";
+import { auth, db, storage } from "../../firebase/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -53,8 +53,22 @@ const AdminProfile = () => {
   };
 
   // Handle avatar image delete
-  const handleAvatarDelete = () => {
-    setAvatarUrl('');
+  const handleAvatarDelete = async () => {
+    if (!user?.uid) {
+      setAvatarUrl("");
+      return;
+    }
+    try {
+      // Delete all files in the user's avatar folder in Firebase Storage
+      const folderRef = storage.ref().child(`users/avatars/${user.uid}`);
+      const listResult = await folderRef.listAll();
+      const deletePromises = listResult.items.map((itemRef) => itemRef.delete());
+      await Promise.all(deletePromises);
+      setAvatarUrl("");
+    } catch (error) {
+      console.error("Failed to delete avatar from storage:", error);
+      setAvatarUrl("");
+    }
   };
 
   const formatPhoneNumber = (phoneNumber) => {
@@ -77,6 +91,53 @@ const AdminProfile = () => {
     
     // Return original if doesn't match expected format
     return phoneNumber;
+  };
+
+  // Validate phone number format
+  const validatePhoneNumber = (phoneNumber) => {
+    if (!phoneNumber || phoneNumber.trim() === '') {
+      return { isValid: true, message: '' }; // Empty is allowed
+    }
+    
+    // Remove all non-digit characters
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    
+    // Check if it has exactly 10 digits and starts with 05
+    if (cleaned.length !== 10) {
+      return { isValid: false, message: 'מספר הטלפון חייב להכיל בדיוק 10 ספרות' };
+    }
+    
+    if (!cleaned.startsWith('05')) {
+      return { isValid: false, message: 'מספר הטלפון חייב להתחיל ב-05' };
+    }
+    
+    // Check if the third digit is valid (Israeli mobile numbers)
+    const validThirdDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    if (!validThirdDigits.includes(cleaned[2])) {
+      return { isValid: false, message: 'מספר הטלפון אינו תקין' };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
+  // Handle phone number input with real-time formatting
+  const handlePhoneInput = (value, setState, fieldName) => {
+    // Remove all non-digit characters
+    const cleaned = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limited = cleaned.slice(0, 10);
+    
+    // Format as user types
+    let formatted = limited;
+    if (limited.length >= 3) {
+      formatted = `${limited.slice(0, 3)}${limited.length > 3 ? '-' : ''}${limited.slice(3)}`;
+    }
+    if (limited.length >= 6) {
+      formatted = `${limited.slice(0, 3)}-${limited.slice(3, 6)}${limited.length > 6 ? '-' : ''}${limited.slice(6)}`;
+    }
+    
+    setState(prev => ({ ...prev, [fieldName]: formatted }));
   };
 
   useEffect(() => {
@@ -175,6 +236,15 @@ const AdminProfile = () => {
     if (newUser.tempPassword.length < 6) {
       toast.error('הסיסמה הזמנית חייבת להכיל לפחות 6 תווים');
       return;
+    }
+
+    // Validate phone number if provided
+    if (newUser.phone) {
+      const phoneValidation = validatePhoneNumber(newUser.phone);
+      if (!phoneValidation.isValid) {
+        toast.error(phoneValidation.message);
+        return;
+      }
     }
 
     try {
@@ -280,6 +350,15 @@ const AdminProfile = () => {
       return;
     }
 
+    // Validate phone number if provided
+    if (editingUser.phone) {
+      const phoneValidation = validatePhoneNumber(editingUser.phone);
+      if (!phoneValidation.isValid) {
+        toast.error(phoneValidation.message);
+        return;
+      }
+    }
+
     try {
       // Update user data in Firestore (NO PASSWORD - Firebase Auth handles passwords)
       await setDoc(doc(db, 'users', editingUser.id), {
@@ -345,6 +424,15 @@ const confirmEdit = async () => {
     if (!allFilled) {
       showAlert("אנא מלא את כל השדות");
       return;
+    }
+
+    // Validate phone number if provided
+    if (formData.phone) {
+      const phoneValidation = validatePhoneNumber(formData.phone);
+      if (!phoneValidation.isValid) {
+        showAlert(phoneValidation.message);
+        return;
+      }
     }
   
     // Reference to the current authenticated user
@@ -428,11 +516,19 @@ const confirmEdit = async () => {
           id={key}
           type={type}
           value={formData[key]}
-          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+          onChange={(e) => {
+            if (key === 'phone') {
+              handlePhoneInput(e.target.value, setFormData, key);
+            } else {
+              setFormData({ ...formData, [key]: e.target.value });
+            }
+          }}
           required
           disabled={readOnly}
           readOnly={readOnly}
           className={`form-input ${readOnly ? 'readonly-input' : ''}`}
+          placeholder={key === 'phone' ? '050-000-0000' : ''}
+          maxLength={key === 'phone' ? 12 : undefined} // 050-000-0000 = 12 characters
         />
         {/* {readOnly && (
           <div className="readonly-indicator">
@@ -639,7 +735,7 @@ const confirmEdit = async () => {
                       className="form-input"
                       style={{ direction: 'rtl', textAlign: 'right' }}
                     >
-                      <option value={ROLES.MANAGER}>מנהל</option>
+                      <option value={ROLES.MANAGER}>מנהל מלאי</option>
                       <option value={ROLES.ADMIN}>מנכ"ל</option>
                     </select>
                   </div>
@@ -696,10 +792,10 @@ const confirmEdit = async () => {
                     <input
                       type="tel"
                       value={newUser.phone}
-                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      onChange={(e) => handlePhoneInput(e.target.value, setNewUser, 'phone')}
                       className="form-input"
-                      placeholder="05X-XXXXXXX"
-                      // style={{ direction: 'ltr', textAlign: 'left' }}
+                      placeholder="050-000-0000"
+                      maxLength="12"
                     />
                   </div>
                 </div>
@@ -777,16 +873,17 @@ const confirmEdit = async () => {
                           <input
                             type="tel"
                             value={editingUser.phone || ''}
-                            onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                            onChange={(e) => handlePhoneInput(e.target.value, setEditingUser, 'phone')}
                             className="edit-input"
-                            placeholder="טלפון"
+                            placeholder="050-000-0000"
+                            maxLength="12"
                           />
                           <select
                             value={editingUser.role}
                             onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                             className="edit-input"
                           >
-                            <option value={ROLES.MANAGER}>מנהל</option>
+                            <option value={ROLES.MANAGER}>מנהל מלאי</option>
                             <option value={ROLES.ADMIN}>מנכ"ל</option>
                           </select>
                         </div>
@@ -829,7 +926,7 @@ const confirmEdit = async () => {
                           {user.phone && <p className="user-email">{formatPhoneNumber(user.phone)}</p>}
                           <div className="user-status-role">
                             <span className={`user-role-badge ${user.role === ROLES.ADMIN ? 'admin' : user.role === ROLES.BLOCKED ? 'blocked' : 'manager'}`}>
-                              {user.role === ROLES.ADMIN ? 'מנכ"ל' : user.role === ROLES.BLOCKED ? 'חסום' : 'מנהל'}
+                              {user.role === ROLES.ADMIN ? 'מנכ"ל' : user.role === ROLES.BLOCKED ? 'חסום' : 'מנהל מלאי'}
                             </span>
                           </div>
                         </div>

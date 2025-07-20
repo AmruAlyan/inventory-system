@@ -159,29 +159,36 @@ const ImageUpload = ({
     setUploading(true);
     try {
       const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop);
-      
       if (!croppedImageBlob) {
         throw new Error('Failed to create cropped image');
       }
-      
-      // Upload to Firebase Storage
-      const timestamp = Date.now();
-      const fileName = `${uploadPath}/${productId || 'temp'}_${timestamp}.jpg`;
+
+      // For user avatars, always empty the user's avatar folder before uploading
+      let fileName;
+      if (uploadPath === 'users/avatars' && productId) {
+        const folderRef = ref(storage, `${uploadPath}/${productId}`);
+        try {
+          const listResult = await import('firebase/storage').then(m => m.listAll(folderRef));
+          for (const fileRef of listResult.items) {
+            try {
+              await deleteObject(fileRef);
+            } catch (error) {
+              // Ignore errors for individual files
+            }
+          }
+        } catch (error) {
+          // Ignore if folder doesn't exist
+        }
+        fileName = `${uploadPath}/${productId}/avatar.jpg`;
+      } else {
+        // For products or other uploads, keep old logic
+        const timestamp = Date.now();
+        fileName = `${uploadPath}/${productId || 'temp'}_${timestamp}.jpg`;
+      }
       const storageRef = ref(storage, fileName);
-      
       await uploadBytes(storageRef, croppedImageBlob);
       const downloadURL = await getDownloadURL(storageRef);
-      
-      // If there was a previous image, delete it
-      if (currentImageUrl && productId) {
-        try {
-          const oldImageRef = ref(storage, currentImageUrl);
-          await deleteObject(oldImageRef);
-        } catch (error) {
-          // Ignore errors when deleting old image
-        }
-      }
-      
+
       onImageChange(downloadURL);
       setShowCropModal(false);
       setSrc(null);
@@ -196,21 +203,35 @@ const ImageUpload = ({
 
   const handleRemoveImage = async () => {
     if (!currentImageUrl) return;
-    
+
     // If in edit mode and a custom delete handler is provided, use it
-    // This allows the parent component to handle the deletion logic
     if (mode === 'edit' && onImageDelete) {
       onImageDelete();
       return;
     }
-    
-    // For add mode or when no custom handler is provided, delete immediately
+
     setUploading(true);
     try {
-      // Delete from Firebase Storage
-      const imageRef = ref(storage, currentImageUrl);
-      await deleteObject(imageRef);
-      
+      // For user avatars, empty the user's avatar folder
+      if (uploadPath === 'users/avatars' && productId) {
+        const folderRef = ref(storage, `${uploadPath}/${productId}`);
+        try {
+          const listResult = await import('firebase/storage').then(m => m.listAll(folderRef));
+          for (const fileRef of listResult.items) {
+            try {
+              await deleteObject(fileRef);
+            } catch (error) {
+              // Ignore errors for individual files
+            }
+          }
+        } catch (error) {
+          // Ignore if folder doesn't exist
+        }
+      } else {
+        // Delete from Firebase Storage (old logic)
+        const imageRef = ref(storage, currentImageUrl);
+        await deleteObject(imageRef);
+      }
       onImageChange(null);
     } catch (error) {
       console.error('Error deleting image:', error);

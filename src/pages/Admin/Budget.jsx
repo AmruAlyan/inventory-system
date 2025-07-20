@@ -22,6 +22,7 @@ const Budget = () => {
   const [refreshData, setRefreshData] = useState(false);
   const [tableRefreshTrigger, setTableRefreshTrigger] = useState(0);
   const [purchaseChartData, setPurchaseChartData] = useState([]);
+  const [minAllowedDate, setMinAllowedDate] = useState("");
 
   useEffect(() => {
     const fetchBudgetData = async () => {
@@ -97,6 +98,29 @@ const Budget = () => {
         }
         
         setPurchaseChartData(purchasesData);
+        
+        // Calculate minimum allowed date based on latest budget entry or purchase
+        let latestTransactionDate = null;
+        
+        // Check latest budget history entry
+        if (historyData.length > 0) {
+          latestTransactionDate = historyData[0].date;
+        }
+        
+        // Check latest purchase entry and compare
+        if (purchasesData.length > 0) {
+          const latestPurchaseDate = purchasesData[0].date;
+          if (!latestTransactionDate || latestPurchaseDate > latestTransactionDate) {
+            latestTransactionDate = latestPurchaseDate;
+          }
+        }
+        
+        // Set minimum date (if no transactions, allow any date up to today)
+        if (latestTransactionDate) {
+          setMinAllowedDate(latestTransactionDate.toISOString().split("T")[0]);
+        } else {
+          setMinAllowedDate(""); // No minimum restriction if no previous transactions
+        }
         
         // Set form data based on budget document and history
         const currentBudget = budgetSnapshot.exists() ? (budgetSnapshot.data().totalBudget || 0) : 0;
@@ -333,6 +357,7 @@ const Budget = () => {
                       required
                       value={formData.updates.date}
                       className="date-input"
+                      min={minAllowedDate} // Minimum date based on latest transaction
                       max={new Date().toISOString().split("T")[0]} // Prevent future dates
                       onChange={(e) => {
                         const inputDate = e.target.value;

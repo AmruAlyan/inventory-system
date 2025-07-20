@@ -18,6 +18,7 @@ import Purchases from "./pages/Manager/Purchases";
 import ManagerDash from "./pages/Manager/ManagerDash";
 import ConsumedItems from "./pages/Manager/ConsumedItems";
 import AdminDash from "./pages/Admin/AdminDash";
+import NotFound from "./pages/NotFound";
 import { DataProvider } from './context/DataContext';
 
 function App() {
@@ -66,6 +67,9 @@ function App() {
             <Route path="consumed-items" element={<ConsumedItems />} />
             <Route path="profile" element={<ManagerProfile />} />
           </Route>
+          
+          {/* Catch-all route for 404 errors */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </DataProvider>
